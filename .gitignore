@@ -1,0 +1,9 @@
+*.retry
+.idea/
+configs/*
+terraform.tfstate*
+inventory_users
+*.kate-swp
+env
+.DS_Store
+.terraform
