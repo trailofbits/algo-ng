@@ -23,3 +23,7 @@ pkcs12_PayloadCertificateUUID: "{{ 900000 | random | to_uuid | upper }}"
 VPN_PayloadIdentifier: "{{ 800000 | random | to_uuid | upper }}"
 CA_PayloadIdentifier: "{{ 700000 | random | to_uuid | upper }}"
 users: "{{ vpn_users.split(',') }}"
+fail_hint:
+  - Sorry, but something went wrong!
+  - Please check the troubleshooting guide.
+  - https://trailofbits.github.io/algo/troubleshooting.html

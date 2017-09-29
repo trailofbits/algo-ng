@@ -3,14 +3,13 @@ data "template_file" "cloud_init_vpn" {
   vars {
     git_source        = "${var.git_source}"
     deploy_playbook   = "${var.deploy_playbook}"
-    server_name       = "${digitalocean_floating_ip.algo.ip_address}"
     vpn_users         = "${join(",", var.vpn_users)}"
   }
 }
 
 data "template_cloudinit_config" "cloud_init" {
-  gzip          = true
-  base64_encode = true
+  gzip          = false
+  base64_encode = false
 
   part {
     filename     = "main"

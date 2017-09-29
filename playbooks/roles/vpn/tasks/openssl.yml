@@ -45,7 +45,7 @@
       -keyout private/cakey.pem
       -out cacert.pem -x509 -days 3650
       -batch
-      -passout pass:"{{ easyrsa_CA_password }}" &&
+      -passout pass:{{ easyrsa_CA_password }} &&
       touch {{ IP_subject_alt_name }}_ca_generated
     args:
       chdir: "configs/{{ IP_subject_alt_name }}/pki/"
@@ -72,13 +72,13 @@
       -config openssl.cnf
       -keyout private/{{ IP_subject_alt_name }}.key
       -out reqs/{{ IP_subject_alt_name }}.req -nodes
-      -passin pass:"{{ easyrsa_CA_password }}"
+      -passin pass:{{ easyrsa_CA_password }}
       -subj "/CN={{ IP_subject_alt_name }}" -batch &&
       openssl ca -utf8
       -in reqs/{{ IP_subject_alt_name }}.req
       -out certs/{{ IP_subject_alt_name }}.crt
       -config openssl.cnf -days 3650 -batch
-      -passin pass:"{{ easyrsa_CA_password }}"
+      -passin pass:{{ easyrsa_CA_password }}
       -subj "/CN={{ IP_subject_alt_name }}" &&
       touch certs/{{ IP_subject_alt_name }}_crt_generated
     args:
@@ -94,13 +94,13 @@
       -config openssl.cnf
       -keyout private/{{ item }}.key
       -out reqs/{{ item }}.req -nodes
-      -passin pass:"{{ easyrsa_CA_password }}"
+      -passin pass:{{ easyrsa_CA_password }}
       -subj "/CN={{ item }}" -batch &&
       openssl ca -utf8
       -in reqs/{{ item }}.req
       -out certs/{{ item }}.crt
       -config openssl.cnf -days 3650 -batch
-      -passin pass:"{{ easyrsa_CA_password }}"
+      -passin pass:{{ easyrsa_CA_password }}
       -subj "/CN={{ item }}" &&
       touch certs/{{ item }}_crt_generated
     args:
@@ -119,7 +119,7 @@
       -name {{ item }}
       -out private/{{ item }}.p12
       -certfile cacert.pem
-      -passout pass:"{{ easyrsa_p12_export_password }}"
+      -passout pass:{{ easyrsa_p12_export_password }}
     args:
       chdir: "configs/{{ IP_subject_alt_name }}/pki/"
     with_items: "{{ users }}"
@@ -136,7 +136,7 @@
   - name: Get active users
     shell: >
       grep ^V index.txt |
-      grep -v "{{ IP_subject_alt_name }}" |
+      grep -v {{ IP_subject_alt_name }} |
       awk '{print $5}' |
       sed 's/\/CN=//g'
     args:
@@ -147,7 +147,7 @@
     shell: >
       openssl ca -gencrl
       -config openssl.cnf
-      -passin pass:"{{ easyrsa_CA_password }}"
+      -passin pass:{{ easyrsa_CA_password }}
       -revoke certs/{{ item }}.crt
       -out crl/{{ item }}.crt
     args:
