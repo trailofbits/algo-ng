@@ -1,0 +1,29 @@
+---
+
+strongswan_enabled_plugins:
+  - aes
+  - gcm
+  - hmac
+  - kernel-netlink
+  - nonce
+  - openssl
+  - pem
+  - pgp
+  - pkcs12
+  - pkcs7
+  - pkcs8
+  - pubkey
+  - random
+  - revocation
+  - sha2
+  - socket-default
+  - stroke
+  - x509
+
+ciphers:
+  defaults:
+    ike: aes128gcm16-prfsha512-ecp256!
+    esp: aes128gcm16-ecp256!
+  compat:
+    ike: aes128gcm16-prfsha512-ecp256,aes128-sha2_512-prfsha512-ecp256,aes128-sha2_384-prfsha384-ecp256!
+    esp: aes128gcm16-ecp256,aes128-sha2_512-prfsha512-ecp256!

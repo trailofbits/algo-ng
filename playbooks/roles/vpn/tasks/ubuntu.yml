@@ -1,0 +1,48 @@
+---
+
+- set_fact:
+    strongswan_additional_plugins: []
+
+- name: Ubuntu | Install strongSwan
+  apt:
+    name: strongswan
+    state: latest
+    update_cache: yes
+    install_recommends: yes
+
+- name: Ubuntu | Enforcing ipsec with apparmor
+  shell: aa-enforce "{{ item }}"
+  when: apparmor_enabled|default(false) == true
+  with_items:
+    - /usr/lib/ipsec/charon
+    - /usr/lib/ipsec/lookip
+    - /usr/lib/ipsec/stroke
+  notify:
+    - restart apparmor
+  tags: ['apparmor']
+
+- name: Ubuntu | Enable services
+  service: name={{ item }} enabled=yes
+  with_items:
+    - apparmor
+    - strongswan
+    - netfilter-persistent
+
+- name: Ubuntu | Ensure that the strongswan service directory exist
+  file:
+    path: /etc/systemd/system/strongswan.service.d/
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+
+- name: Ubuntu | Setup the cgroup limitations for the ipsec daemon
+  template:
+    src: 100-CustomLimitations.conf.j2
+    dest: /etc/systemd/system/strongswan.service.d/100-CustomLimitations.conf
+  notify:
+    - daemon-reload
+    - restart strongswan
+
+- include: iptables.yml
+  tags: iptables

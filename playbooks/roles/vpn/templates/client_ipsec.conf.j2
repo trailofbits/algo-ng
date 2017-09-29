@@ -1,0 +1,28 @@
+conn ikev2-{{ IP_subject_alt_name }}
+    fragmentation=yes
+    rekey=no
+    dpdaction=clear
+    keyexchange=ikev2
+    compress=no
+    dpddelay=35s
+
+{% if Win10_Enabled is defined and Win10_Enabled == "Y" %}
+    ike={{ ciphers.compat.ike }}
+    esp={{ ciphers.compat.esp }}
+{% else %}
+    ike={{ ciphers.defaults.ike }}
+    esp={{ ciphers.defaults.esp }}
+{% endif %}
+
+    right={{ IP_subject_alt_name }}
+    rightid={{ IP_subject_alt_name }}
+    rightsubnet=0.0.0.0/0
+    rightauth=pubkey
+
+    leftsourceip=%config
+    leftauth=pubkey
+    leftcert={{ item }}.crt
+    leftfirewall=yes
+    left=%defaultroute
+
+    auto=add

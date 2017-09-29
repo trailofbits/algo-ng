@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>IKEv2</key>
+            <dict>
+{% if (OnDemandEnabled_WIFI is defined and OnDemandEnabled_WIFI == 'Y') or (OnDemandEnabled_Cellular is defined and OnDemandEnabled_Cellular == 'Y') %}
+              <key>OnDemandEnabled</key>
+                <integer>1</integer>
+              <key>OnDemandRules</key>
+              <array>
+{% if OnDemandEnabled_WIFI_EXCLUDE is defined and OnDemandEnabled_WIFI_EXCLUDE != '_null' %}
+{% set WIFI_EXCLUDE_LIST = OnDemandEnabled_WIFI_EXCLUDE.split(',') %}
+                  <dict>
+                      <key>Action</key>
+                      <string>Disconnect</string>
+                      <key>InterfaceTypeMatch</key>
+                      <string>WiFi</string>
+                      <key>SSIDMatch</key>
+                      <array>
+{% for network_name in WIFI_EXCLUDE_LIST %}
+                          <string>{{ network_name|e }}</string>
+{% endfor %}
+                      </array>
+                  </dict>
+{% else %}
+{% endif %}
+                  <dict>
+                    <key>Action</key>
+{% if OnDemandEnabled_WIFI is defined and OnDemandEnabled_WIFI == 'Y' %}
+                      <string>Connect</string>
+  {% else %}
+                      <string>Disconnect</string>
+{% endif %}
+                    <key>InterfaceTypeMatch</key>
+                      <string>WiFi</string>
+                    <key>URLStringProbe</key>
+                      <string>http://captive.apple.com/hotspot-detect.html</string>
+                  </dict>
+                  <dict>
+                    <key>Action</key>
+{% if OnDemandEnabled_Cellular is defined and OnDemandEnabled_Cellular == 'Y' %}
+                      <string>Connect</string>
+  {% else %}
+                      <string>Disconnect</string>
+{% endif %}
+                    <key>InterfaceTypeMatch</key>
+                      <string>Cellular</string>
+                    <key>URLStringProbe</key>
+                      <string>http://captive.apple.com/hotspot-detect.html</string>
+                  </dict>
+                </array>
+{% else %}
+{% endif %}
+                <key>AuthenticationMethod</key>
+                <string>Certificate</string>
+                <key>ChildSecurityAssociationParameters</key>
+                <dict>
+                    <key>DiffieHellmanGroup</key>
+                    <integer>19</integer>
+                    <key>EncryptionAlgorithm</key>
+                    <string>AES-128-GCM</string>
+                    <key>IntegrityAlgorithm</key>
+                    <string>SHA2-512</string>
+                    <key>LifeTimeInMinutes</key>
+                    <integer>20</integer>
+                </dict>
+                <key>DeadPeerDetectionRate</key>
+                <string>Medium</string>
+                <key>DisableMOBIKE</key>
+                <integer>0</integer>
+                <key>DisableRedirect</key>
+                <integer>1</integer>
+                <key>EnableCertificateRevocationCheck</key>
+                <integer>0</integer>
+                <key>EnablePFS</key>
+                <true/>
+                <key>IKESecurityAssociationParameters</key>
+                <dict>
+                    <key>DiffieHellmanGroup</key>
+                    <integer>19</integer>
+                    <key>EncryptionAlgorithm</key>
+                    <string>AES-128-GCM</string>
+                    <key>IntegrityAlgorithm</key>
+                    <string>SHA2-512</string>
+                    <key>LifeTimeInMinutes</key>
+                    <integer>20</integer>
+                </dict>
+                <key>LocalIdentifier</key>
+                <string>{{ item.0 }}</string>
+                <key>PayloadCertificateUUID</key>
+                <string>{{ pkcs12_PayloadCertificateUUID }}</string>
+                <key>CertificateType</key>
+                <string>ECDSA256</string>
+                <key>ServerCertificateIssuerCommonName</key>
+                <string>{{ IP_subject_alt_name }}</string>
+                <key>RemoteAddress</key>
+                <string>{{ IP_subject_alt_name }}</string>
+                <key>RemoteIdentifier</key>
+                <string>{{ IP_subject_alt_name }}</string>
+                <key>UseConfigurationAttributeInternalIPSubnet</key>
+                <integer>0</integer>
+            </dict>
+            <key>IPv4</key>
+            <dict>
+                <key>OverridePrimary</key>
+                <integer>1</integer>
+            </dict>
+            <key>PayloadDescription</key>
+            <string>Configures VPN settings</string>
+            <key>PayloadDisplayName</key>
+            <string>VPN</string>
+            <key>PayloadIdentifier</key>
+            <string>com.apple.vpn.managed.{{ VPN_PayloadIdentifier }}</string>
+            <key>PayloadType</key>
+            <string>com.apple.vpn.managed</string>
+            <key>PayloadUUID</key>
+            <string>{{ VPN_PayloadIdentifier }}</string>
+            <key>PayloadVersion</key>
+            <real>1</real>
+            <key>Proxies</key>
+            <dict>
+                <key>HTTPEnable</key>
+{% if proxy_enabled is defined and proxy_enabled == true %}
+                <integer>1</integer>
+                <key>HTTPPort</key>
+                <integer>8118</integer>
+                <key>HTTPProxy</key>
+                <string>{{ local_service_ip }}</string>
+  {% else %}
+                <integer>0</integer>
+{% endif %}
+                <key>HTTPSEnable</key>
+                <integer>0</integer>
+            </dict>
+            <key>UserDefinedName</key>
+{% if proxy_enabled is defined and proxy_enabled == true %}
+            <string>Algo VPN {{ IP_subject_alt_name }} IKEv2 with proxy</string>
+  {% else %}
+            <string>Algo VPN {{ IP_subject_alt_name }} IKEv2</string>
+{% endif %}
+            <key>VPNType</key>
+            <string>IKEv2</string>
+        </dict>
+        <dict>
+            <key>Password</key>
+            <string>{{ easyrsa_p12_export_password }}</string>
+            <key>PayloadCertificateFileName</key>
+            <string>{{ item.0 }}.p12</string>
+            <key>PayloadContent</key>
+            <data>
+            {{ item.1.stdout }}
+            </data>
+            <key>PayloadDescription</key>
+            <string>Adds a PKCS#12-formatted certificate</string>
+            <key>PayloadDisplayName</key>
+            <string>{{ item.0 }}.p12</string>
+            <key>PayloadIdentifier</key>
+            <string>com.apple.security.pkcs12.{{ pkcs12_PayloadCertificateUUID }}</string>
+            <key>PayloadType</key>
+            <string>com.apple.security.pkcs12</string>
+            <key>PayloadUUID</key>
+            <string>{{ pkcs12_PayloadCertificateUUID }}</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+        </dict>
+        <dict>
+            <key>PayloadCertificateFileName</key>
+            <string>ca.crt</string>
+            <key>PayloadContent</key>
+            <data>
+            {{ PayloadContentCA }}
+            </data>
+            <key>PayloadDescription</key>
+            <string>Adds a CA root certificate</string>
+            <key>PayloadDisplayName</key>
+            <string>{{ IP_subject_alt_name }}</string>
+            <key>PayloadIdentifier</key>
+            <string>com.apple.security.root.{{ CA_PayloadIdentifier }}</string>
+            <key>PayloadType</key>
+            <string>com.apple.security.root</string>
+            <key>PayloadUUID</key>
+            <string>{{ CA_PayloadIdentifier }}</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+        </dict>
+    </array>
+    <key>PayloadDisplayName</key>
+{% if proxy_enabled is defined and proxy_enabled == true %}
+    <string>{{ IP_subject_alt_name }} IKEv2 with proxy</string>
+  {% else %}
+    <string>{{ IP_subject_alt_name }} IKEv2</string>
+{% endif %}
+    <key>PayloadIdentifier</key>
+{% if proxy_enabled is defined and proxy_enabled == true %}
+    <string>donut.local.{{ 600000 | random | to_uuid | upper }}</string>
+  {% else %}
+    <string>donut.local.{{ 500000 | random | to_uuid | upper }}</string>
+{% endif %}
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>{{ 400000 | random | to_uuid | upper }}</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>

@@ -1,0 +1,38 @@
+config setup
+    uniqueids=never # allow multiple connections per user
+    charondebug="ike 2, knl 2, cfg 2, net 2, esp 2, dmn 2,  mgr 2"
+
+conn %default
+    fragmentation=yes
+    rekey=no
+    dpdaction=clear
+    keyexchange=ikev2
+    compress=yes
+    dpddelay=35s
+
+{% if Win10_Enabled is defined and Win10_Enabled == "Y" %}
+    ike={{ ciphers.compat.ike }}
+    esp={{ ciphers.compat.esp }}
+{% else %}
+    ike={{ ciphers.defaults.ike }}
+    esp={{ ciphers.defaults.esp }}
+{% endif %}
+
+    left=%any
+    leftauth=pubkey
+    leftid={{ IP_subject_alt_name }}
+    leftcert={{ IP_subject_alt_name }}.crt
+    leftsendcert=always
+    leftsubnet=0.0.0.0/0,::/0
+
+    right=%any
+    rightauth=pubkey
+    rightsourceip={{ vpn_network }},{{ vpn_network_ipv6 }}
+{% if local_dns is defined and local_dns == "Y" %}
+    rightdns={{ local_service_ip }}
+{% else %}
+    rightdns={% for host in dns_servers.ipv4 %}{{ host }}{% if not loop.last %},{% endif %}{% endfor %}{% if ipv6_support is defined and ipv6_support == "yes" %},{% for host in dns_servers.ipv6 %}{{ host }}{% if not loop.last %},{% endif %}{% endfor %}{% endif %}
+{% endif %}
+
+conn ikev2-pubkey
+    auto=add
