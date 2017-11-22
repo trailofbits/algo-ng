@@ -1,12 +1,9 @@
 variable "vpn_users" {
+  description = "Add as many users as you want for your VPN server here. Credentials will be generated for each one"
   default = [
     "dan",
     "jack",
   ]
-}
-
-variable "also_ssh_private" {
-  default = "configs/algo_ssh.pem"
 }
 
 variable "cloud_digitalocean" {
@@ -15,12 +12,4 @@ variable "cloud_digitalocean" {
 
 variable "algo_instance" {
   default = ""
-}
-
-variable "git_source" {
-  default = "https://github.com/trailofbits/algo-ng"
-}
-
-variable "deploy_playbook" {
-  default = "playbooks/algo.yml"
 }

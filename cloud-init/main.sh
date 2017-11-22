@@ -21,4 +21,4 @@ host_key_checking = False
 timeout = 60
 EOF
 
-ansible-pull -U https://github.com/trailofbits/algo-ng ${deploy_playbook} -e 'server_name=`cat /opt/algo/.server_ip` vpn_users=${vpn_users}' -i /root/inventory -vvvv
+${ansible_command}

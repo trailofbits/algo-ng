@@ -1,4 +1,7 @@
-variable "do_token" {}
+variable "do_token" {
+  default = "95cfdfe5490edc4c183f9ff62c404d0bd37700f87a15c80251dd324e6a74a968"
+  description = "Enter your API token. The token must have read and write permissions (https://cloud.digitalocean.com/settings/api/tokens):"
+}
 
 variable "do_image" {
   default = "ubuntu-16-04-x64"
@@ -34,6 +37,28 @@ resource "digitalocean_droplet" "algo" {
   ssh_keys  = [
     "${digitalocean_ssh_key.algo.id}"
   ]
+
+  provisioner "remote-exec" {
+    inline  = [ "# Connected!" ]
+
+    connection {
+      type        = "ssh"
+      host        = "${digitalocean_droplet.algo.ipv4_address}"
+      private_key = "${tls_private_key.algo_ssh.private_key_pem}"
+    }
+  }
+
+  provisioner "remote-exec" {
+    inline  = [
+      "mkdir -p /opt/algo/",
+      "echo ${join(",", var.vpn_users)} > /opt/algo/.vpn_users"
+    ]
+    connection {
+      type        = "ssh"
+      host        = "${digitalocean_droplet.algo.ipv4_address}"
+      private_key = "${tls_private_key.algo_ssh.private_key_pem}"
+    }
+  }
 }
 
 resource "digitalocean_floating_ip" "algo" {
@@ -66,6 +91,31 @@ resource "null_resource" "update_server_ip" {
     inline = [
       "mkdir -p /opt/algo/",
       "echo ${digitalocean_floating_ip.algo.ip_address} > /opt/algo/.server_ip"
+    ]
+  }
+}
+
+resource "null_resource" "update_users" {
+  count   = "${var.cloud_digitalocean == "true" ? 1 : 0}"
+  triggers {
+    vpn_users = "${join(",", var.vpn_users)}"
+  }
+
+  connection {
+    type        = "ssh"
+    host        = "${digitalocean_floating_ip.algo.ip_address}"
+    private_key = "${tls_private_key.algo_ssh.private_key_pem}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [ "# Connected!" ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "mkdir -p /opt/algo/",
+      "echo ${join(",", var.vpn_users)} > /opt/algo/.vpn_users",
+      "${var.ansible_command} -t update_users | tee -a /var/log/algo.log"
     ]
   }
 }
