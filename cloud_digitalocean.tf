@@ -1,5 +1,4 @@
 variable "do_token" {
-  default = "95cfdfe5490edc4c183f9ff62c404d0bd37700f87a15c80251dd324e6a74a968"
   description = "Enter your API token. The token must have read and write permissions (https://cloud.digitalocean.com/settings/api/tokens):"
 }
 
