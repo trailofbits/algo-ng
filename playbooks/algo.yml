@@ -10,6 +10,10 @@
   roles:
     - role: pre
       tags: always
+    - role: dns_adblocking
+      tags:
+        - dns
+        - adblock
     - role: vpn
       tags:
         - vpn
