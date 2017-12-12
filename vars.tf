@@ -3,10 +3,50 @@ variable "vpn_users" {
   default = "dan,jack1"
 }
 
-variable "cloud_digitalocean" {
-  default = "true"
+variable "algo_name" {
+  default = "algo-ng"
 }
 
-variable "algo_instance" {
-  default = ""
+variable "provider" {
+  default = "digitalocean"
+}
+
+variable "components" {
+  type    = "map"
+  default = {
+    vpn             = true
+    dns_adblocking  = true
+    ssh_tunneling   = true
+    security        = true
+  }
+}
+
+variable "image" {
+  type    = "map"
+  default = {
+    digitalocean  = "ubuntu-16-04-x64"
+    ec2           = "ubuntu-xenial-16.04"
+    gce           = "ubuntu-1604"
+    azure         = "16.04-LTS"
+  }
+}
+
+variable "size" {
+  type    = "map"
+  default = {
+    digitalocean  = "512mb"
+    ec2           = "t2.micro"
+    gce           = "f1-micro"
+    azure         = "Basic_A0"
+  }
+}
+
+variable "region" {
+  type    = "map"
+  default = {
+    digitalocean  = "ams3"
+    ec2           = "us-east-1"
+    gce           = "europe-west1-b"
+    azure         = "westus2"
+  }
 }

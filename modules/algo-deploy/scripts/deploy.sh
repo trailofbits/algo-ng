@@ -3,11 +3,13 @@
 VPN_USERS="$1"
 CA_PASSWORD="$2"
 
+echo 'precedence ::ffff:0:0/96  100' >> /etc/gai.conf
+
 if [[ -e /opt/.algo_init ]]
 then
   ARGS="-t update-users --skip-tags common"
 else
-  ARGS=""
+  ARGS="-t $TAGS"
   apt-get install software-properties-common -y
   apt-add-repository ppa:ansible/ansible -y
   rm -rf /var/lib/apt/lists/*
