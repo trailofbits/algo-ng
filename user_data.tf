@@ -1,8 +1,9 @@
 data "template_file" "cloud_init_vpn" {
-  template = "${file("${path.module}/cloud-init/main.sh")}"
+  template = "${file("${path.module}/scripts/cloud-init.sh")}"
   vars {
     git_source        = "${var.git_source}"
-    ansible_command   = "${var.ansible_command}"
+    vpn_users         = "${var.vpn_users}"
+    ca_password       = "${var.ca_password}"
   }
 }
 

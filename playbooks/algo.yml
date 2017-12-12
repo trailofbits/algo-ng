@@ -13,4 +13,3 @@
     - role: vpn
       tags:
         - vpn
-        - update_users

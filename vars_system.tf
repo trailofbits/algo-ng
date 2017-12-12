@@ -6,6 +6,10 @@ variable "git_source" {
   default = "https://github.com/trailofbits/algo-ng"
 }
 
-variable "ansible_command" {
-  default = "ansible-pull -U https://github.com/trailofbits/algo-ng playbooks/algo.yml -e 'server_name=$(cat /opt/algo/.server_ip) vpn_users=$(cat /opt/algo/.vpn_users)' -i /root/inventory"
+variable "ca_password" {
+  description = "Specify the password for the CA key. If you are deploying algo first time, specify a strongest password. If you are updating the users, use the same password which you used to deploy Algo first time."
+}
+
+variable "config_path" {
+  default = "/root/.ansible/pull/algo-ng/playbooks/configs/"
 }

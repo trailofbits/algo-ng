@@ -26,95 +26,37 @@ resource "digitalocean_ssh_key" "algo" {
 
 resource "digitalocean_droplet" "algo" {
   count     = "${var.cloud_digitalocean == "true" ? 1 : 0}"
+  lifecycle = {
+    ignore_changes = [
+      "user_data"
+    ]
+  }
   image     = "ubuntu-16-04-x64"
   name      = "algo-ng"
   region    = "ams3"
   size      = "512mb"
   ipv6      = true
   user_data = "${data.template_cloudinit_config.cloud_init.rendered}"
-  private_networking = true
   ssh_keys  = [
     "${digitalocean_ssh_key.algo.id}"
   ]
-
-  provisioner "remote-exec" {
-    inline  = [ "# Connected!" ]
-
-    connection {
-      type        = "ssh"
-      host        = "${digitalocean_droplet.algo.ipv4_address}"
-      private_key = "${tls_private_key.algo_ssh.private_key_pem}"
-    }
-  }
-
-  provisioner "remote-exec" {
-    inline  = [
-      "mkdir -p /opt/algo/",
-      "echo ${join(",", var.vpn_users)} > /opt/algo/.vpn_users"
-    ]
-    connection {
-      type        = "ssh"
-      host        = "${digitalocean_droplet.algo.ipv4_address}"
-      private_key = "${tls_private_key.algo_ssh.private_key_pem}"
-    }
-  }
 }
 
-resource "digitalocean_floating_ip" "algo" {
-  count       = "${var.cloud_digitalocean == "true" ? 1 : 0}"
-  droplet_id  = "${digitalocean_droplet.algo.id}"
-  region      = "${digitalocean_droplet.algo.region}"
+module "algo-deploy" {
+  source            = "./modules/algo-deploy"
+  server_address    = "${digitalocean_droplet.algo.ipv4_address}"
+  vpn_users         = "${var.vpn_users}"
+  ca_password       = "${var.ca_password}"
+  config_path       = "${var.config_path}"
+  also_ssh_private  = "${var.also_ssh_private}"
+  private_key_pem   = "${tls_private_key.algo_ssh.private_key_pem}"
+  ipv6              = true
 }
 
 output "INSTANCE" {
-  value = "${digitalocean_floating_ip.algo.ip_address}"
+  value = "${digitalocean_droplet.algo.ipv4_address}"
 }
 
-resource "null_resource" "update_server_ip" {
-  count   = "${var.cloud_digitalocean == "true" ? 1 : 0}"
-  triggers {
-    instance = "${digitalocean_droplet.algo.id}"
-  }
-
-  connection {
-    type        = "ssh"
-    host        = "${digitalocean_floating_ip.algo.ip_address}"
-    private_key = "${tls_private_key.algo_ssh.private_key_pem}"
-  }
-
-  provisioner "remote-exec" {
-    inline = ["# Connected!"]
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "mkdir -p /opt/algo/",
-      "echo ${digitalocean_floating_ip.algo.ip_address} > /opt/algo/.server_ip"
-    ]
-  }
-}
-
-resource "null_resource" "update_users" {
-  count   = "${var.cloud_digitalocean == "true" ? 1 : 0}"
-  triggers {
-    vpn_users = "${join(",", var.vpn_users)}"
-  }
-
-  connection {
-    type        = "ssh"
-    host        = "${digitalocean_floating_ip.algo.ip_address}"
-    private_key = "${tls_private_key.algo_ssh.private_key_pem}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [ "# Connected!" ]
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "mkdir -p /opt/algo/",
-      "echo ${join(",", var.vpn_users)} > /opt/algo/.vpn_users",
-      "${var.ansible_command} -t update_users | tee -a /var/log/algo.log"
-    ]
-  }
+output "CONFIGS" {
+  value = "${path.module}/configs/${digitalocean_droplet.algo.ipv4_address}/"
 }
