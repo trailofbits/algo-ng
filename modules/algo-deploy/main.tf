@@ -1,7 +1,6 @@
 variable "server_address" {}
 variable "vpn_users" {}
 variable "ca_password" {}
-variable "config_path" {}
 variable "also_ssh_private" {}
 variable "private_key_pem" {}
 variable "ipv6" {}
@@ -27,6 +26,11 @@ resource "null_resource" "deploy" {
   }
 
   provisioner "file" {
+    source      = "${path.module}/playbooks"
+    destination = "/opt/algo"
+  }
+
+  provisioner "file" {
     source      = "${path.module}/scripts/deploy.sh"
     destination = "/opt/algo.sh"
   }
@@ -39,6 +43,6 @@ resource "null_resource" "deploy" {
   }
 
   provisioner "local-exec" {
-    command = "rsync -a -e 'ssh -i ${var.also_ssh_private} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' root@${var.server_address}:${var.config_path}/${var.server_address}/ ./configs/${var.server_address}/"
+    command = "rsync -a -e 'ssh -i ${var.also_ssh_private} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' root@${var.server_address}:/opt/algo/configs/${var.server_address}/ ./configs/${var.server_address}/"
   }
 }

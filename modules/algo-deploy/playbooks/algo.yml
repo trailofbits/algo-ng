@@ -14,6 +14,9 @@
       tags:
         - dns
         - adblock
+    - role: ssh_tunneling
+      tags: ssh_tunneling
+    - role: security
+      tags: security
     - role: vpn
-      tags:
-        - vpn
+      tags: vpn

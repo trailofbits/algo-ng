@@ -31,7 +31,6 @@ module "algo-deploy" {
   server_address           = "${digitalocean_droplet.algo.ipv4_address}"
   vpn_users                = "${var.vpn_users}"
   ca_password              = "${var.ca_password}"
-  config_path              = "${var.config_path}"
   also_ssh_private         = "${var.also_ssh_private}"
   private_key_pem          = "${tls_private_key.algo_ssh.private_key_pem}"
   ipv6                     = true

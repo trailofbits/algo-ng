@@ -9,7 +9,3 @@ variable "git_source" {
 variable "ca_password" {
   description = "Specify the password for the CA key. If you are deploying algo first time, specify a strongest password. If you are updating the users, use the same password which you used to deploy Algo first time."
 }
-
-variable "config_path" {
-  default = "/root/.ansible/pull/algo-ng/playbooks/configs/"
-}
