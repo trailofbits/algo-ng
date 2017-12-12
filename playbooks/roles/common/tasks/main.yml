@@ -1,9 +1,9 @@
 ---
 - block:
-    - include: ubuntu.yml
+    - import_tasks: ubuntu.yml
       when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
-    - include: freebsd.yml
+    - import_tasks: freebsd.yml
       when: ansible_distribution == 'FreeBSD'
 
     - name: Install tools
