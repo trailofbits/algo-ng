@@ -37,8 +37,8 @@ resource "null_resource" "deploy" {
 
   provisioner "remote-exec" {
     inline = [
-      "export TAGS=${var.DEPLOY_vpn == 1 ? "vpn" : "_null"},${var.DEPLOY_dns_adblocking == 1 ? "dns_adblocking" : "_null"},${var.DEPLOY_ssh_tunneling == 1 ? "sh_tunneling" : "_null"},${var.DEPLOY_security == 1 ? "security" : "_null"}",
-      "bash -x /opt/algo.sh '${var.vpn_users}' '${var.ca_password}'",
+      "export TAGS=${var.DEPLOY_vpn == 1 ? "vpn" : "_null"},${var.DEPLOY_dns_adblocking == 1 ? "dns_adblocking" : "_null"},${var.DEPLOY_ssh_tunneling == 1 ? "ssh_tunneling" : "_null"},${var.DEPLOY_security == 1 ? "security" : "_null"}",
+      "bash -x /opt/algo.sh '${var.vpn_users}' '${var.ca_password == "" ? "false" : var.ca_password}'",
     ]
   }
 

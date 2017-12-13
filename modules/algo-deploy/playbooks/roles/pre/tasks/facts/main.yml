@@ -31,7 +31,7 @@
 - name: Define password facts
   set_fact:
     easyrsa_p12_export_password: "{{ p12_export_password|default(p12_export_password_generated.stdout) }}"
-    easyrsa_CA_password: "{{ ca_password|default(CA_password.stdout) }}"
+    easyrsa_CA_password: "{% if ca_password is defined and ca_password != 'false' %}{{ ca_password }}{% else %}{{ CA_password.stdout }}{% endif %}"
 
 - name: Define the commonName
   set_fact:

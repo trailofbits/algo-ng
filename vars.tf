@@ -1,14 +1,19 @@
 variable "vpn_users" {
   description = "Add as many users as you want for your VPN server here. Credentials will be generated for each one"
-  default = "dan,jack1"
+  default = "dan,jack"
 }
 
 variable "algo_name" {
   default = "algo-ng"
 }
 
+# Chose your cloud provider
+# Possible values are:
+# - digitalocean
+#
+
 variable "provider" {
-  default = "digitalocean"
+  description = "Chose your cloud provider. Possible values are: digitalocean"
 }
 
 variable "components" {
@@ -17,7 +22,7 @@ variable "components" {
     vpn             = true
     dns_adblocking  = true
     ssh_tunneling   = true
-    security        = true
+    security        = false
   }
 }
 

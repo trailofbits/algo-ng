@@ -20,3 +20,13 @@
       tags: security
     - role: vpn
       tags: vpn
+
+  post_tasks:
+    - block:
+      - debug:
+          msg:
+            - "{{ congrats.common.split('\n') }}"
+            - "    {{ congrats.p12_pass }}"
+            - "    {% if Store_CAKEY is defined and Store_CAKEY == 'N' %}{% else %}{{ congrats.ca_key_pass }}{% endif %}"
+            - "    {% if cloud_deployment is defined %}{{ congrats.ssh_access }}{% endif %}"
+        tags: always

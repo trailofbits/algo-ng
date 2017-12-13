@@ -3,7 +3,6 @@ data "template_file" "cloud_init_vpn" {
   vars {
     git_source        = "${var.git_source}"
     vpn_users         = "${var.vpn_users}"
-    ca_password       = "${var.ca_password}"
   }
 }
 
