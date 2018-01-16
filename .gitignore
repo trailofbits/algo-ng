@@ -7,3 +7,4 @@ inventory_users
 env
 .DS_Store
 .terraform
+terraform

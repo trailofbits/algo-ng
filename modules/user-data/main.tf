@@ -1,9 +1,5 @@
 data "template_file" "cloud_init_vpn" {
-  template = "${file("${path.module}/scripts/cloud-init.sh")}"
-  vars {
-    git_source        = "${var.git_source}"
-    vpn_users         = "${var.vpn_users}"
-  }
+  template = "${file("${path.module}/../../scripts/cloud-init.sh")}"
 }
 
 data "template_cloudinit_config" "cloud_init" {
