@@ -39,11 +39,11 @@ The easiest way to get an Algo server running is to let it set up a _new_ virtua
 
 2. **[Download Algo](https://github.com/trailofbits/algo-ng/archive/master.zip).** Unzip it in a convenient location on your local machine.
 
-3. **Download Terraform binary.** Go to [Terraform site](https://www.terraform.io/downloads.html) and download the latest version of Terraform and place it inside the algo directory you just unzipped.
+3. **[Download Terraform binary](https://www.terraform.io/downloads.html).** Unzip it and place it inside the algo directory you just unzipped.
 
 4. **List the users to create.** Open `terraform.tfvars` in your favorite text editor. Specify the users you wish to create in the `users` list separated by a comma.
 
-5. **Start the deployment.** Return to your terminal. In the Algo directory, run `./algo apply` and follow the instructions. There are several optional features available. None are required for a fully functional VPN server. 
+5. **Start the deployment.** Return to your terminal. In the Algo directory, run `./algo apply` and follow the instructions. There are several optional features available. None are required for a fully functional VPN server.
 
 That's it! You will get the message below when the server deployment process completes. You now have an Algo server on the internet. Take note of the p12 (user certificate) password in case you need it later.
 
