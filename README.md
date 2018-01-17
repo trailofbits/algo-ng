@@ -1,10 +1,3 @@
-# algo-ng
-Experimental version of Algo built on Terraform
-
-```
-
-```
-
 # Algo VPN
 
 [![Join the chat at https://gitter.im/trailofbits/algo](https://badges.gitter.im/trailofbits/algo.svg)](https://gitter.im/trailofbits/algo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)

@@ -1,5 +1,4 @@
 variable "algo_ssh_private" {}
-variable "git_source" {}
 variable "ca_password" {}
 variable "vpn_users" {}
 variable "algo_name" {}

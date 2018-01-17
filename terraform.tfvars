@@ -14,7 +14,7 @@ image = {
     "gce"             = "ubuntu-os-cloud/ubuntu-1604-lts"
 }
 size = {
-    "digitalocean"    = "512mb",
+    "digitalocean"    = "s-1vcpu-1gb",
     "ec2"             = "t2.micro"
     "gce"             = "f1-micro"
 }
