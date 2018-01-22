@@ -31,8 +31,6 @@ resource "google_compute_firewall" "algo_egress" {
   allow { protocol = "all" }
 }
 
-
-
 resource "google_compute_instance" "algo" {
   name          = "algo-${var.region}-${var.algo_name}"
   machine_type  = "${var.size}"

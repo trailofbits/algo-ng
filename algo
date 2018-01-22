@@ -69,108 +69,118 @@ deploy () {
 }
 
 azure () {
-  read -p "
-  Enter your azure secret id (https://github.com/trailofbits/algo/blob/master/docs/cloud-azure.md)
-  You can skip this step if you want to use your defaults credentials from ~/.azure/credentials
-  $ADDITIONAL_PROMPT
-  [...]: " -rs azure_secret
+  if [[ -z $ARM_CLIENT_SECRET ]]; then
+    read -p "
+    Enter your azure secret id (https://github.com/trailofbits/algo/blob/master/docs/cloud-azure.md)
+    You can skip this step if you want to use your defaults credentials from ~/.azure/credentials
+    $ADDITIONAL_PROMPT
+    [...]: " -rs ARM_CLIENT_SECRET
+  fi
 
-  read -p "
+  if [[ -z $ARM_TENANT_ID ]]; then
+    read -p "
 
-  Enter your azure tenant id (https://github.com/trailofbits/algo/blob/master/docs/cloud-azure.md)
-  You can skip this step if you want to use your defaults credentials from ~/.azure/credentials
-  $ADDITIONAL_PROMPT
-  [...]: " -rs azure_tenant
+    Enter your azure tenant id (https://github.com/trailofbits/algo/blob/master/docs/cloud-azure.md)
+    You can skip this step if you want to use your defaults credentials from ~/.azure/credentials
+    $ADDITIONAL_PROMPT
+    [...]: " -rs ARM_TENANT_ID
+  fi
 
-  read -p "
+  if [[ -z $ARM_CLIENT_ID ]]; then
+    read -p "
 
-  Enter your azure client id (application id) (https://github.com/trailofbits/algo/blob/master/docs/cloud-azure.md)
-  You can skip this step if you want to use your defaults credentials from ~/.azure/credentials
-  $ADDITIONAL_PROMPT
-  [...]: " -rs azure_client_id
+    Enter your azure client id (application id) (https://github.com/trailofbits/algo/blob/master/docs/cloud-azure.md)
+    You can skip this step if you want to use your defaults credentials from ~/.azure/credentials
+    $ADDITIONAL_PROMPT
+    [...]: " -rs ARM_CLIENT_ID
+  fi
 
-  read -p "
+  if [[ -z $ARM_SUBSCRIPTION_ID ]]; then
+    read -p "
 
-  Enter your azure subscription id (https://github.com/trailofbits/algo/blob/master/docs/cloud-azure.md)
-  You can skip this step if you want to use your defaults credentials from ~/.azure/credentials
-  $ADDITIONAL_PROMPT
-  [...]: " -rs azure_subscription_id
+    Enter your azure subscription id (https://github.com/trailofbits/algo/blob/master/docs/cloud-azure.md)
+    You can skip this step if you want to use your defaults credentials from ~/.azure/credentials
+    $ADDITIONAL_PROMPT
+    [...]: " -rs ARM_SUBSCRIPTION_ID
+  fi
 
-  read -p "
+  if [[ -z $ALGO_REGION ]]; then
+    read -p "
 
-  Name the vpn server:
-  [algo]: " -r azure_server_name
-  azure_server_name=${azure_server_name:-algo}
+    What region should the server be located in? (https://azure.microsoft.com/en-us/regions/)
+      1.  South Central US
+      2.  Central US
+      3.  North Europe
+      4.  West Europe
+      5.  Southeast Asia
+      6.  Japan West
+      7.  Japan East
+      8.  Australia Southeast
+      9.  Australia East
+      10. Canada Central
+      11. West US 2
+      12. West Central US
+      13. UK South
+      14. UK West
+      15. West US
+      16. Brazil South
+      17. Canada East
+      18. Central India
+      19. East Asia
+      20. Germany Central
+      21. Germany Northeast
+      22. Korea Central
+      23. Korea South
+      24. North Central US
+      25. South India
+      26. West India
+      27. East US
+      28. East US 2
 
-  read -p "
+    Enter the number of your desired region:
+    [1]: " -r azure_region
+    azure_region=${azure_region:-1}
 
-  What region should the server be located in? (https://azure.microsoft.com/en-us/regions/)
-    1.  South Central US
-    2.  Central US
-    3.  North Europe
-    4.  West Europe
-    5.  Southeast Asia
-    6.  Japan West
-    7.  Japan East
-    8.  Australia Southeast
-    9.  Australia East
-    10. Canada Central
-    11. West US 2
-    12. West Central US
-    13. UK South
-    14. UK West
-    15. West US
-    16. Brazil South
-    17. Canada East
-    18. Central India
-    19. East Asia
-    20. Germany Central
-    21. Germany Northeast
-    22. Korea Central
-    23. Korea South
-    24. North Central US
-    25. South India
-    26. West India
-    27. East US
-    28. East US 2
+    case "$azure_region" in
+      1) region="southcentralus" ;;
+      2) region="centralus" ;;
+      3) region="northeurope" ;;
+      4) region="westeurope" ;;
+      5) region="southeastasia" ;;
+      6) region="japanwest" ;;
+      7) region="japaneast" ;;
+      8) region="australiasoutheast" ;;
+      9) region="australiaeast" ;;
+      10) region="canadacentral" ;;
+      11) region="westus2" ;;
+      12) region="westcentralus" ;;
+      13) region="uksouth" ;;
+      14) region="ukwest" ;;
+      15) region="westus" ;;
+      16) region="brazilsouth" ;;
+      17) region="canadaeast" ;;
+      18) region="centralindia" ;;
+      19) region="eastasia" ;;
+      20) region="germanycentral" ;;
+      21) region="germanynortheast" ;;
+      22) region="koreacentral" ;;
+      23) region="koreasouth" ;;
+      24) region="northcentralus" ;;
+      25) region="southindia" ;;
+      26) region="westindia" ;;
+      27) region="eastus" ;;
+      28) region="eastus2" ;;
+    esac
+  else
+    TF_VAR_region="$ALGO_REGION"
+  fi
 
-  Enter the number of your desired region:
-  [1]: " -r azure_region
-  azure_region=${azure_region:-1}
-
-  case "$azure_region" in
-    1) region="southcentralus" ;;
-    2) region="centralus" ;;
-    3) region="northeurope" ;;
-    4) region="westeurope" ;;
-    5) region="southeastasia" ;;
-    6) region="japanwest" ;;
-    7) region="japaneast" ;;
-    8) region="australiasoutheast" ;;
-    9) region="australiaeast" ;;
-    10) region="canadacentral" ;;
-    11) region="westus2" ;;
-    12) region="westcentralus" ;;
-    13) region="uksouth" ;;
-    14) region="ukwest" ;;
-    15) region="westus" ;;
-    16) region="brazilsouth" ;;
-    17) region="canadaeast" ;;
-    18) region="centralindia" ;;
-    19) region="eastasia" ;;
-    20) region="germanycentral" ;;
-    21) region="germanynortheast" ;;
-    22) region="koreacentral" ;;
-    23) region="koreasouth" ;;
-    24) region="northcentralus" ;;
-    25) region="southindia" ;;
-    26) region="westindia" ;;
-    27) region="eastus" ;;
-    28) region="eastus2" ;;
-  esac
-
-  ROLES="azure vpn cloud"
-  EXTRA_VARS="azure_secret=$azure_secret azure_tenant=$azure_tenant azure_client_id=$azure_client_id azure_subscription_id=$azure_subscription_id azure_server_name=$azure_server_name ssh_public_key=$ssh_public_key region=$region"
+  export  ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID \
+          ARM_CLIENT_ID=$ARM_CLIENT_ID \
+          ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET \
+          ARM_TENANT_ID=$ARM_TENANT_ID \
+          ALGO_SERVER_NAME=${ALGO_SERVER_NAME} \
+          TF_VAR_region=$TF_VAR_region
 }
 
 digitalocean () {
@@ -442,9 +452,7 @@ algo_provisioning () {
     What provider would you like to use?
       1. DigitalOcean
       2. Amazon EC2
-      3. Microsoft Azure
-      4. Google Compute Engine
-      5. Install to existing Ubuntu 16.04 server
+      3. Google Compute Engine
 
     Enter the number of your desired provider
     : "
@@ -463,8 +471,8 @@ algo_provisioning () {
     1|digitalocean) ALGO_PROVIDER=digitalocean; digitalocean; ;;
     2|ec2) ALGO_PROVIDER=ec2; ec2; ;;
     3|azure) ALGO_PROVIDER=azure; azure; ;;
-    4|gce) ALGO_PROVIDER=gce; gce; ;;
-    5|non_cloud) ALGO_PROVIDER=non_cloud; non_cloud; ;;
+    3|gce) ALGO_PROVIDER=gce; gce; ;;
+    # 5|non_cloud) ALGO_PROVIDER=non_cloud; non_cloud; ;;
     *) exit 1 ;;
   esac
 
@@ -540,7 +548,7 @@ case "$1" in
   apply) export ALGO_COMMAND="apply" ;;
   destroy) export ALGO_COMMAND="destroy" ;;
   get-terraform) get_terraform ;;
-  *) help $@ ;;
+  *) help "$@" ;;
 esac
 
 locate_terraform
