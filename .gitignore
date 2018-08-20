@@ -1,10 +1,11 @@
 *.retry
 .idea/
 configs/*
+!configs/openssl.cnf
 terraform.tfstate*
 inventory_users
 *.kate-swp
 env
 .DS_Store
-.terraform
-terraform
+.terraform/*
+*tfstate*

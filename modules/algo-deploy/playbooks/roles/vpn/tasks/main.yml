@@ -16,8 +16,6 @@
       package: name=strongswan state=present
 
     - import_tasks: ipec_configuration.yml
-    - import_tasks: openssl.yml
-      tags: update-users
     - import_tasks: distribute_keys.yml
     - import_tasks: client_configs.yml
       delegate_to: localhost

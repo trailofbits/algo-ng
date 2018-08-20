@@ -1,0 +1,6 @@
+#cloud-config
+write_files:
+  - owner: root:root
+    path: /etc/ipsec.d/cacerts/ca.crt
+    permissions: '0644'
+    content: ${CA_CERT}

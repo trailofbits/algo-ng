@@ -7,21 +7,35 @@
     owner: "{{ item.owner }}"
     group: "{{ item.group }}"
     mode: "{{ item.mode }}"
+    state: "{{ item.state | defailt('present') }}"
+    force: true
   with_items:
-    - src: "configs/{{ IP_subject_alt_name }}/pki/cacert.pem"
+    - src: "/opt/algo/ssl/cacert.pem"
       dest: "{{ config_prefix|default('/') }}etc/ipsec.d/cacerts/ca.crt"
       owner: strongswan
       group: "{{ root_group|default('root') }}"
       mode: "0600"
-    - src: "configs/{{ IP_subject_alt_name }}/pki/certs/{{ IP_subject_alt_name }}.crt"
+    - src: "/opt/algo/ssl/{{ IP_subject_alt_name }}.crt"
       dest: "{{ config_prefix|default('/') }}etc/ipsec.d/certs/{{ IP_subject_alt_name }}.crt"
       owner: strongswan
       group: "{{ root_group|default('root') }}"
       mode: "0600"
-    - src: "configs/{{ IP_subject_alt_name }}/pki/private/{{ IP_subject_alt_name }}.key"
+    - src: "/opt/algo/ssl/{{ IP_subject_alt_name }}.key"
       dest: "{{ config_prefix|default('/') }}etc/ipsec.d/private/{{ IP_subject_alt_name }}.key"
       owner: strongswan
       group: "{{ root_group|default('root') }}"
       mode: "0600"
+    - src: "/opt/algo/ssl/algo-crl.pem"
+      dest: "{{ config_prefix|default('/') }}etc/ipsec.d/crl/{{ IP_subject_alt_name }}.key"
+      owner: strongswan
+      group: "{{ root_group|default('root') }}"
+      mode: "0600"
+      state: link
   notify:
     - restart strongswan
+
+- name: Symlinks created
+  file:
+    src: '/tmp/{{ item.src }}'
+    dest: '{{ item.dest }}'
+    state: link

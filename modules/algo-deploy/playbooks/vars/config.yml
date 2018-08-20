@@ -1,5 +1,4 @@
 ---
-
 vpn_network: 10.19.48.0/24
 # https://www.sixxs.net/tools/whois/?fd9d:bc11:4020::/48
 vpn_network_ipv6: 'fd9d:bc11:4020::/48'

@@ -1,12 +1,15 @@
-vpn_users = "dan,jack"
-algo_ssh_private = "algo_ssh.pem"
-ca_password = ""
-algo_name = "algo-local"
+vpn_users = {
+  "1"  = "user1"
+  "2"  = "user2"
+  "3"  = false
+}
+
 components = {
     "dns_adblocking"  = true
     "ssh_tunneling"   = true
     "security"        = true
 }
+
 image = {
     "digitalocean"    = "ubuntu-16-04-x64"
     "ec2.name"        = "ubuntu-xenial-16.04"
@@ -17,6 +20,7 @@ image = {
     "azure.sku"       = "16.04-LTS"
     "azure.version"   = "latest"
 }
+
 size = {
     "digitalocean"    = "s-1vcpu-1gb"
     "ec2"             = "t2.micro"
