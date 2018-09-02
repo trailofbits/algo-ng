@@ -15,7 +15,7 @@
 # }
 
 output "ca_cert" {
-  value = "${tls_locally_signed_cert.ca.cert_pem}"
+  value = "${tls_locally_signed_cert.server.ca_cert_pem}"
 }
 
 output "server_cert" {
