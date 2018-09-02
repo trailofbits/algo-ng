@@ -1,5 +1,5 @@
 data "template_file" "cloud_init_vpn" {
-  template = "${file("${path.module}/../../scripts/cloud-init.sh")}"
+  template = "${file("${path.module}/../../cloud-init/cloud-init.sh")}"
 }
 
 data "template_cloudinit_config" "cloud_init" {
