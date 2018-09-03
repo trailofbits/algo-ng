@@ -1,0 +1,35 @@
+#cloud-config
+
+packages:
+ - strongswan
+
+write_files:
+  - path: /etc/ipsec.d/cacerts/ca.pem
+    permissions: '0600'
+    content: ${CA_CERT}
+
+  - path: /etc/ipsec.d/certs/server.pem
+    permissions: '0600'
+    content: ${SERVER_CERT}
+
+  - path: /etc/ipsec.d/private/server.pem
+    permissions: '0600'
+    content: ${SERVER_KEY}
+
+  - path: /etc/strongswan.conf
+    permissions: '0600'
+    content: ${strongswan.conf}
+
+  - path: /etc/ipsec.conf
+    permissions: '0600'
+    content: ${ipsec.conf}
+
+  - path: /etc/ipsec.secrets
+    permissions: '0600'
+    content: ': ECDSA server.pem'
+
+runcmd:
+  # just because of `write_files` runs before `users` we need to change the owner by this workaround
+  - bash -c 'chown strongswan:root /etc/ipsec.d/{cacerts/ca,certs/server,private/server}.pem'
+  - systemctl restart strongswan
+  - systemctl enable strongswan

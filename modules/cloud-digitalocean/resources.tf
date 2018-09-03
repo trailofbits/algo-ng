@@ -17,3 +17,8 @@ resource "digitalocean_droplet" "algo" {
   ssh_keys  = [ "${digitalocean_ssh_key.algo.id}" ]
   ipv6      = true
 }
+
+resource "digitalocean_floating_ip" "algo" {
+  droplet_id = "${digitalocean_droplet.algo.id}"
+  region     = "${digitalocean_droplet.algo.region}"
+}

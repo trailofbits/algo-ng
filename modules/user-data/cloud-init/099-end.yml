@@ -1,0 +1,5 @@
+#cloud-config
+
+runcmd:
+  - echo END >> /tmp/pipeline
+  - '[ -f /var/run/reboot-required ] && shutdown -r now "Algo updates triggered" || true'

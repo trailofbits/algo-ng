@@ -11,7 +11,7 @@ components = {
 }
 
 image = {
-    "digitalocean"    = "ubuntu-16-04-x64"
+    "digitalocean"    = "ubuntu-18-04-x64"
     "ec2.name"        = "ubuntu-xenial-16.04"
     "ec2.owner"       = ""
     "gce"             = "ubuntu-os-cloud/ubuntu-1604-lts"
