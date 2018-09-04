@@ -5,9 +5,6 @@ data "template_file" "common" {
 data "template_file" "strongswan" {
   template = "${file("${path.module}/cloud-init/010-strongswan.yml")}"
   vars {
-    CA_CERT         = "${jsonencode(var.CA_CERT)}"
-    SERVER_CERT     = "${jsonencode(var.SERVER_CERT)}"
-    SERVER_KEY      = "${jsonencode(var.SERVER_KEY)}"
     strongswan.conf = "${jsonencode(file("${path.module}/files/strongswan.conf"))}"
     ipsec.conf      = "${jsonencode(file("${path.module}/files/ipsec.conf"))}"
   }
@@ -31,6 +28,21 @@ data "template_file" "dns_adblocking" {
   }
 }
 
+data "template_file" "ssh_tunneling" {
+  template = "${file("${path.module}/cloud-init/012-ssh_tunneling.yml")}"
+}
+
+data "template_file" "ssh_tunneling-users" {
+  count    = "${length(var.vpn_users)}"
+  template = "${file("${path.module}/cloud-init/012-ssh_tunneling-users.yml")}"
+  vars {
+    user                = "${element(var.vpn_users, count.index)}"
+    public_key_openssh  = "${element(var.clients_public_key_openssh, count.index)}"
+    # group               = "${lookup(var.vpn_users, count.index+1) == 0 ? "algo_disabled" : "algo"}"
+  }
+}
+
+
 data "template_file" "end" {
   template = "${file("${path.module}/cloud-init/099-end.yml")}"
 }
@@ -46,20 +58,26 @@ data "template_cloudinit_config" "cloud_init" {
   }
 
   part {
+    filename     = "ssh_tunneling"
+    content      = "${lookup(var.components, "ssh_tunneling") == 0 ? "" : "${data.template_file.ssh_tunneling.rendered}\nusers:\n${join("\n", data.template_file.ssh_tunneling-users.*.rendered)}"}"
+    merge_type   = "list(append)+dict(recurse_array)+str()"
+  }
+
+  part {
     filename     = "strongswan"
-    content      = "${data.template_file.strongswan.rendered}"
+    content      = "${lookup(var.components, "ipsec") == 0 ? "" : "${data.template_file.strongswan.rendered}"}"
     merge_type   = "list(append)+dict(recurse_array)+str()"
   }
 
   part {
     filename     = "dns_encryption"
-    content      = "${data.template_file.dns_encryption.rendered}"
+    content      = "${lookup(var.components, "dns_encryption") == 0 ? "" : "${data.template_file.dns_encryption.rendered}"}"
     merge_type   = "list(append)+dict(recurse_array)+str()"
   }
 
   part {
     filename     = "dns_adblocking"
-    content      = "${data.template_file.dns_adblocking.rendered}"
+    content      = "${lookup(var.components, "dns_adblocking") == 0 ? "" : "${data.template_file.dns_adblocking.rendered}"}"
     merge_type   = "list(append)+dict(recurse_array)+str()"
   }
 

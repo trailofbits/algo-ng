@@ -4,18 +4,6 @@ packages:
  - strongswan
 
 write_files:
-  - path: /etc/ipsec.d/cacerts/ca.pem
-    permissions: '0600'
-    content: ${CA_CERT}
-
-  - path: /etc/ipsec.d/certs/server.pem
-    permissions: '0600'
-    content: ${SERVER_CERT}
-
-  - path: /etc/ipsec.d/private/server.pem
-    permissions: '0600'
-    content: ${SERVER_KEY}
-
   - path: /etc/strongswan.conf
     permissions: '0600'
     content: ${strongswan.conf}

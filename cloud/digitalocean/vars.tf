@@ -1,4 +1,4 @@
-variable "vpn_users" { type = "map" }
+variable "vpn_users" { type = "list" }
 variable "algo_name" { default = "algo-local" }
 variable "algo_provider" {}
 variable "region" {}

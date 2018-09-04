@@ -9,7 +9,7 @@ resource "tls_cert_request" "client" {
   key_algorithm   = "ECDSA"
   private_key_pem = "${element(tls_private_key.client.*.private_key_pem, count.index)}"
   subject {
-    common_name  = "${lookup(var.vpn_users, count.index+1)}"
+    common_name  = "${element(var.vpn_users, count.index)}"
   }
 }
 
@@ -21,9 +21,20 @@ resource "tls_locally_signed_cert" "client" {
   ca_cert_pem           = "${tls_self_signed_cert.ca.cert_pem}"
   validity_period_hours = 87600
   allowed_uses          = [
-    "${lookup(var.vpn_users, count.index+1) == 0 ? "crl" : "valid"}",
-    "${lookup(var.vpn_users, count.index+1)}"
+    "client_auth",
+    "server_auth",
+    "1.3.6.1.5.5.7.3.17"
   ]
+}
+
+resource "local_file" "foo" {
+  count     = "${length(var.vpn_users)}"
+  content   = "${element(tls_private_key.client.*.private_key_pem, count.index)}"
+  filename  = "${var.algo_config}/${element(var.vpn_users, count.index)}.ssh.pem"
+
+  provisioner "local-exec" {
+    command = "chmod 0600 ${var.algo_config}/${element(var.vpn_users, count.index)}.ssh.pem"
+  }
 }
 
 # resource "local_file" "algo_ssh_private" {

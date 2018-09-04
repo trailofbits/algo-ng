@@ -22,3 +22,38 @@ resource "digitalocean_floating_ip" "algo" {
   droplet_id = "${digitalocean_droplet.algo.id}"
   region     = "${digitalocean_droplet.algo.region}"
 }
+
+resource "null_resource" "deploy_certificates" {
+  triggers = {
+    digitalocean_droplet      = "${digitalocean_droplet.algo.id}"
+  }
+
+  connection {
+    host        = "${digitalocean_droplet.algo.ipv4_address}"
+    user        = "root"
+    private_key = "${var.private_key_pem}"
+  }
+
+  provisioner "remote-exec" {
+    inline = ["bash -c 'mkdir -p /etc/ipsec.d/{cacerts,certs,private}'"]
+  }
+
+  provisioner "file" {
+    content     = "${var.ca_cert}"
+    destination = "/etc/ipsec.d/cacerts/ca.pem"
+  }
+
+  provisioner "file" {
+    content     = "${var.server_cert}"
+    destination = "/etc/ipsec.d/certs/server.pem"
+  }
+
+  provisioner "file" {
+    content     = "${var.server_key}"
+    destination = "/etc/ipsec.d/private/server.pem"
+  }
+
+  provisioner "remote-exec" {
+    inline = ["systemctl status strongswan >/dev/null 2>&1 && systemctl restart strongswan || true"]
+  }
+}

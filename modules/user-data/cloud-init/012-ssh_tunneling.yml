@@ -1,0 +1,17 @@
+#cloud-config
+
+write_files:
+  - path: /etc/ssh/sshd.d/ssh_tunneling
+    permissions: '0644'
+    content: |
+
+      Match Group algo
+        AllowTcpForwarding local
+        AllowAgentForwarding no
+        AllowStreamLocalForwarding no
+        PermitTunnel no
+        X11Forwarding no
+
+runcmd:
+  - cat /etc/ssh/sshd.d/ssh_tunneling >> /etc/ssh/sshd_config
+  - systemctl reload sshd

@@ -1,3 +1,3 @@
-variable "CA_CERT" {}
-variable "SERVER_CERT" {}
-variable "SERVER_KEY" {}
+variable "vpn_users" { type = "list" }
+variable "clients_public_key_openssh" { type = "list" }
+variable "components" { type = "map" }

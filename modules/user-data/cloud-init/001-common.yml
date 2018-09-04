@@ -1,7 +1,12 @@
 #cloud-config
+groups:
+  - algo
+
+users:
+  - default
 
 package_update: true
-# package_upgrade: true
+package_upgrade: true
 
 packages:
   - unattended-upgrades

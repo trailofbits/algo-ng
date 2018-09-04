@@ -1,13 +1,13 @@
-vpn_users = {
-  "1"  = "user1"
-  "2"  = "user2"
-  "3"  = false
-}
+vpn_users = [
+  "jack",
+  "dan"
+]
 
 components = {
+    "ipsec"           = true
+    "dns_encryption"  = true
     "dns_adblocking"  = true
-    "ssh_tunneling"   = true
-    "security"        = true
+    "ssh_tunneling"   = false
 }
 
 image = {
