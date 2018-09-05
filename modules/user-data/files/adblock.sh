@@ -6,19 +6,16 @@ TEMP_SORTED="$(mktemp)"
 DNSMASQ_WHITELIST="/var/lib/dnsmasq/white.list"
 DNSMASQ_BLACKLIST="/var/lib/dnsmasq/black.list"
 DNSMASQ_BLOCKHOSTS="/etc/dnsmasq.d/block.hosts.conf"
-BLOCKLIST_URLS="http://winhelp2002.mvps.org/hosts.txt
-https://adaway.org/hosts.txt
-https://www.malwaredomainlist.com/hostslist/hosts.txt
-https://hosts-file.net/ad_servers.txt"
+BLOCKLIST_URLS="/etc/default/adblock"
 
 #Delete the old block.hosts to make room for the updates
 rm -f $DNSMASQ_BLOCKHOSTS
 
 echo 'Downloading hosts lists...'
 #Download and process the files needed to make the lists (enable/add more, if you want)
-for url in $BLOCKLIST_URLS; do
+while read url; do
   wget --timeout=2 --tries=3 -qO- "$url" | grep -Ev "(localhost)" | grep -Ew "(0.0.0.0|127.0.0.1)" | awk '{sub(/\r$/,"");print $2}'  >> "$TEMP"
-done
+done < $BLOCKLIST_URLS
 
 #Add black list, if non-empty
 if [ -s "$DNSMASQ_BLACKLIST" ]

@@ -21,6 +21,10 @@ write_files:
     permissions: '0644'
     content: ${dnsmasq.conf}
 
+  - path: /etc/default/adblock
+    permissions: '0644'
+    content: ${adblock_lists}
+
   - path: /usr/local/sbin/adblock.sh
     permissions: '0755'
     content: ${adblock.sh}

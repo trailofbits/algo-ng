@@ -6,7 +6,7 @@ users:
   - default
 
 package_update: true
-package_upgrade: true
+# package_upgrade: true
 
 packages:
   - unattended-upgrades
@@ -43,7 +43,7 @@ write_files:
       Name=lo
       [Network]
       Label=lo:100
-      Address=172.16.0.1/32
+      Address=${local_service_ip}/32
       Address=FCAA::1/64
 
   - path: /etc/sysctl.d/10-algo.conf
