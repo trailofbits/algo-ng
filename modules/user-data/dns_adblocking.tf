@@ -12,6 +12,6 @@ data "template_file" "dns_adblocking" {
     dnsmasq.conf      = "${jsonencode(data.template_file.dnsmasq.rendered)}"
     adblock.sh        = "${jsonencode(file("${path.module}/files/adblock.sh"))}"
     local_service_ip  = "${var.local_service_ip}"
-    adblock_lists     = "${jsonencode(var.adblock_lists)}"
+    adblock_lists     = "${jsonencode(join("\n", var.adblock_lists))}"
   }
 }

@@ -8,12 +8,13 @@ components = {
   "dns_encryption"  = true
   "dns_adblocking"  = true
   "ssh_tunneling"   = true
+  "windows"         = true
 }
 
 image = {
   "digitalocean"    = "ubuntu-18-04-x64"
-  "ec2.name"        = "ubuntu-xenial-16.04"
-  "ec2.owner"       = ""
+  "ec2.name"        = "ubuntu-bionic-18.04"
+  "ec2.owner"       = "099720109477"
   "gce"             = "ubuntu-os-cloud/ubuntu-1604-lts"
   "azure.offer"     = "UbuntuServer"
   "azure.publisher" = "Canonical"

@@ -236,7 +236,7 @@ digitalocean () {
 }
 
 ec2 () {
-  if [[ -z $AWS_ACCESS_KEY_ID ]]; then
+  if [[ -z $AWS_ACCESS_KEY_ID && -z $AWS_PROFILE ]]; then
     read -p "
     Enter your aws_access_key (http://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html)
     Note: Make sure to use an IAM user with an acceptable policy attached (see https://github.com/trailofbits/algo/blob/master/docs/deploy-from-ansible.md).
@@ -244,7 +244,7 @@ ec2 () {
     [AKIA...]: " -rs AWS_ACCESS_KEY_ID
   fi
 
-  if [[ -z $AWS_SECRET_ACCESS_KEY ]]; then
+  if [[ -z $AWS_SECRET_ACCESS_KEY && -z $AWS_PROFILE ]]; then
     read -p "
 
     Enter your aws_secret_key (http://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html)

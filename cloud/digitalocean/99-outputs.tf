@@ -1,3 +1,3 @@
-output "server_address" {
-  value = "${module.cloud-digitalocean.server_address}"
+output "Configuration" {
+  value = "configs/${module.cloud-digitalocean.server_address}/"
 }

@@ -1,4 +1,4 @@
-variable "image" {}
+variable "image" { type = "map" }
 variable "size" {}
 variable "region" {}
 variable "algo_name" {}
