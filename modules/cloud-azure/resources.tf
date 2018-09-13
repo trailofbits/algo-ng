@@ -1,5 +1,9 @@
-resource "azurerm_resource_group" "algo" {
-  name     = "Algo-${var.algo_name}-${var.region}"
+resource "random_id" "resource_group_name" {
+  byte_length = 8
+}
+
+resource "azurerm_resource_group" "main" {
+  name     = "AlgoVPN-${var.algo_name}-${random_id.resource_group_name.hex}"
   location = "${var.region}"
   tags {
     Environment = "Algo"
@@ -7,12 +11,12 @@ resource "azurerm_resource_group" "algo" {
 }
 
 resource "azurerm_network_security_group" "algo" {
-  name                = "Algo-security-group-${var.algo_name}-${var.region}"
+  name                = "${var.algo_name}"
   location            = "${var.region}"
-  resource_group_name = "${azurerm_resource_group.algo.name}"
+  resource_group_name = "${azurerm_resource_group.main.name}"
 
   security_rule {
-    name                       = "Algo-rule-AllowSSH-${var.algo_name}-${var.region}"
+    name                       = "AllowSSH"
     priority                   = 100
     direction                  = "Inbound"
     access                     = "Allow"
@@ -24,7 +28,7 @@ resource "azurerm_network_security_group" "algo" {
   }
 
   security_rule {
-    name                       = "Algo-rule-AllowIPSEC500-${var.algo_name}-${var.region}"
+    name                       = "AllowIPSec500"
     priority                   = 110
     direction                  = "Inbound"
     access                     = "Allow"
@@ -36,7 +40,7 @@ resource "azurerm_network_security_group" "algo" {
   }
 
   security_rule {
-    name                       = "Algo-rule-AllowIPSEC4500-${var.algo_name}-${var.region}"
+    name                       = "AllowIPSec4500"
     priority                   = 120
     direction                  = "Inbound"
     access                     = "Allow"
@@ -47,15 +51,27 @@ resource "azurerm_network_security_group" "algo" {
     destination_address_prefix = "*"
   }
 
+  security_rule {
+    name                       = "AllowICMP"
+    priority                   = 130
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "0"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
   tags {
     Environment = "Algo"
   }
 }
 
 resource "azurerm_virtual_network" "algo" {
-  name                = "Algo-network-${var.algo_name}-${var.region}"
+  name                = "${var.algo_name}"
   location            = "${var.region}"
-  resource_group_name = "${azurerm_resource_group.algo.name}"
+  resource_group_name = "${azurerm_resource_group.main.name}"
   address_space       = [ "10.10.0.0/16" ]
 
   tags {
@@ -64,16 +80,16 @@ resource "azurerm_virtual_network" "algo" {
 }
 
 resource "azurerm_subnet" "algo" {
-  name                 = "Algo-subnet-${var.algo_name}-${var.region}"
-  resource_group_name  = "${azurerm_resource_group.algo.name}"
-  virtual_network_name = "${azurerm_virtual_network.algo.name}"
-  address_prefix       = "10.10.0.0/24"
+  name                  = "${var.algo_name}"
+  resource_group_name   = "${azurerm_resource_group.main.name}"
+  virtual_network_name  = "${azurerm_virtual_network.algo.name}"
+  address_prefix        = "10.10.0.0/24"
 }
 
 resource "azurerm_public_ip" "algo" {
-  name                          = "Algo-ip-${var.algo_name}-${var.region}"
+  name                          = "${var.algo_name}"
   location                      = "${var.region}"
-  resource_group_name           = "${azurerm_resource_group.algo.name}"
+  resource_group_name           = "${azurerm_resource_group.main.name}"
   public_ip_address_allocation  = "static"
 
   tags {
@@ -82,9 +98,9 @@ resource "azurerm_public_ip" "algo" {
 }
 
 resource "azurerm_network_interface" "algo" {
-  name                = "Algo-network-interface-${var.algo_name}-${var.region}"
-  location            = "${var.region}"
-  resource_group_name = "${azurerm_resource_group.algo.name}"
+  name                      = "${var.algo_name}"
+  location                  = "${var.region}"
+  resource_group_name       = "${azurerm_resource_group.main.name}"
   network_security_group_id = "${azurerm_network_security_group.algo.id}"
 
   ip_configuration {
@@ -96,23 +112,23 @@ resource "azurerm_network_interface" "algo" {
 }
 
 resource "azurerm_virtual_machine" "algo" {
-  name                  = "Algo-vm-${var.algo_name}-${var.region}"
-  location              = "${var.region}"
-  resource_group_name   = "${azurerm_resource_group.algo.name}"
-  network_interface_ids = [ "${azurerm_network_interface.algo.id}" ]
-  vm_size               = "${var.size}"
-  delete_os_disk_on_termination = true
-  delete_data_disks_on_termination = true
+  name                              = "${var.algo_name}"
+  location                          = "${var.region}"
+  resource_group_name               = "${azurerm_resource_group.main.name}"
+  network_interface_ids             = [ "${azurerm_network_interface.algo.id}" ]
+  vm_size                           = "${var.size}"
+  delete_os_disk_on_termination     = true
+  delete_data_disks_on_termination  = true
 
   storage_image_reference {
-    publisher = "${var.image_publisher}"
-    offer     = "${var.image_offer}"
-    sku       = "${var.image_sku}"
-    version   = "${var.image_version}"
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "${var.image}"
+    version   = "latest"
   }
 
   storage_os_disk {
-    name              = "Algo-disk-${var.algo_name}-${var.region}"
+    name              = "${var.algo_name}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
@@ -121,7 +137,7 @@ resource "azurerm_virtual_machine" "algo" {
   os_profile {
     computer_name  = "${var.algo_name}"
     admin_username = "ubuntu"
-    admin_password = ""
+    custom_data    = "${var.user_data}"
   }
 
   os_profile_linux_config {

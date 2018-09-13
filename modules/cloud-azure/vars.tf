@@ -1,7 +1,4 @@
-variable "image_offer" {}
-variable "image_publisher" {}
-variable "image_sku" {}
-variable "image_version" {}
+variable "image" {}
 variable "size" {}
 variable "region" {}
 variable "algo_name" {}

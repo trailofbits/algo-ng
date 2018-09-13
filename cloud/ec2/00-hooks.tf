@@ -1,5 +1,9 @@
+resource "random_id" "config" {
+  byte_length = 8
+}
+
 locals {
-  algo_config_tmp = ".tmp/.algo-configs-test}/"
+  algo_config_tmp = ".tmp/.algo-configs-${random_id.config.hex}/"
   algo_config     = "configs/${local.algo_config_tmp}"
 }
 

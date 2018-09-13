@@ -1,5 +1,8 @@
 provider "google" {
   region  = "${var.region}"
-  project = "${var.project}"
-  version = "~> 1.8"
+  version = "~> 1.17"
+}
+
+provider "random" {
+  version = "~> 2.0"
 }

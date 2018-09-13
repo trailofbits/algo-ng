@@ -15,11 +15,9 @@ image = {
   "digitalocean"    = "ubuntu-18-04-x64"
   "ec2.name"        = "ubuntu-bionic-18.04"
   "ec2.owner"       = "099720109477"
-  "gce"             = "ubuntu-os-cloud/ubuntu-1604-lts"
-  "azure.offer"     = "UbuntuServer"
-  "azure.publisher" = "Canonical"
-  "azure.sku"       = "16.04-LTS"
-  "azure.version"   = "latest"
+  "ec2.encrypted"   = false
+  "gce"             = "ubuntu-os-cloud/ubuntu-1804-lts"
+  "azure"           = "18.04-LTS"
 }
 
 size = {

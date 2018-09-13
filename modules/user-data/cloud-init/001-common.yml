@@ -18,6 +18,7 @@ packages:
   - iptables-persistent
   - cgroup-tools
   - openssl
+  - linux-headers-generic
 
 write_files:
   - path: /etc/apt/apt.conf.d/50unattended-upgrades
@@ -57,6 +58,7 @@ runcmd:
   - set -x
   - echo BEGIN >> /tmp/pipeline
   - apt install linux-headers-$(uname -r) -y
+  - apt remove resolvconf -y
   - sysctl -p
   - systemctl enable systemd-networkd systemd-resolved
   - systemctl restart systemd-networkd systemd-resolved

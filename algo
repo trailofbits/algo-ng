@@ -306,10 +306,10 @@ gce () {
     : " -r GOOGLE_CREDENTIALS
   fi
 
-  if [[ -z $ALGO_GCE_PROJECT ]]; then
+  if [[ -z $GOOGLE_PROJECT ]]; then
     read -p "
     Enter the project id (You can gather it from the previous step, credention or follow the link https://support.google.com/cloud/answer/6158840?hl=en):
-    : " -r ALGO_GCE_PROJECT
+    : " -r GOOGLE_PROJECT
   fi
 
   if [[ -z $ALGO_REGION ]]; then
@@ -399,7 +399,7 @@ gce () {
   fi
 
   export  GOOGLE_CREDENTIALS=$GOOGLE_CREDENTIALS \
-          TF_VAR_project=$ALGO_GCE_PROJECT \
+          TF_VAR_google_credentials=$GOOGLE_CREDENTIALS \
           ALGO_SERVER_NAME=${ALGO_SERVER_NAME}
 }
 

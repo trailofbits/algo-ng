@@ -1,11 +1,18 @@
-resource "google_compute_network" "algo" {
-  name                    = "algo-${var.region}-${var.algo_name}"
-  auto_create_subnetworks = "true"
+resource "random_id" "name" {
+  byte_length = 8
+  keepers {
+    ami_id = "${var.region}/${var.algo_name}"
+  }
 }
 
-resource "google_compute_firewall" "algo_ingress" {
-  name        = "algo-${var.region}-${var.algo_name}-ingress"
-  network     = "${google_compute_network.algo.name}"
+resource "google_compute_network" "main" {
+  name                    = "algovpn-${random_id.name.hex}"
+  auto_create_subnetworks = true
+}
+
+resource "google_compute_firewall" "ingress" {
+  name    = "algovpn-${random_id.name.hex}"
+  network = "${google_compute_network.main.name}"
 
   allow {
     protocol = "udp"
@@ -17,41 +24,47 @@ resource "google_compute_firewall" "algo_ingress" {
 
   allow {
     protocol = "tcp"
-    ports    = [ "22" ]
+    ports    = ["22"]
   }
 
-  allow { protocol = "icmp" }
-
+  allow {
+    protocol = "icmp"
+  }
 }
 
-resource "google_compute_firewall" "algo_egress" {
-  name        = "algo-${var.region}-${var.algo_name}-egress"
-  network     = "${google_compute_network.algo.name}"
-  direction   = "EGRESS"
-  allow { protocol = "all" }
+resource "google_compute_address" "main" {
+  name         = "algovpn-${random_id.name.hex}"
+  region       = "${element(split("-", var.region), 0)}-${element(split("-", var.region), 1)}"
+  address_type = "EXTERNAL"
 }
 
 resource "google_compute_instance" "algo" {
-  name          = "algo-${var.region}-${var.algo_name}"
-  machine_type  = "${var.size}"
-  zone          = "${var.region}"
-  tags          = [ "environment-algo" ]
-  can_ip_forward = true
-
+  name                    = "${var.algo_name}"
+  machine_type            = "${var.size}"
+  zone                    = "${var.region}"
+  metadata_startup_script = "${var.user_data}"
+  can_ip_forward          = true
 
   boot_disk {
+    auto_delete = true
     initialize_params {
       image = "${var.image}"
     }
   }
 
   network_interface {
-    network = "${google_compute_network.algo.name}"
-      access_config {}
+    network = "${google_compute_network.main.name}"
+    access_config {
+      nat_ip = "${google_compute_address.main.address}"
+    }
   }
 
   metadata {
-    sshKeys = "ubuntu:${var.public_key_openssh}"
+    sshKeys   = "ubuntu:${var.public_key_openssh}"
+    user-data = "${var.user_data}"
   }
 
+  labels {
+    "environment" = "algo"
+  }
 }

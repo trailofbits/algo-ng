@@ -1,10 +1,25 @@
-data "aws_ami_ids" "ubuntu" {
+data "aws_ami_ids" "main" {
   owners = ["${var.image["ec2.owner"]}"]
   filter {
     name   = "name"
     values = [
       "ubuntu/images/hvm-ssd/${var.image["ec2.name"]}-amd64-server-*"
     ]
+  }
+}
+
+resource "aws_ami_copy" "encrypted" {
+  count             = "${var.encrypted == 1 ? 1 : 0}"
+  name              = "AlgoVPN encrypted AMI"
+  description       = "An encrypted copy of ${data.aws_ami_ids.main.ids[0]}"
+  source_ami_id     = "${data.aws_ami_ids.main.ids[0]}"
+  source_ami_region = "${var.region}"
+  encrypted         = true
+  kms_key_id        = "${var.kms_key_id}"
+
+  tags {
+    Environment = "Algo"
+    "tag:Algo"  = "encrypted"
   }
 }
 
@@ -114,7 +129,7 @@ resource "aws_key_pair" "main" {
 }
 
 resource "aws_instance" "main" {
-  ami                                   = "${data.aws_ami_ids.ubuntu.ids[0]}"
+  ami                                   = "${var.encrypted == 1 ? join(" ", aws_ami_copy.encrypted.*.id) : data.aws_ami_ids.main.ids[0]}"
   instance_type                         = "${var.size}"
   instance_initiated_shutdown_behavior  = "terminate"
   key_name                              = "${aws_key_pair.main.key_name}"
