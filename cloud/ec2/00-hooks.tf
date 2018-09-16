@@ -33,7 +33,7 @@ resource "null_resource" "deploy_certificates" {
 
   connection {
     host        = "${module.cloud-ec2.server_address}"
-    user        = "ubuntu"
+    user        = "${module.cloud-ec2.ssh_user}"
     private_key = "${module.ssh-key.private_key_pem}"
   }
 

@@ -1,9 +1,9 @@
 data "aws_ami_ids" "main" {
-  owners = ["${var.image["ec2.owner"]}"]
+  owners = ["099720109477"]
   filter {
     name   = "name"
     values = [
-      "ubuntu/images/hvm-ssd/${var.image["ec2.name"]}-amd64-server-*"
+      "ubuntu/images/hvm-ssd/${var.image}-amd64-server-*"
     ]
   }
 }

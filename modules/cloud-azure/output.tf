@@ -9,3 +9,7 @@ output "server_id" {
 output "ssh_user" {
   value = "ubuntu"
 }
+
+output "ipv6" {
+  value = "${var.ipv6}"
+}

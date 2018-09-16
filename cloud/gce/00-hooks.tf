@@ -33,7 +33,7 @@ resource "null_resource" "deploy_certificates" {
 
   connection {
     host        = "${module.cloud-gce.server_address}"
-    user        = "ubuntu"
+    user        = ""${module.cloud-gce.ssh_user}""
     private_key = "${module.ssh-key.private_key_pem}"
   }
 

@@ -17,15 +17,11 @@ module "user-data" {
   vpn_users                   = "${var.vpn_users}"
   clients_public_key_openssh  = "${module.tls.clients_public_key_openssh}"
   components                  = "${var.components}"
-  ipv6                        = true
-  base64_encode               = false
-  gzip                        = false
+  ipv6                        = "${module.cloud-ec2.ipv6}"
 }
 
 module "cloud-ec2" {
   source              = "../../modules/cloud-ec2/"
-  image               = "${var.image}"
-  size                = "${var.size["ec2"]}"
   region              = "${var.region}"
   public_key_openssh  = "${module.ssh-key.public_key_openssh}"
   user_data           = "${module.user-data.template_cloudinit_config}"

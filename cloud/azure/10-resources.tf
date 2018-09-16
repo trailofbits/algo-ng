@@ -17,13 +17,11 @@ module "user-data" {
   vpn_users                   = "${var.vpn_users}"
   clients_public_key_openssh  = "${module.tls.clients_public_key_openssh}"
   components                  = "${var.components}"
-  ipv6                        = true
+  ipv6                        = "${module.cloud-azure.ipv6}"
 }
 
 module "cloud-azure" {
   source              = "../../modules/cloud-azure/"
-  size                = "${var.size["azure"]}"
-  image               = "${var.image["azure"]}"
   region              = "${var.region}"
   public_key_openssh  = "${module.ssh-key.public_key_openssh}"
   user_data           = "${module.user-data.template_cloudinit_config}"

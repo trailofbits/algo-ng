@@ -28,12 +28,12 @@ resource "null_resource" "config-link" {
 
 resource "null_resource" "deploy_certificates" {
   triggers = {
-    digitalocean_droplet      = "${module.cloud-digitalocean.droplet_id}"
+    server_id      = "${module.cloud-digitalocean.server_id}"
   }
 
   connection {
     host        = "${module.cloud-digitalocean.server_address}"
-    user        = "root"
+    user        = "${module.cloud-digitalocean.ssh_user}"
     private_key = "${module.ssh-key.private_key_pem}"
   }
 

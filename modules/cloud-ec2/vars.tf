@@ -1,9 +1,5 @@
 variable "image" {
-  type    = "map"
-  default = {
-    "ec2.name"      = "ubuntu-bionic-18.04"
-    "ec2.owner"     = "099720109477"
-  }
+  default = "ubuntu-bionic-18.04"
 }
 
 variable "size" {

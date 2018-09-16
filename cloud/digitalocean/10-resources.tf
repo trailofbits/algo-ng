@@ -16,13 +16,11 @@ module "user-data" {
   vpn_users                   = "${var.vpn_users}"
   clients_public_key_openssh  = "${module.tls.clients_public_key_openssh}"
   components                  = "${var.components}"
-  ipv6                        = true
+  ipv6                        = "${module.cloud-digitalocean.ipv6}"
 }
 
 module "cloud-digitalocean" {
   source              = "../../modules/cloud-digitalocean/"
-  image               = "${var.image["digitalocean"]}"
-  size                = "${var.size["digitalocean"]}"
   region              = "${var.region}"
   public_key_openssh  = "${module.ssh-key.public_key_openssh}"
   user_data           = "${module.user-data.template_cloudinit_config}"
