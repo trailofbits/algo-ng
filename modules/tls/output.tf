@@ -14,6 +14,6 @@ output "clients_public_key_openssh" {
   value = ["${tls_private_key.client.*.public_key_openssh}"]
 }
 
-# output "crl" {
-#   value = ""
-# }
+output "crl" {
+  value = "${var.algo_config}/keys/crl.pem"
+}

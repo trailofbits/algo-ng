@@ -15,6 +15,7 @@ resource "tls_cert_request" "client" {
 
 resource "tls_locally_signed_cert" "client" {
   count                 = "${length(var.vpn_users)}"
+  depends_on            = ["null_resource.user_crl"]
   cert_request_pem      = "${element(tls_cert_request.client.*.cert_request_pem, count.index)}"
   ca_key_algorithm      = "ECDSA"
   ca_private_key_pem    = "${element(tls_private_key.client.*.private_key_pem, count.index)}"
@@ -27,8 +28,42 @@ resource "tls_locally_signed_cert" "client" {
   ]
 }
 
-resource "local_file" "foo" {
+resource "local_file" "user_private_keys" {
   count     = "${length(var.vpn_users)}"
+  content   = "${element(tls_private_key.client.*.private_key_pem, count.index)}"
+  filename  = "${var.algo_config}/keys/${element(var.vpn_users, count.index)}.key.pem"
+
+  provisioner "local-exec" {
+    command = "chmod 0600 ${var.algo_config}/keys/${element(var.vpn_users, count.index)}.key.pem"
+  }
+}
+
+resource "local_file" "user_certs" {
+  depends_on = ["null_resource.user_crl"]
+  count     = "${length(var.vpn_users)}"
+  content   = "${element(tls_locally_signed_cert.client.*.cert_pem, count.index)}"
+  filename  = "${var.algo_config}/keys/${element(var.vpn_users, count.index)}.crt.pem"
+
+  provisioner "local-exec" {
+    interpreter = [ "/bin/bash", "-ec" ]
+    working_dir = "${var.algo_config}/keys/"
+    command     =<<EOF
+chmod 0600 ${element(var.vpn_users, count.index)}.crt.pem
+mkdir .for_crl/ || true
+cp -f ${element(var.vpn_users, count.index)}.crt.pem \
+      .for_crl/${element(var.vpn_users, count.index)}.crt.pem
+EOF
+  }
+
+  # provisioner "local-exec" {
+  #   command     = "cp -f ${element(var.vpn_users, count.index)}.crt.pem .deleted-${element(var.vpn_users, count.index)}.crt.pem"
+  #   when        = "destroy"
+  #   working_dir = "${var.algo_config}/keys/"
+  # }
+}
+
+resource "local_file" "user_ssh_private_keys" {
+  count     = "${lookup(var.components, "ssh_tunneling") == 0 ? 0 : length(var.vpn_users)}"
   content   = "${element(tls_private_key.client.*.private_key_pem, count.index)}"
   filename  = "${var.algo_config}/${element(var.vpn_users, count.index)}.ssh.pem"
 
@@ -37,27 +72,57 @@ resource "local_file" "foo" {
   }
 }
 
-# resource "local_file" "algo_ssh_private" {
-#   count       = "${length(var.vpn_users)}"
-#   content     = "${join(",", var.vpn_users)}"
-#   filename    = "/tmp/certs/${element(var.vpn_users, count.index)}.pem"
-# }
-#
-# resource "null_resource" "TLS_clients_revoke" {
-#   triggers {
-#     vpn_users = "${join(",", var.vpn_users)}"
-#   }
-#
-#   provisioner "local-exec" {
-#     environment {
-#       IP_subject_alt_name = "${var.server_address}"
-#       USERS               = "${join(",", var.vpn_users)}"
-#     }
-#     interpreter = [ "/bin/bash", "-c" ]
-#     command =<<EOT
-#       ls -1 /tmp/certs/ | cut -f1 -d. | while read user; do
-#         echo $USERS | grep -w $user || echo "$user should be revoked" >/tmp/revoked ;
-#       done
-# EOT
-#   }
-# }
+resource "null_resource" "user_crl" {
+  triggers {
+    vpn_users = "${join(",", var.vpn_users)}"
+  }
+
+  provisioner "local-exec" {
+    interpreter = [ "/bin/bash", "-ec" ]
+    working_dir = "${var.algo_config}/keys/"
+    command =<<EOF
+
+[ -f index.txt ]  || touch index.txt
+[ -f crlnumber ]  || echo 00 > crlnumber
+[ -f crl.pem ]    || openssl ca -gencrl -keyfile <(echo "$KEY") -cert <(echo "$CERT") -out crl.pem -config <(echo "$OPENSSLCNF")
+
+cp -f users.txt users.txt.old || true
+
+cat users.txt.old | while read user; do
+  if [[ "$USERS" != *"$user"* ]]; then
+    echo "$user to revoke" >> /tmp/crl
+    openssl ca -revoke .for_crl/$user.crt.pem \
+      -config <(echo "$OPENSSLCNF") \
+      -keyfile <(echo "$KEY") \
+      -cert <(echo "$CERT")
+    openssl ca -gencrl \
+      -config <(echo "$OPENSSLCNF") \
+      -keyfile <(echo "$KEY") \
+      -cert <(echo "$CERT") \
+      -out crl.pem
+  fi
+done
+
+echo "${join("\n", var.vpn_users)}" > users.txt
+echo -en "$(cat crl.pem)\n$CERT" > crl.full.pem
+EOF
+    environment {
+      USERS       = "${join(",", var.vpn_users)}"
+      KEY         = "${tls_private_key.ca.private_key_pem}"
+      CERT        = "${tls_self_signed_cert.ca.cert_pem}"
+      OPENSSLCNF =<<EOF
+[ ca ]
+default_ca=CA_default
+[ CA_default ]
+database=index.txt
+crlnumber=crlnumber
+default_days=3650
+default_crl_days=3650
+default_md=default
+preserve=no
+[ crl_ext ]
+authorityKeyIdentifier=keyid:always,issuer:always
+EOF
+    }
+  }
+}

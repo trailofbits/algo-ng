@@ -9,6 +9,7 @@ module "tls" {
   server_address    = "${module.cloud-digitalocean.server_address}"
   vpn_users         = "${var.vpn_users}"
   algo_config       = "${local.algo_config}"
+  components        = "${var.components}"
 }
 
 module "user-data" {
