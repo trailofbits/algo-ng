@@ -10,7 +10,3 @@ data "template_file" "ssh_tunneling-users" {
     public_key_openssh  = "${var.clients_public_key_openssh[count.index]}"
   }
 }
-
-data "template_file" "end" {
-  template = "${file("${path.module}/cloud-init/099-end.yml")}"
-}

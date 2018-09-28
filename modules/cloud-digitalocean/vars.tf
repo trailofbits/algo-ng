@@ -10,6 +10,10 @@ variable "ipv6" {
   default = true
 }
 
+variable "unmanaged" {
+  default = false
+}
+
 variable "region" {}
 variable "algo_name" {}
 variable "public_key_openssh" {}

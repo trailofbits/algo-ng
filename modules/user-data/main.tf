@@ -51,3 +51,14 @@ data "template_cloudinit_config" "cloud_init" {
     merge_type   = "list(append)+dict(recurse_array)+str()"
   }
 }
+
+locals {
+  unmanaged = "until test -f /root/.terraform_complete; do echo 'Waiting for terraform to complete..'; sleep 5 ; done && systemctl stop sshd ; systemctl disable sshd"
+}
+
+data "template_file" "end" {
+  template = "${file("${path.module}/cloud-init/099-end.yml")}"
+  vars {
+    additional_tasks = "${var.unmanaged == 1 ? "${local.unmanaged}" : "true"}"
+  }
+}

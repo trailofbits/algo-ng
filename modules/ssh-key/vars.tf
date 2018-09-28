@@ -10,8 +10,5 @@ variable "ssh_key_ecdsa_curve" {
 variable "ssh_key_rsa_bits" {
   default = "2048"
 }
-variable "unmanaged" {
-  default = false
-}
 
 variable "algo_config" {}

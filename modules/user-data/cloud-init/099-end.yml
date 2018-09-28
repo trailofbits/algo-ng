@@ -1,5 +1,6 @@
 #cloud-config
 
 runcmd:
+  - echo "Run additional tasks"; ${additional_tasks} || true
   - echo END >> /tmp/pipeline
   - '[ -f /var/run/reboot-required ] && shutdown -r now "Algo updates triggered" || true'

@@ -8,7 +8,6 @@ resource "tls_private_key" "algo_ssh" {
 }
 
 resource "local_file" "ssh_private_key" {
-  count       = "${var.unmanaged == 1 ? 0 : 1}"
   content     = "${tls_private_key.algo_ssh.private_key_pem}"
   filename    = "${var.algo_config}/algo.pem"
 
