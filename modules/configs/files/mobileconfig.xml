@@ -57,7 +57,7 @@
               <key>RemoteAddress</key>
               <string>${server_address}</string>
               <key>RemoteIdentifier</key>
-              <string>${server_address}</string>
+              <string>algo.vpn</string>
               <key>UseConfigurationAttributeInternalIPSubnet</key>
               <integer>0</integer>
             </dict>

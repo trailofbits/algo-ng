@@ -3,7 +3,7 @@ variable "components" { type = "map" }
 variable "gzip" { default = false }
 variable "base64_encode" {  default = false}
 variable "ipv6" { default = false }
-
+variable "system_upgrade" {}
 variable "unmanaged" {
   default = false
 }

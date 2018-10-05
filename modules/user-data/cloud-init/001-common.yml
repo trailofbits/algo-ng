@@ -6,7 +6,7 @@ users:
   - default
 
 package_update: true
-package_upgrade: true
+package_upgrade: ${system_upgrade}
 
 packages:
   - unattended-upgrades
@@ -54,11 +54,17 @@ write_files:
       net.ipv4.conf.all.forwarding=1
       net.ipv6.conf.all.forwarding=1
 
+  - path: /etc/iptables/rules.v4
+    permissions: '0644'
+    content: ${rules.v4}
+
 runcmd:
   - set -x
   - echo BEGIN >> /tmp/pipeline
   - apt install linux-headers-$(uname -r) -y
   - apt remove resolvconf -y
   - sysctl -p
-  - systemctl enable systemd-networkd systemd-resolved
-  - systemctl restart systemd-networkd systemd-resolved
+  - systemctl enable systemd-networkd systemd-resolved netfilter-persistent
+  - systemctl restart systemd-networkd systemd-resolved netfilter-persistent
+  - printf '%s\n' '#!/bin/bash' '/usr/bin/touch /tmp/booted' | sudo tee -a /etc/rc.local
+  - chmod +x /etc/rc.local

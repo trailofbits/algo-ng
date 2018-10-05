@@ -30,6 +30,22 @@ variable "BetweenClients_DROP" {
   default = true
 }
 
+# MSS is the TCP Max Segment Size
+# Setting the 'max_mss' variable can solve some issues related to packet fragmentation
+# This appears to be necessary on (at least) Google Cloud,
+# however, some routers also require a change to this parameter
+# See also:
+# - https://github.com/trailofbits/algo/issues/216
+# - https://github.com/trailofbits/algo/issues?utf8=%E2%9C%93&q=is%3Aissue%20mtu
+# - https://serverfault.com/questions/601143/ssh-not-working-over-ipsec-tunnel-strongswan
+# variable "max_mss" {
+#   default = 1316
+# }
+
+variable "max_mss" {
+  default = 0
+}
+
 variable "strongswan_log_level" {
   default = "2"
 }
@@ -55,6 +71,7 @@ variable "ipsec_network" {
 variable "wireguard_network" {
   type = "map"
   default = {
+    ipv4 = "10.19.49.0/24"
     port = 51820
   }
 }

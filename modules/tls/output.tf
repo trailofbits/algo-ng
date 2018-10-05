@@ -14,8 +14,8 @@ output "clients_public_key_openssh" {
   value = ["${tls_private_key.client.*.public_key_openssh}"]
 }
 
-output "clients_p12" {
-  value = ["${data.local_file.client_p12.*.content}"]
+output "clients_p12_base64" {
+  value = ["${local_file.client_p12_base64.*.content}"]
 }
 
 output "client_p12_pass" {
@@ -23,5 +23,5 @@ output "client_p12_pass" {
 }
 
 output "crl" {
-  value = "${var.algo_config}/keys/crl.pem"
+  value = "${data.local_file.user_crl.content}"
 }

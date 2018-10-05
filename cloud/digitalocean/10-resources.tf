@@ -18,6 +18,8 @@ module "user-data" {
   components                  = "${var.components}"
   ipv6                        = "${module.cloud-digitalocean.ipv6}"
   unmanaged                   = "${var.unmanaged}"
+  max_mss                     = "${var.max_mss}"
+  system_upgrade              = "${var.system_upgrade}"
 }
 
 module "cloud-digitalocean" {
@@ -36,6 +38,12 @@ module "configs" {
   algo_config         = "${local.algo_config}"
   server_address      = "${module.cloud-digitalocean.server_address}"
   client_p12_pass     = "${module.tls.client_p12_pass}"
-  clients_p12         = "${module.tls.clients_p12}"
+  clients_p12_base64  = "${module.tls.clients_p12_base64}"
   ca_cert             = "${module.tls.ca_cert}"
+  server_cert         = "${module.tls.server_cert}"
+  server_key          = "${module.tls.server_key}"
+  crl                 = "${module.tls.crl}"
+  ssh_user            = "${module.cloud-digitalocean.ssh_user}"
+  private_key         = "${module.ssh-key.private_key_pem}"
+  server_id           = "${module.cloud-digitalocean.server_id}"
 }

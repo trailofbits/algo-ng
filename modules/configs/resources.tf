@@ -18,6 +18,10 @@ resource "random_uuid" "PayloadIdentifier_conf" {
   count = "${length(var.vpn_users)}"
 }
 
+#
+# IPsec
+#
+
 data "template_file" "mobileconfig" {
   count    = "${length(var.vpn_users)}"
   template = "${file("${path.module}/files/mobileconfig.xml")}"
@@ -25,7 +29,7 @@ data "template_file" "mobileconfig" {
     OnDemandEnabled           = 0
     LocalIdentifier           = "${var.vpn_users[count.index]}"
     server_address            = "${var.server_address}"
-    PayloadContent            = "${base64encode(var.clients_p12[count.index])}"
+    PayloadContent            = "${var.clients_p12_base64[count.index]}"
     PayloadIdentifier_vpn     = "${upper(random_uuid.PayloadIdentifier_vpn.*.result[count.index])}"
     PayloadIdentifier_pkcs12  = "${upper(random_uuid.PayloadIdentifier_pkcs12.*.result[count.index])}"
     PayloadIdentifier_ca      = "${upper(random_uuid.PayloadIdentifier_ca.*.result[count.index])}"
@@ -37,10 +41,61 @@ data "template_file" "mobileconfig" {
 
 resource "local_file" "mobileconfig" {
   count    = "${length(var.vpn_users)}"
-  content     = "${data.template_file.mobileconfig.*.rendered[count.index]}"
-  filename    = "${var.algo_config}/${var.vpn_users[count.index]}.mobileconfig"
+  content  = "${data.template_file.mobileconfig.*.rendered[count.index]}"
+  filename = "${var.algo_config}/${var.vpn_users[count.index]}.mobileconfig"
 
   provisioner "local-exec" {
     command = "chmod 0600 ${var.algo_config}/${var.vpn_users[count.index]}.mobileconfig"
   }
 }
+
+#
+# IPsec powershell
+#
+
+data "template_file" "powershell" {
+  count    = "${length(var.vpn_users)}"
+  template = "${file("${path.module}/files/powershell.ps1")}"
+  vars {
+    username            = "${var.vpn_users[count.index]}"
+    server_address      = "${var.server_address}"
+    UserPkcs12Base64    = "${var.clients_p12_base64[count.index]}"
+    CaCertificateBase64 = "${base64encode(var.ca_cert)}"
+  }
+}
+
+resource "local_file" "powershell" {
+  count    = "${length(var.vpn_users)}"
+  content     = "${data.template_file.powershell.*.rendered[count.index]}"
+  filename    = "${var.algo_config}/${var.vpn_users[count.index]}.ps1"
+
+  provisioner "local-exec" {
+    command = "chmod 0600 ${var.algo_config}/${var.vpn_users[count.index]}.ps1"
+  }
+}
+
+#
+# WireGuard
+#
+
+# data "template_file" "wireguard" {
+#   count    = "${length(var.vpn_users)}"
+#   template = "${file("${path.module}/files/wireguard.conf")}"
+#   vars {
+#     PrivateKey  = "${}"
+#     Address     = "${}"
+#     DNS         = "${}"
+#     PublicKey   = "${}"
+#     Endpoint    = "${}"
+#   }
+# }
+#
+# resource "local_file" "wireguard" {
+#   count    = "${length(var.vpn_users)}"
+#   content     = "${data.template_file.wireguard.*.rendered[count.index]}"
+#   filename    = "${var.algo_config}/${var.vpn_users[count.index]}.wireguard.conf"
+#
+#   provisioner "local-exec" {
+#     command = "chmod 0600 ${var.algo_config}/${var.vpn_users[count.index]}.wireguard.conf"
+#   }
+# }
