@@ -1,7 +1,6 @@
 resource "null_resource" "deploy_crl" {
   triggers    = {
     users = "${join(",", var.vpn_users)}"
-    # crl   = "${md5(var.crl)}"
   }
 
   connection {
@@ -12,19 +11,25 @@ resource "null_resource" "deploy_crl" {
 
   provisioner "remote-exec" {
     inline = [
-      "bash -c 'mkdir -p /etc/ipsec.d/crls >/dev/null 2>&1 || true'"
+      "sudo bash -c 'mkdir -p /etc/ipsec.d/crls >/dev/null 2>&1 || true'"
     ]
   }
 
   provisioner "file" {
     content     = "${var.crl}"
-    destination = "/etc/ipsec.d/crls/algo.root.pem"
+    destination = "/tmp/crl.pem"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "systemctl status strongswan 2>&1 >/dev/null&& sh -c 'ipsec rereadcrls; ipsec purgecrls' || true",
-      "touch /root/.terraform_complete"
+      "sudo mv /tmp/crl.pem /etc/ipsec.d/crls/crl.pem"
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo systemctl status strongswan 2>&1 >/dev/null && sudo sh -c 'ipsec rereadcrls; ipsec purgecrls' || true",
+      "sudo touch /root/.terraform_complete"
     ]
   }
 }
@@ -45,32 +50,40 @@ resource "null_resource" "deploy_certificates" {
 
   provisioner "remote-exec" {
     inline = [
-      "bash -c 'mkdir -p /etc/ipsec.d/{cacerts,certs,private} >/dev/null 2>&1 || true'"
+      "sudo bash -c 'mkdir -p /etc/ipsec.d/{cacerts,certs,private} >/dev/null 2>&1 || true'"
     ]
   }
 
   provisioner "file" {
     content     = "${var.ca_cert}"
-    destination = "/etc/ipsec.d/cacerts/ca.pem"
+    destination = "/tmp/ca.pem"
   }
 
   provisioner "file" {
     content     = "${var.server_cert}"
-    destination = "/etc/ipsec.d/certs/server.pem"
+    destination = "/tmp/server-cert.pem"
   }
 
   provisioner "file" {
     content     = "${var.server_key}"
-    destination = "/etc/ipsec.d/private/server.pem"
-  }
-
-  provisioner "remote-exec" {
-    inline = ["touch /root/.terraform_complete"]
+    destination = "/tmp/server-key.pem"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "systemctl status strongswan 2>&1 >/dev/null && systemctl restart strongswan || true"
+      "sudo mv /tmp/ca.pem /etc/ipsec.d/cacerts/ca.pem",
+      "sudo mv /tmp/server-cert.pem /etc/ipsec.d/certs/server.pem",
+      "sudo mv /tmp/server-key.pem /etc/ipsec.d/private/server.pem"
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = ["sudo touch /root/.terraform_complete"]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo systemctl status strongswan 2>&1 >/dev/null && sudo systemctl restart strongswan || true"
     ]
   }
 }
