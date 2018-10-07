@@ -61,6 +61,7 @@ write_files:
 runcmd:
   - set -x
   - echo BEGIN >> /tmp/pipeline
+  - ln -sf /bin/bash /bin/sh
   - apt install linux-headers-$(uname -r) -y
   - apt remove resolvconf -y
   - sysctl -p

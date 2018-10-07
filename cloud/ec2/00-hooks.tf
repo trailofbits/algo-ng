@@ -1,3 +1,5 @@
+provider "random"    { version = "~> 2.0" }
+
 resource "random_id" "config" {
   byte_length = 8
 }
@@ -5,64 +7,24 @@ resource "random_id" "config" {
 locals {
   algo_config_tmp = ".tmp/.algo-configs-${random_id.config.hex}/"
   algo_config     = "configs/${local.algo_config_tmp}"
+  server_address  = "${module.cloud-ec2.server_address}"
 }
 
 resource "null_resource" "config" {
   provisioner "local-exec" {
-    command = "mkdir -p '${local.algo_config}'"
+    command     = "mkdir -p '${local.algo_config}/keys'"
   }
 }
 
 resource "null_resource" "config-link" {
   provisioner "local-exec" {
-    command     = "ln -sf '${local.algo_config_tmp}' '${module.cloud-ec2.server_address}'"
+    command     = "ln -sf '${local.algo_config_tmp}' '${local.server_address}'"
     working_dir = "configs"
   }
 
   provisioner "local-exec" {
-    command     = "rm '${module.cloud-ec2.server_address}'"
+    command     = "rm '${local.server_address}' || true"
     when        = "destroy"
     working_dir = "configs"
-  }
-}
-
-resource "null_resource" "deploy_certificates" {
-  triggers = {
-    instance_id      = "${module.cloud-ec2.instance_id}"
-  }
-
-  connection {
-    host        = "${module.cloud-ec2.server_address}"
-    user        = "${module.cloud-ec2.ssh_user}"
-    private_key = "${module.ssh-key.private_key_pem}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo bash -c 'mkdir -p /etc/ipsec.d/{cacerts,certs,private} >/dev/null 2>&1 || true'"
-    ]
-  }
-
-  provisioner "file" {
-    content     = "${module.tls.ca_cert}"
-    destination = "/tmp/ca.pem"
-  }
-
-  provisioner "file" {
-    content     = "${module.tls.server_cert}"
-    destination = "/tmp/server-cert.pem"
-  }
-
-  provisioner "file" {
-    content     = "${module.tls.server_key}"
-    destination = "/tmp/server-key.pem"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo mv /tmp/ca.pem /etc/ipsec.d/cacerts/ca.pem",
-      "sudo mv /tmp/server-cert.pem /etc/ipsec.d/certs/server.pem",
-      "sudo mv /tmp/server-key.pem /etc/ipsec.d/private/server.pem"
-    ]
   }
 }

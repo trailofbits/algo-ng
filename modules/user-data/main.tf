@@ -36,6 +36,12 @@ data "template_cloudinit_config" "cloud_init" {
   }
 
   part {
+    filename     = "wireguard"
+    content      = "${lookup(var.components, "wireguard") == 0 ? "" : "${data.template_file.wireguard.rendered}"}"
+    merge_type   = "list(append)+dict(recurse_array)+str()"
+  }
+
+  part {
     filename     = "dns_encryption"
     content      = "${lookup(var.components, "dns_encryption") == 0 ? "" : "${data.template_file.dns_encryption.rendered}"}"
     merge_type   = "list(append)+dict(recurse_array)+str()"

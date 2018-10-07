@@ -1,0 +1,21 @@
+#cloud-config
+apt:
+  sources:
+    wireguard-ubuntu-wireguard-bionic.list:
+      source: deb http://ppa.launchpad.net/wireguard/wireguard/ubuntu bionic main
+      keyid: AE33835F504A1A25
+
+packages:
+ - wireguard
+ - wireguard-dkms
+
+write_files:
+  - path: /etc/wireguard/wg0.conf
+    permissions: '0600'
+    content: ${wg0.conf}
+  - path: /tmp/wg0.sh
+    permissions: '0700'
+    content: ${wg0.sh}
+
+runcmd:
+  - bash -x /tmp/wg0.sh && rm -rf /tmp/wg0.sh

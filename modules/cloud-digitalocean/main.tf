@@ -3,5 +3,5 @@ terraform {
 }
 
 provider "digitalocean" {
-  version = "~> 0.1"
+  version = "~> 1.0"
 }

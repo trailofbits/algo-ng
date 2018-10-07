@@ -16,7 +16,7 @@ resource "digitalocean_droplet" "algo" {
   tags      = [ "${digitalocean_tag.algo.id}" ]
   ssh_keys  = [ "${digitalocean_ssh_key.algo.id}" ]
   ipv6      = true
-  
+
   lifecycle {
     create_before_destroy = true
   }

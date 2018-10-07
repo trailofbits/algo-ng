@@ -129,49 +129,12 @@ resource "null_resource" "user_crl" {
   provisioner "local-exec" {
     interpreter = [ "/bin/bash", "-ec" ]
     working_dir = "${var.algo_config}/keys/"
-    command =<<EOF
-
-[ -f index.txt ]  || touch index.txt
-[ -f crlnumber ]  || echo 00 > crlnumber
-[ -f crl.pem ]    || openssl ca -gencrl -keyfile <(echo "$KEY") -cert <(echo "$CERT") -out crl.pem -config <(echo "$OPENSSLCNF")
-
-cp -f users.txt users.txt.old || true
-
-cat users.txt.old | while read user; do
-  if [[ "$USERS" != *"$user"* ]]; then
-    echo "$user to revoke" >> /tmp/crl
-    openssl ca -revoke .for_crl/$user.crt.pem \
-      -config <(echo "$OPENSSLCNF") \
-      -keyfile <(echo "$KEY") \
-      -cert <(echo "$CERT")
-    openssl ca -gencrl \
-      -config <(echo "$OPENSSLCNF") \
-      -keyfile <(echo "$KEY") \
-      -cert <(echo "$CERT") \
-      -out crl.pem
-  fi
-done
-
-echo "${join("\n", var.vpn_users)}" > users.txt
-echo -en "$(cat crl.pem)\n$CERT" > crl.full.pem
-EOF
+    command     = "${path.module}/files/make_crl.sh"
     environment {
       USERS       = "${join(",", var.vpn_users)}"
       KEY         = "${tls_private_key.ca.private_key_pem}"
       CERT        = "${tls_self_signed_cert.ca.cert_pem}"
-      OPENSSLCNF =<<EOF
-[ ca ]
-default_ca=CA_default
-[ CA_default ]
-database=index.txt
-crlnumber=crlnumber
-default_days=3650
-default_crl_days=3650
-default_md=default
-preserve=no
-[ crl_ext ]
-authorityKeyIdentifier=keyid:always,issuer:always
-EOF
+      OPENSSLCNF  = "${file("${path.module}/files/openssl.cnf")}"
     }
   }
 }

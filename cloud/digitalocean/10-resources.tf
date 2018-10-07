@@ -46,4 +46,6 @@ module "configs" {
   ssh_user            = "${module.cloud-digitalocean.ssh_user}"
   private_key         = "${module.ssh-key.private_key_pem}"
   server_id           = "${module.cloud-digitalocean.server_id}"
+  wg_users_private    = "${module.user-data.wg_users_private}"
+  wg_users_public     = "${module.user-data.wg_users_public}"
 }

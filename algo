@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 
 TERRAFORM_VERSION="0.11.2"
 SKIP_TAGS="_null encrypted"
