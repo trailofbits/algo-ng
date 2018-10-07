@@ -12,6 +12,8 @@ variable "private_key" {}
 variable "server_id" {}
 variable "wg_users_private" { type = "list" }
 variable "wg_users_public" { type = "list" }
+variable "wireguard_network" { type = "map" }
+variable "local_service_ip" {}
 variable "ssh_user" {
   default = "ubuntu"
 }
@@ -19,17 +21,4 @@ variable "ssh_user" {
 variable "clients_p12_base64" {
   type    = "list"
   default = []
-}
-
-variable "wireguard_network" {
-  type = "map"
-  default = {
-    ipv4 = "10.19.49.0/24"
-    ipv6 = "fd9d:bc11:4021::/48"
-    port = 51820
-  }
-}
-
-variable "local_service_ip" {
-  default = "172.16.0.1"
 }

@@ -75,40 +75,10 @@ resource "null_resource" "deploy_certificates" {
   }
 }
 
-resource "null_resource" "get_wireguard_server_pubkey" {
-  triggers {
-    users     = "${join(",", var.vpn_users)}"
-    server_id = "${var.server_id}"
-    test = 1
-  }
-
-  connection {
-    host        = "${var.server_address}"
-    user        = "${var.ssh_user}"
-    private_key = "${var.private_key}"
-  }
-  
-  provisioner "remote-exec" {
-    inline = [
-      "until test -f /tmp/.wg-server.pub; do sleep 5; done"
-    ]
-  }
-
-  provisioner "local-exec" {
-    command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i '${var.algo_config}/algo.pem' ${var.ssh_user}@${var.server_address}:/tmp/.wg-server.pub ${var.algo_config}/.wg-server.pub"
-  }
-}
-
-data "local_file" "wg_server_pubkey" {
-  depends_on  = ["null_resource.get_wireguard_server_pubkey"]
-  filename  = "${var.algo_config}/.wg-server.pub"
-}
-
 resource "null_resource" "wait-until-deploy-finished" {
   depends_on  = [
     "null_resource.deploy_certificates",
-    "null_resource.deploy_crl",
-    "null_resource.get_wireguard_server_pubkey"
+    "null_resource.deploy_crl"
   ]
 
   triggers {
@@ -126,4 +96,35 @@ resource "null_resource" "wait-until-deploy-finished" {
       "until test -f /tmp/booted; do sleep 5; done"
     ]
   }
+}
+
+resource "null_resource" "get_wireguard_server_pubkey" {
+  depends_on  = [
+    "null_resource.wait-until-deploy-finished"
+  ]
+  triggers {
+    users     = "${join(",", var.vpn_users)}"
+    server_id = "${var.server_id}"
+  }
+
+  connection {
+    host        = "${var.server_address}"
+    user        = "${var.ssh_user}"
+    private_key = "${var.private_key}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "until test -f /tmp/.wg-server.pub; do sleep 5; done"
+    ]
+  }
+
+  provisioner "local-exec" {
+    command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i '${var.algo_config}/algo.pem' ${var.ssh_user}@${var.server_address}:/tmp/.wg-server.pub ${var.algo_config}/.wg-server.pub"
+  }
+}
+
+data "local_file" "wg_server_pubkey" {
+  depends_on  = ["null_resource.get_wireguard_server_pubkey"]
+  filename    = "${var.algo_config}/.wg-server.pub"
 }

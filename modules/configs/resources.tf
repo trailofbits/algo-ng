@@ -78,22 +78,21 @@ resource "local_file" "powershell" {
 # WireGuard
 #
 
-data "template_file" "wireguard" {
-  count    = "${length(var.vpn_users)}"
-  template = "${file("${path.module}/files/wireguard.conf")}"
-  vars {
-    PrivateKey  = "${base64encode(var.wg_users_private[count.index])}"
-    Address     = "${cidrhost(var.wireguard_network["ipv4"], 2 + count.index)}/32${var.ipv6 == 0 ? "" : ",${cidrhost(var.wireguard_network["ipv6"], 2 + count.index)}/128"}"
-    DNS         = "${var.local_service_ip}"
-    PublicKey   = "${data.local_file.wg_server_pubkey.content}"
-    Endpoint    = "${var.server_address}:${var.wireguard_network["port"]}"
-  }
-}
-
 resource "local_file" "wireguard" {
   count    = "${length(var.vpn_users)}"
-  content     = "${data.template_file.wireguard.*.rendered[count.index]}"
-  filename    = "${var.algo_config}/${var.vpn_users[count.index]}.wg.conf"
+  filename = "${var.algo_config}/${var.vpn_users[count.index]}.wg.conf"
+  content  =<<EOF
+[Interface]
+PrivateKey = ${base64encode(var.wg_users_private[count.index])}
+Address = ${cidrhost(var.wireguard_network["ipv4"], 2 + count.index)}/32${var.ipv6 == 0 ? "" : ",${cidrhost(var.wireguard_network["ipv6"], 2 + count.index)}/128"}
+DNS = ${var.local_service_ip}
+
+[Peer]
+PublicKey = ${chomp(data.local_file.wg_server_pubkey.content)}
+AllowedIPs = 0.0.0.0/0, ::/0
+Endpoint = ${var.server_address}:${var.wireguard_network["port"]}
+PersistentKeepalive = 25
+EOF
 
   provisioner "local-exec" {
     command = "chmod 0600 ${var.algo_config}/${var.vpn_users[count.index]}.wg.conf"

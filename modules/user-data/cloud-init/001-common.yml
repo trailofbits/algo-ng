@@ -64,7 +64,7 @@ runcmd:
   - ln -sf /bin/bash /bin/sh
   - apt install linux-headers-$(uname -r) -y
   - apt remove resolvconf -y
-  - sysctl -p
+  - sysctl -p /etc/sysctl.d/10-algo.conf
   - systemctl enable systemd-networkd systemd-resolved netfilter-persistent
   - systemctl restart systemd-networkd systemd-resolved netfilter-persistent
   - printf '%s\n' '#!/bin/bash' '/usr/bin/touch /tmp/booted' | sudo tee -a /etc/rc.local

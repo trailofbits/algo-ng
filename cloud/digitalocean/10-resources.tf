@@ -48,4 +48,6 @@ module "configs" {
   server_id           = "${module.cloud-digitalocean.server_id}"
   wg_users_private    = "${module.user-data.wg_users_private}"
   wg_users_public     = "${module.user-data.wg_users_public}"
+  local_service_ip    = "${module.user-data.local_service_ip}"
+  wireguard_network   = "${module.user-data.wireguard_network}"
 }
