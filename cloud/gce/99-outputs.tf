@@ -1,3 +1,3 @@
 output "Configuration" {
-  value = "configs/${module.cloud-gce.server_address}/"
+  value = "configs/${local.server_address}/"
 }

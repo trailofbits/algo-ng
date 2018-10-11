@@ -29,6 +29,7 @@ module "cloud-ec2" {
   public_key_openssh  = "${module.ssh-key.public_key_openssh}"
   user_data           = "${module.user-data.template_cloudinit_config}"
   algo_name           = "${var.algo_name}"
+  wireguard_network   = "${module.user-data.wireguard_network}"
 }
 
 module "configs" {
@@ -37,7 +38,7 @@ module "configs" {
   vpn_users           = "${var.vpn_users}"
   components          = "${var.components}"
   ipv6                = "${module.cloud-ec2.ipv6}"
-  server_address      = "${module.cloud-ec2.server_address}"
+  server_address      = "${local.server_address}"
   client_p12_pass     = "${module.tls.client_p12_pass}"
   clients_p12_base64  = "${module.tls.clients_p12_base64}"
   ca_cert             = "${module.tls.ca_cert}"

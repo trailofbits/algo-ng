@@ -69,7 +69,7 @@ resource "aws_route_table" "default" {
   }
 }
 
-resource "aws_route_table_association" "a" {
+resource "aws_route_table_association" "default" {
   subnet_id      = "${aws_subnet.main.id}"
   route_table_id = "${aws_route_table.default.id}"
 }
@@ -105,6 +105,14 @@ resource "aws_security_group" "main" {
   ingress {
     from_port         = 4500
     to_port           = 4500
+    protocol          = "udp"
+    cidr_blocks       = ["0.0.0.0/0"]
+    ipv6_cidr_blocks  = ["::/0"]
+  }
+
+  ingress {
+    from_port         = "${var.wireguard_network["port"]}"
+    to_port           = "${var.wireguard_network["port"]}"
     protocol          = "udp"
     cidr_blocks       = ["0.0.0.0/0"]
     ipv6_cidr_blocks  = ["::/0"]

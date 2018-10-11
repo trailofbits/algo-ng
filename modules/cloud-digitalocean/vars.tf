@@ -1,3 +1,8 @@
+variable "region" {}
+variable "algo_name" {}
+variable "public_key_openssh" {}
+variable "user_data" {}
+
 variable "image" {
   default = "ubuntu-18-04-x64"
 }
@@ -9,12 +14,3 @@ variable "size" {
 variable "ipv6" {
   default = true
 }
-
-variable "unmanaged" {
-  default = false
-}
-
-variable "region" {}
-variable "algo_name" {}
-variable "public_key_openssh" {}
-variable "user_data" {}

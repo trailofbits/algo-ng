@@ -12,8 +12,6 @@ components = {
   "windows"         = true
 }
 
-unmanaged = false
-
 # MSS is the TCP Max Segment Size
 # Setting the 'max_mss' variable can solve some issues related to packet fragmentation
 # This appears to be necessary on (at least) Google Cloud,

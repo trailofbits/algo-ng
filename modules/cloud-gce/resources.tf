@@ -18,7 +18,8 @@ resource "google_compute_firewall" "ingress" {
     protocol = "udp"
     ports    = [
       "500",
-      "4500"
+      "4500",
+      "${var.wireguard_network["port"]}"
     ]
   }
 
@@ -42,7 +43,6 @@ resource "google_compute_instance" "algo" {
   name                    = "${var.algo_name}"
   machine_type            = "${var.size}"
   zone                    = "${var.region}"
-  metadata_startup_script = "${var.user_data}"
   can_ip_forward          = true
 
   boot_disk {

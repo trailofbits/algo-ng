@@ -52,8 +52,20 @@ resource "azurerm_network_security_group" "algo" {
   }
 
   security_rule {
-    name                       = "AllowICMP"
+    name                       = "AllowWireGuard"
     priority                   = 130
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range          = "${var.wireguard_network["port"]}"
+    destination_port_range     = "${var.wireguard_network["port"]}"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "AllowICMP"
+    priority                   = 140
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "*"

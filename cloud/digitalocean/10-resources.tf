@@ -36,7 +36,7 @@ module "configs" {
   vpn_users           = "${var.vpn_users}"
   components          = "${var.components}"
   ipv6                = "${module.cloud-digitalocean.ipv6}"
-  server_address      = "${module.cloud-digitalocean.server_address}"
+  server_address      = "${local.server_address}"
   client_p12_pass     = "${module.tls.client_p12_pass}"
   clients_p12_base64  = "${module.tls.clients_p12_base64}"
   ca_cert             = "${module.tls.ca_cert}"
