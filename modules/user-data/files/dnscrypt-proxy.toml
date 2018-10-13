@@ -1,4 +1,4 @@
-server_names      = [ '${dns_encryption_provider}' ]
+server_names      = [ ${server_names} ]
 listen_addresses  = [ '${local_service_ip}:5353' ]
 max_clients = 250
 ipv4_servers = true

@@ -3,63 +3,40 @@
 TERRAFORM_VERSION="0.11.2"
 SKIP_TAGS="_null encrypted"
 ADDITIONAL_PROMPT="[pasted values will not be displayed]"
+TRUE="^(y|Y|true)$"
 
 additional_roles () {
 
-  read -p "
-  Do you want macOS/iOS clients to enable \"VPN On Demand\" when connected to cellular networks?
-  [y/N]: " -r OnDemandEnabled_Cellular
-  OnDemandEnabled_Cellular=${OnDemandEnabled_Cellular:-n}
-  if [[ "$OnDemandEnabled_Cellular" =~ ^(y|Y)$ ]]; then EXTRA_VARS+=" OnDemandEnabled_Cellular=true"; fi
+  if [[ "$ALGO_COMMAND" == "apply" ]]; then
+    # OnDemand
+    if [[ -z $OnDemandCellular ]]; then
+      read -p "
+      Do you want macOS/iOS clients to enable \"VPN On Demand\" when connected to cellular networks?
+      [y/N]: " -r OnDemandCellular
+    fi; [[ "$OnDemandCellular" =~ $TRUE ]] && OnDemandCellular=true || OnDemandCellular=false
 
-  read -p "
-  Do you want macOS/iOS clients to enable \"VPN On Demand\" when connected to Wi-Fi?
-  [y/N]: " -r OnDemandEnabled_WIFI
-  OnDemandEnabled_WIFI=${OnDemandEnabled_WIFI:-n}
-  if [[ "$OnDemandEnabled_WIFI" =~ ^(y|Y)$ ]]; then EXTRA_VARS+=" OnDemandEnabled_WIFI=true"; fi
+    if [[ -z $OnDemandWiFi ]]; then
+      read -p "
+      Do you want macOS/iOS clients to enable \"VPN On Demand\" when connected to Wi-Fi?
+      [y/N]: " -r OnDemandWiFi
+    fi; [[ "$OnDemandWiFi" =~ $TRUE ]] && OnDemandWiFi=true || OnDemandWiFi=false
 
-  if [[ "$OnDemandEnabled_WIFI" =~ ^(y|Y)$ ]]; then
-    read -p "
-  List the names of trusted Wi-Fi networks (if any) that macOS/iOS clients exclude from using the VPN (e.g., your home network. Comma-separated value, e.g., HomeNet,OfficeWifi,AlgoWiFi)
-  : " -r OnDemandEnabled_WIFI_EXCLUDE
-    OnDemandEnabled_WIFI_EXCLUDE=${OnDemandEnabled_WIFI_EXCLUDE:-_null}
-    EXTRA_VARS+=" OnDemandEnabled_WIFI_EXCLUDE=\"$OnDemandEnabled_WIFI_EXCLUDE\""
+    if [[ -z $OnDemandWiFiExclude && $OnDemandWiFi =~ $TRUE ]]; then
+      read -p "
+      List the names of trusted Wi-Fi networks (if any) that macOS/iOS clients exclude from using the VPN
+      (e.g., your home network. Comma-separated value, e.g., HomeNet,OfficeWifi,AlgoWiFi)
+      : " -r OnDemandWiFiExclude
+    fi
   fi
 
-  read -p "
-  Do you want to install a DNS resolver on this VPN server, to block ads while surfing?
-  [y/N]: " -r dns_enabled
-  dns_enabled=${dns_enabled:-n}
-  if [[ "$dns_enabled" =~ ^(y|Y)$ ]]; then EXTRA_VARS+=" role_dns_adblocking=true"; fi
-
-  read -p "
-  Do you want each user to have their own account for SSH tunneling?
-  [y/N]: " -r ssh_tunneling_enabled
-  ssh_tunneling_enabled=${ssh_tunneling_enabled:-n}
-  if [[ "$ssh_tunneling_enabled" =~ ^(y|Y)$ ]]; then EXTRA_VARS+=" role_ssh_tunneling=true"; fi
-
-  read -p "
-  Do you want to apply operating system security enhancements on the server? (warning: replaces your sshd_config)
-  [y/N]: " -r security_enabled
-  security_enabled=${security_enabled:-n}
-  if [[ "$security_enabled" =~ ^(y|Y)$ ]]; then EXTRA_VARS+=" role_security=true"; fi
-
-  read -p "
-  Do you want the VPN to support Windows 10 or Linux Desktop clients? (enables compatible ciphers and key exchange, less secure)
-  [y/N]: " -r Win10_Enabled
-  Win10_Enabled=${Win10_Enabled:-n}
-  if [[ "$Win10_Enabled" =~ ^(y|Y)$ ]]; then EXTRA_VARS+=" Win10_Enabled=true"; fi
-
-  read -p "
-  Do you want to retain the CA key? (required to add users in the future, but less secure)
-  [y/N]: " -r Store_CAKEY
-  Store_CAKEY=${Store_CAKEY:-N}
-  if [[ "$Store_CAKEY" =~ ^(n|N)$ ]]; then EXTRA_VARS+=" Store_CAKEY=false"; fi
-
+  TF_CLI_ARGS_apply+=" -var=ondemand='{ cellular = ${OnDemandCellular:-false},
+                                        wifi  = ${OnDemandWiFi:-false},
+                                        wifi_exclude = \"${OnDemandWiFiExclude}\"
+                                      }'"
 }
 
 deploy () {
-  export  TF_CLI_ARGS_apply="-auto-approve -parallelism=1"
+  export  TF_CLI_ARGS_apply+=" -auto-approve -parallelism=1"
   export  TF_CLI_ARGS_destroy="-force"
   export  TF_VAR_algo_name="${ALGO_SERVER_NAME}" \
           TF_VAR_algo_provider="${ALGO_PROVIDER}" \
@@ -465,53 +442,8 @@ algo_provisioning () {
     2|ec2) ALGO_PROVIDER=ec2; ec2; ;;
     3|azure) ALGO_PROVIDER=azure; azure; ;;
     3|gce) ALGO_PROVIDER=gce; gce; ;;
-    # 5|non_cloud) ALGO_PROVIDER=non_cloud; non_cloud; ;;
     *) exit 1 ;;
   esac
-
-  # additional_roles
-  deploy
-}
-
-user_management () {
-
-  read -p "
-  Enter the IP address of your server: (or use localhost for local installation)
-  : " -r server_ip
-
-  read -p "
-  What user should we use to login on the server? (note: passwordless login required, or ignore if you're deploying to localhost)
-  [root]: " -r server_user
-  server_user=${server_user:-root}
-
-  read -p "
-  Do you want each user to have their own account for SSH tunneling?
-  [y/N]: " -r ssh_tunneling_enabled
-  ssh_tunneling_enabled=${ssh_tunneling_enabled:-n}
-
-  if [ "x${server_ip}" = "xlocalhost" ]; then
-  	myip=""
-  else
-  	myip=${server_ip}
-  fi
-
-  read -p "
-
-  Enter the public IP address of your server: (IMPORTANT! This IP is used to verify the certificate)
-  [$myip]: " -r IP_subject
-  IP_subject=${IP_subject:-$myip}
-
-  if [ "x${IP_subject}" = "x" ]; then
-  echo "no server IP given. exiting."
-  exit 1
-  fi
-
-  read -p "
-  Enter the password for the private CA key:
-  $ADDITIONAL_PROMPT
-  : " -rs easyrsa_CA_password
-
-  ansible-playbook users.yml -e "server_ip=$server_ip server_user=$server_user ssh_tunneling_enabled=$ssh_tunneling_enabled IP_subject_alt_name=$IP_subject easyrsa_CA_password=$easyrsa_CA_password" -t update-users --skip-tags common
 }
 
 help () {
@@ -537,7 +469,6 @@ locate_terraform () {
 }
 
 case "$1" in
-  update-users) user_management ;;
   apply) export ALGO_COMMAND="apply" ;;
   destroy) export ALGO_COMMAND="destroy" ;;
   get-terraform) get_terraform ;;
@@ -546,3 +477,5 @@ esac
 
 locate_terraform
 algo_provisioning
+additional_roles
+deploy

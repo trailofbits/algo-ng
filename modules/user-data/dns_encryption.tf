@@ -1,10 +1,10 @@
 data "template_file" "dnscrypt-proxy" {
   template = "${file("${path.module}/files/dnscrypt-proxy.toml")}"
   vars {
-    local_service_ip        = "${var.local_service_ip}"
-    dns_encryption_provider = "${var.dns_encryption_provider}"
-    ipv6                    = "${var.ipv6 == 1 ? "true" : "false"}"
-    cache                   = "${var.components["dns_adblocking"] == 1 ? "false" : "true"}"
+    local_service_ip  = "${var.local_service_ip}"
+    server_names      = "'${var.dnscrypt_servers["ipv4"]}'${var.ipv6 == 0 ? "" : ",'${var.dnscrypt_servers["ipv6"]}'"}"
+    ipv6              = "${var.ipv6 == 1 ? "true" : "false"}"
+    cache             = "${var.components["dns_adblocking"] == 1 ? "false" : "true"}"
   }
 }
 

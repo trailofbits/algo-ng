@@ -22,3 +22,15 @@ variable "clients_p12_base64" {
   type    = "list"
   default = []
 }
+
+# VPN On Demand
+variable "ondemand" {
+  type          = "map"
+  default {
+    cellular      = false
+    wifi          = false
+    # List the names of trusted Wi-Fi networks (if any) that macOS/iOS clients exclude from using the VPN
+    # (e.g., your home network. Comma-separated value, e.g., HomeNet,OfficeWifi)
+    wifi_exclude  = ""
+  }
+}

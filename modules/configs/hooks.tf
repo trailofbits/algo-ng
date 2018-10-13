@@ -136,8 +136,3 @@ resource "null_resource" "get_wireguard_server_pubkey" {
     command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i '${var.algo_config}/algo.pem' ${var.ssh_user}@${var.server_address}:/tmp/.wg-server.pub ${var.algo_config}/.wg-server.pub"
   }
 }
-
-data "local_file" "wg_server_pubkey" {
-  depends_on  = ["null_resource.get_wireguard_server_pubkey"]
-  filename    = "${var.algo_config}/.wg-server.pub"
-}

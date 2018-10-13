@@ -11,6 +11,9 @@
                 <integer>${OnDemandEnabled}</integer>
               <key>OnDemandRules</key>
               <array>
+              ${WiFi_Exclude}
+              ${WiFi_OnDemand}
+              ${Cellular_OnDemand}
               </array>
               <key>AuthenticationMethod</key>
               <string>Certificate</string>

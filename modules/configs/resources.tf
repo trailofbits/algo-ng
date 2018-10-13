@@ -22,11 +22,50 @@ resource "random_uuid" "PayloadIdentifier_conf" {
 # IPsec
 #
 
+locals {
+  WiFi_Exclude =<<EOF
+<dict>
+  <key>Action</key>
+  <string>Disconnect</string>
+  <key>InterfaceTypeMatch</key>
+  <string>WiFi</string>
+  <key>SSIDMatch</key>
+  <array>
+    ${join("\n", formatlist("<string>%s</string>", split(",", var.ondemand["wifi_exclude"])))}
+  </array>
+</dict>
+EOF
+  WiFi_OnDemand =<<EOF
+<dict>
+  <key>Action</key>
+    <string>Connect</string>
+  <key>InterfaceTypeMatch</key>
+    <string>${var.ondemand["wifi"] == 1 ? "WiFi" : ""}</string>
+  <key>URLStringProbe</key>
+    <string>http://captive.apple.com/hotspot-detect.html</string>
+</dict>
+EOF
+
+  Cellular_OnDemand =<<EOF
+<dict>
+  <key>Action</key>
+    <string>Connect</string>
+  <key>InterfaceTypeMatch</key>
+    <string>${var.ondemand["cellular"] == 1 ? "Cellular" : ""}</string>
+  <key>URLStringProbe</key>
+    <string>http://captive.apple.com/hotspot-detect.html</string>
+</dict>
+EOF
+}
+
 data "template_file" "mobileconfig" {
   count    = "${length(var.vpn_users)}"
   template = "${file("${path.module}/files/mobileconfig.xml")}"
   vars {
-    OnDemandEnabled           = 0
+    OnDemandEnabled           = "${var.ondemand["cellular"] == 1 || var.ondemand["wifi"] == 1 ? 1 : 0}"
+    WiFi_Exclude              = "${length(var.ondemand["wifi_exclude"]) >= 1 && var.ondemand["wifi"] == 1 ? "${local.WiFi_Exclude}" : ""}"
+    Cellular_OnDemand         = "${var.ondemand["cellular"] == 1 ? "${local.Cellular_OnDemand}" : ""}"
+    WiFi_OnDemand             = "${var.ondemand["wifi"] == 1 ? "${local.WiFi_OnDemand}" : ""}"
     LocalIdentifier           = "${var.vpn_users[count.index]}"
     server_address            = "${var.server_address}"
     PayloadContent            = "${var.clients_p12_base64[count.index]}"
@@ -77,6 +116,11 @@ resource "local_file" "powershell" {
 #
 # WireGuard
 #
+
+data "local_file" "wg_server_pubkey" {
+  depends_on  = ["null_resource.get_wireguard_server_pubkey"]
+  filename    = "${var.algo_config}/.wg-server.pub"
+}
 
 resource "local_file" "wireguard" {
   count    = "${length(var.vpn_users)}"

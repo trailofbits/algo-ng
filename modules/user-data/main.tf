@@ -3,9 +3,11 @@ provider "template" { version = "~> 1.0" }
 data "template_file" "common" {
   template = "${file("${path.module}/cloud-init/001-common.yml")}"
   vars {
-    local_service_ip = "${var.local_service_ip}"
-    rules.v4         = "${jsonencode(data.template_file.iptables-v4.rendered)}"
-    system_upgrade   = "${var.system_upgrade == 1 ? "true" : "false"}"
+    local_service_ip        = "${var.local_service_ip}"
+    rules.v4                = "${jsonencode(data.template_file.iptables-v4.rendered)}"
+    system_upgrade          = "${var.system_upgrade == 1 ? "true" : "false"}"
+    unattended_reboot       = "${var.unattended_reboot["enabled"] == 1 ? "true" : "false"}"
+    unattended_reboot_time  = "${var.unattended_reboot["time"]}"
   }
 }
 
