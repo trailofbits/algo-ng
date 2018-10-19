@@ -164,4 +164,8 @@ resource "azurerm_virtual_machine" "algo" {
   tags {
     Environment = "Algo"
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }

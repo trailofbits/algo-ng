@@ -5,13 +5,17 @@ resource "random_id" "name" {
   }
 }
 
+locals {
+  name = "algovpn-${random_id.name.hex}"
+}
+
 resource "google_compute_network" "main" {
-  name                    = "algovpn-${random_id.name.hex}"
+  name                    = "${local.name}"
   auto_create_subnetworks = true
 }
 
 resource "google_compute_firewall" "ingress" {
-  name    = "algovpn-${random_id.name.hex}"
+  name    = "${local.name}"
   network = "${google_compute_network.main.name}"
 
   allow {
@@ -34,7 +38,7 @@ resource "google_compute_firewall" "ingress" {
 }
 
 resource "google_compute_address" "main" {
-  name         = "algovpn-${random_id.name.hex}"
+  name         = "${local.name}"
   region       = "${element(split("-", var.region), 0)}-${element(split("-", var.region), 1)}"
   address_type = "EXTERNAL"
 }
@@ -66,5 +70,9 @@ resource "google_compute_instance" "algo" {
 
   labels {
     "environment" = "algo"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }

@@ -5,6 +5,7 @@ data "template_file" "common" {
   vars {
     local_service_ip        = "${var.local_service_ip}"
     rules.v4                = "${jsonencode(data.template_file.iptables-v4.rendered)}"
+    rules.v6                = "${jsonencode(data.template_file.iptables-v6.rendered)}"
     system_upgrade          = "${var.system_upgrade == 1 ? "true" : "false"}"
     unattended_reboot       = "${var.unattended_reboot["enabled"] == 1 ? "true" : "false"}"
     unattended_reboot_time  = "${var.unattended_reboot["time"]}"

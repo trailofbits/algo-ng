@@ -18,10 +18,6 @@ resource "random_uuid" "PayloadIdentifier_conf" {
   count = "${length(var.vpn_users)}"
 }
 
-#
-# IPsec
-#
-
 locals {
   WiFi_Exclude =<<EOF
 <dict>
@@ -35,6 +31,7 @@ locals {
   </array>
 </dict>
 EOF
+
   WiFi_OnDemand =<<EOF
 <dict>
   <key>Action</key>
@@ -85,60 +82,5 @@ resource "local_file" "mobileconfig" {
 
   provisioner "local-exec" {
     command = "chmod 0600 ${var.algo_config}/${var.vpn_users[count.index]}.mobileconfig"
-  }
-}
-
-#
-# IPsec powershell
-#
-
-data "template_file" "powershell" {
-  count    = "${length(var.vpn_users)}"
-  template = "${file("${path.module}/files/powershell.ps1")}"
-  vars {
-    username            = "${var.vpn_users[count.index]}"
-    server_address      = "${var.server_address}"
-    UserPkcs12Base64    = "${var.clients_p12_base64[count.index]}"
-    CaCertificateBase64 = "${base64encode(var.ca_cert)}"
-  }
-}
-
-resource "local_file" "powershell" {
-  count    = "${length(var.vpn_users)}"
-  content     = "${data.template_file.powershell.*.rendered[count.index]}"
-  filename    = "${var.algo_config}/${var.vpn_users[count.index]}.ps1"
-
-  provisioner "local-exec" {
-    command = "chmod 0600 ${var.algo_config}/${var.vpn_users[count.index]}.ps1"
-  }
-}
-
-#
-# WireGuard
-#
-
-data "local_file" "wg_server_pubkey" {
-  depends_on  = ["null_resource.get_wireguard_server_pubkey"]
-  filename    = "${var.algo_config}/.wg-server.pub"
-}
-
-resource "local_file" "wireguard" {
-  count    = "${length(var.vpn_users)}"
-  filename = "${var.algo_config}/${var.vpn_users[count.index]}.wg.conf"
-  content  =<<EOF
-[Interface]
-PrivateKey = ${base64encode(var.wg_users_private[count.index])}
-Address = ${cidrhost(var.wireguard_network["ipv4"], 2 + count.index)}/32${var.ipv6 == 0 ? "" : ",${cidrhost(var.wireguard_network["ipv6"], 2 + count.index)}/128"}
-DNS = ${var.local_service_ip}
-
-[Peer]
-PublicKey = ${chomp(data.local_file.wg_server_pubkey.content)}
-AllowedIPs = 0.0.0.0/0, ::/0
-Endpoint = ${var.server_address}:${var.wireguard_network["port"]}
-PersistentKeepalive = 25
-EOF
-
-  provisioner "local-exec" {
-    command = "chmod 0600 ${var.algo_config}/${var.vpn_users[count.index]}.wg.conf"
   }
 }
