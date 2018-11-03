@@ -276,6 +276,68 @@ ec2 () {
           ALGO_SERVER_NAME=${ALGO_SERVER_NAME}
 }
 
+lightsail () {
+  if [[ -z $AWS_ACCESS_KEY_ID && -z $AWS_PROFILE ]]; then
+    read -p "
+    Enter your aws_access_key (http://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html)
+    Note: Make sure to use an IAM user with an acceptable policy attached (see https://github.com/trailofbits/algo/blob/master/docs/deploy-from-ansible.md).
+    $ADDITIONAL_PROMPT
+    [AKIA...]: " -rs AWS_ACCESS_KEY_ID
+  fi
+
+  if [[ -z $AWS_SECRET_ACCESS_KEY && -z $AWS_PROFILE ]]; then
+    read -p "
+
+    Enter your aws_secret_key (http://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html)
+    $ADDITIONAL_PROMPT
+    [ABCD...]: " -rs AWS_SECRET_ACCESS_KEY
+  fi
+
+  if [[ -z $ALGO_REGION ]]; then
+    read -p "
+
+    What region should the server be located in?
+      1.  ap-northeast-1       Tokyo
+      2.  ap-northeast-2       Seoul
+      3.  ap-south-1           Mumbai
+      4.  ap-southeast-1       Singapore
+      5.  ap-southeast-2       Sydney
+      6.  ca-central-1         Montreal
+      7.  eu-central-1         Frankfurt
+      8.  eu-west-1            Ireland
+      9.  eu-west-2            London
+      10. eu-west-3            Paris
+      11. us-east-1            Virginia
+      12. us-east-2            Ohio
+      13. us-west-2            Oregon
+    Enter the number of your desired region:
+    [1]: " -r aws_region
+    aws_region=${aws_region:-1}
+
+    case "$aws_region" in
+      1) TF_VAR_region="ap-northeast-1" ;;
+      2) TF_VAR_region="ap-northeast-2" ;;
+      3) TF_VAR_region="ap-south-1" ;;
+      4) TF_VAR_region="ap-southeast-1" ;;
+      5) TF_VAR_region="ap-southeast-2" ;;
+      6) TF_VAR_region="ca-central-1" ;;
+      7) TF_VAR_region="eu-central-1" ;;
+      8) TF_VAR_region="eu-west-1" ;;
+      9) TF_VAR_region="eu-west-2" ;;
+      10) TF_VAR_region="eu-west-3" ;;
+      11) TF_VAR_region="us-east-1";;
+      12) TF_VAR_region="us-east-2" ;;
+      13) TF_VAR_region="us-west-2" ;;
+    esac
+  else
+    TF_VAR_region="$ALGO_REGION"
+  fi
+
+  export  AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+          AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+          ALGO_SERVER_NAME=${ALGO_SERVER_NAME}
+}
+
 gce () {
   if [[ -z $GOOGLE_CREDENTIALS ]]; then
     read -p "
@@ -422,8 +484,8 @@ algo_provisioning () {
     What provider would you like to use?
       1. DigitalOcean
       2. Amazon EC2
-      3. Google Compute Engine
-
+      3. Microsoft Azure
+      4. Google Compute Engine
     Enter the number of your desired provider
     : "
     read -r ALGO_PROVIDER
@@ -439,9 +501,10 @@ algo_provisioning () {
 
   case "$ALGO_PROVIDER" in
     1|digitalocean) ALGO_PROVIDER=digitalocean; digitalocean; ;;
+    # 2|lightsail) ALGO_PROVIDER=lightsail; lightsail; ;;
     2|ec2) ALGO_PROVIDER=ec2; ec2; ;;
     3|azure) ALGO_PROVIDER=azure; azure; ;;
-    3|gce) ALGO_PROVIDER=gce; gce; ;;
+    4|gce) ALGO_PROVIDER=gce; gce; ;;
     *) exit 1 ;;
   esac
 }
