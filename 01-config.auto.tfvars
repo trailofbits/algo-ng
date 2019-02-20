@@ -1,6 +1,7 @@
 vpn_users = [
-  "jack",
-  "dan"
+  "phone",
+  "laptop",
+  "desktop"
 ]
 
 components = {
