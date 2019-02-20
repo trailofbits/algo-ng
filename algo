@@ -5,6 +5,33 @@ SKIP_TAGS="_null encrypted"
 ADDITIONAL_PROMPT="[pasted values will not be displayed]"
 TRUE="^(y|Y|true)$"
 
+# helpers
+DescribeRegions(){
+  index=1
+  while IFS=":" read code name default; do
+    echo -e " ${index}.  ${code}   ${name}"
+    ((index++))
+  done < .regions/${1}
+}
+
+GetRegionCodeByIndex(){
+  sed "${2}q;d" .regions/${1} | cut -f1 -d:
+}
+
+GetDefaultRegion(){
+  index=1
+  while IFS=":" read code name default; do
+    if [[ "$default" == "default" ]]; then
+      default=${index}
+      echo "$default"
+      break
+    fi
+    ((index++))
+  done < .regions/${1}
+
+}
+# helpers
+
 additional_roles () {
 
   if [[ "$ALGO_COMMAND" == "apply" ]]; then
@@ -171,39 +198,16 @@ digitalocean () {
   fi
 
   if [[ -z $ALGO_REGION ]]; then
+    DEFAULT_REGION="$(GetDefaultRegion digitalocean)"
     read -p "
+What region should the server be located in?
+$(DescribeRegions digitalocean)
 
-    What region should the server be located in?
-      1.  Amsterdam        (Datacenter 2)
-      2.  Amsterdam        (Datacenter 3)
-      3.  Frankfurt
-      4.  London
-      5.  New York         (Datacenter 1)
-      6.  New York         (Datacenter 2)
-      7.  New York         (Datacenter 3)
-      8.  San Francisco    (Datacenter 1)
-      9.  San Francisco    (Datacenter 2)
-      10. Singapore
-      11. Toronto
-      12. Bangalore
-    Enter the number of your desired region:
-    [7]: " -r region
-    region=${region:-7}
+Enter the number of your desired region:
+[${DEFAULT_REGION}]: " -r region
+  region=${region:-$DEFAULT_REGION}
+  TF_VAR_region="$(GetRegionCodeByIndex digitalocean $region)"
 
-    case "$region" in
-      1) TF_VAR_region="ams2" ;;
-      2) TF_VAR_region="ams3" ;;
-      3) TF_VAR_region="fra1" ;;
-      4) TF_VAR_region="lon1" ;;
-      5) TF_VAR_region="nyc1" ;;
-      6) TF_VAR_region="nyc2" ;;
-      7) TF_VAR_region="nyc3" ;;
-      8) TF_VAR_region="sfo1" ;;
-      9) TF_VAR_region="sfo2" ;;
-      10) TF_VAR_region="sgp1" ;;
-      11) TF_VAR_region="tor1" ;;
-      12) TF_VAR_region="blr1" ;;
-    esac
   else
     TF_VAR_region="$ALGO_REGION"
   fi
