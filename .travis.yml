@@ -1,0 +1,15 @@
+---
+language: bash
+dist: xenial
+
+addons:
+  snaps:
+    - terraform
+
+env:
+  - TF_VAR_algo_provider=digitalocean TF_VAR_algo_name=us-east-1 TF_VAR_region=fra1
+
+script:
+  - terraform init modules/cloud-${TF_VAR_algo_provider}
+  - terraform validate modules/cloud-${TF_VAR_algo_provider}
+  - terraform fmt -write=false -list=true -diff=true -check=true

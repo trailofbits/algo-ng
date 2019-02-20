@@ -1,4 +1,6 @@
-provider "random"    { version = "~> 2.0" }
+provider "random" {
+  version = "~> 2.0"
+}
 
 resource "random_id" "config" {
   byte_length = 8
@@ -12,7 +14,7 @@ locals {
 
 resource "null_resource" "config" {
   provisioner "local-exec" {
-    command     = "mkdir -p '${local.algo_config}/keys'"
+    command = "mkdir -p '${local.algo_config}/keys'"
   }
 }
 

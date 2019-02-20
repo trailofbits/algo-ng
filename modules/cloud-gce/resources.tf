@@ -1,5 +1,6 @@
 resource "random_id" "name" {
   byte_length = 8
+
   keepers {
     ami_id = "${var.region}/${var.algo_name}"
   }
@@ -20,10 +21,11 @@ resource "google_compute_firewall" "ingress" {
 
   allow {
     protocol = "udp"
-    ports    = [
+
+    ports = [
       "500",
       "4500",
-      "${var.wireguard_network["port"]}"
+      "${var.wireguard_network["port"]}",
     ]
   }
 
@@ -44,13 +46,14 @@ resource "google_compute_address" "main" {
 }
 
 resource "google_compute_instance" "algo" {
-  name                    = "${var.algo_name}"
-  machine_type            = "${var.size}"
-  zone                    = "${var.region}"
-  can_ip_forward          = true
+  name           = "${var.algo_name}"
+  machine_type   = "${var.size}"
+  zone           = "${var.region}"
+  can_ip_forward = true
 
   boot_disk {
     auto_delete = true
+
     initialize_params {
       image = "${var.image}"
     }
@@ -58,6 +61,7 @@ resource "google_compute_instance" "algo" {
 
   network_interface {
     network = "${google_compute_network.main.name}"
+
     access_config {
       nat_ip = "${google_compute_address.main.address}"
     }

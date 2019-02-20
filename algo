@@ -212,6 +212,44 @@ digitalocean () {
           ALGO_SERVER_NAME=${ALGO_SERVER_NAME}
 }
 
+# digitalocean () {
+  # if [[ -z $SCALEWAY_ORGANIZATION ]]; then
+  #   read -p "
+  #   Enter your Scaleway organization ID. (Can be found in the Account tab of the Scaleway control panelhttps://cloud.digitalocean.com/settings/api/tokens):
+  #   $ADDITIONAL_PROMPT
+  #   : " -rs SCALEWAY_ORGANIZATION
+  # fi
+  #
+  # if [[ -z $SCALEWAY_ORGANIZATION ]]; then
+  #   read -p "
+  #   Enter your Scaleway organization ID. (Can be found in the Account tab of the Scaleway control panelhttps://cloud.digitalocean.com/settings/api/tokens):
+  #   $ADDITIONAL_PROMPT
+  #   : " -rs SCALEWAY_ORGANIZATION
+  # fi
+
+#   if [[ -z $ALGO_REGION ]]; then
+#     read -p "
+#
+#     What region should the server be located in?
+#       1.  Amsterdam        (Datacenter 2)
+#       2.  Amsterdam        (Datacenter 3)
+#     Enter the number of your desired region:
+#     [7]: " -r region
+#     region=${region:-7}
+#
+#     case "$region" in
+#       1) TF_VAR_region="ams2" ;;
+#       2) TF_VAR_region="ams3" ;;
+#     esac
+#   else
+#     TF_VAR_region="$ALGO_REGION"
+#   fi
+#
+#   export  SCALEWAY_ORGANIZATION=$SCALEWAY_ORGANIZATION \
+#           ALGO_SERVER_NAME=${ALGO_SERVER_NAME}
+# }
+
+
 ec2 () {
   if [[ -z $AWS_ACCESS_KEY_ID && -z $AWS_PROFILE ]]; then
     read -p "
@@ -501,7 +539,8 @@ algo_provisioning () {
 
   case "$ALGO_PROVIDER" in
     1|digitalocean) ALGO_PROVIDER=digitalocean; digitalocean; ;;
-    # 2|lightsail) ALGO_PROVIDER=lightsail; lightsail; ;;
+    lightsail) ALGO_PROVIDER=lightsail; lightsail; ;;
+    # scaleway) ALGO_PROVIDER=scaleway; scaleway; ;;
     2|ec2) ALGO_PROVIDER=ec2; ec2; ;;
     3|azure) ALGO_PROVIDER=azure; azure; ;;
     4|gce) ALGO_PROVIDER=gce; gce; ;;

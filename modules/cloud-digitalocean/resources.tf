@@ -13,8 +13,8 @@ resource "digitalocean_droplet" "algo" {
   size      = "${var.size}"
   region    = "${var.region}"
   user_data = "${var.user_data}"
-  tags      = [ "${digitalocean_tag.algo.id}" ]
-  ssh_keys  = [ "${digitalocean_ssh_key.algo.id}" ]
+  tags      = ["${digitalocean_tag.algo.id}"]
+  ssh_keys  = ["${digitalocean_ssh_key.algo.id}"]
   ipv6      = true
 
   lifecycle {

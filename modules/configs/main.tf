@@ -1,1 +1,3 @@
-provider "local" { version = "~> 1.1" }
+provider "local" {
+  version = "~> 1.1"
+}

@@ -1,9 +1,11 @@
 data "aws_ami_ids" "main" {
   owners = ["099720109477"]
+
   filter {
-    name   = "name"
+    name = "name"
+
     values = [
-      "ubuntu/images/hvm-ssd/${var.image}-amd64-server-*"
+      "ubuntu/images/hvm-ssd/${var.image}-amd64-server-*",
     ]
   }
 }
@@ -24,9 +26,9 @@ resource "aws_ami_copy" "encrypted" {
 }
 
 resource "aws_vpc" "main" {
-  cidr_block                        = "172.16.0.0/16"
-  instance_tenancy                  = "default"
-  assign_generated_ipv6_cidr_block  = true
+  cidr_block                       = "172.16.0.0/16"
+  instance_tenancy                 = "default"
+  assign_generated_ipv6_cidr_block = true
 
   tags {
     Environment = "Algo"
@@ -79,51 +81,51 @@ resource "aws_security_group" "main" {
   vpc_id      = "${aws_vpc.main.id}"
 
   ingress {
-    from_port         = -1
-    to_port           = -1
-    protocol          = "icmp"
-    cidr_blocks       = ["0.0.0.0/0"]
-    ipv6_cidr_blocks  = ["::/0"]
+    from_port        = -1
+    to_port          = -1
+    protocol         = "icmp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   ingress {
-    from_port         = 22
-    to_port           = 22
-    protocol          = "tcp"
-    cidr_blocks       = ["0.0.0.0/0"]
-    ipv6_cidr_blocks  = ["::/0"]
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   ingress {
-    from_port         = 500
-    to_port           = 500
-    protocol          = "udp"
-    cidr_blocks       = ["0.0.0.0/0"]
-    ipv6_cidr_blocks  = ["::/0"]
+    from_port        = 500
+    to_port          = 500
+    protocol         = "udp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   ingress {
-    from_port         = 4500
-    to_port           = 4500
-    protocol          = "udp"
-    cidr_blocks       = ["0.0.0.0/0"]
-    ipv6_cidr_blocks  = ["::/0"]
+    from_port        = 4500
+    to_port          = 4500
+    protocol         = "udp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   ingress {
-    from_port         = "${var.wireguard_network["port"]}"
-    to_port           = "${var.wireguard_network["port"]}"
-    protocol          = "udp"
-    cidr_blocks       = ["0.0.0.0/0"]
-    ipv6_cidr_blocks  = ["::/0"]
+    from_port        = "${var.wireguard_network["port"]}"
+    to_port          = "${var.wireguard_network["port"]}"
+    protocol         = "udp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   egress {
-    from_port         = 0
-    to_port           = 0
-    protocol          = "-1"
-    cidr_blocks       = ["0.0.0.0/0"]
-    ipv6_cidr_blocks  = ["::/0"]
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
   }
 
   tags {
@@ -137,14 +139,14 @@ resource "aws_key_pair" "main" {
 }
 
 resource "aws_instance" "main" {
-  ami                                   = "${var.encrypted == 1 ? join(" ", aws_ami_copy.encrypted.*.id) : data.aws_ami_ids.main.ids[0]}"
-  instance_type                         = "${var.size}"
-  instance_initiated_shutdown_behavior  = "terminate"
-  key_name                              = "${aws_key_pair.main.key_name}"
-  vpc_security_group_ids                = ["${aws_security_group.main.id}"]
-  subnet_id                             = "${aws_subnet.main.id}"
-  user_data                             = "${var.user_data}"
-  ipv6_address_count                    = 1
+  ami                                  = "${var.encrypted == 1 ? join(" ", aws_ami_copy.encrypted.*.id) : data.aws_ami_ids.main.ids[0]}"
+  instance_type                        = "${var.size}"
+  instance_initiated_shutdown_behavior = "terminate"
+  key_name                             = "${aws_key_pair.main.key_name}"
+  vpc_security_group_ids               = ["${aws_security_group.main.id}"]
+  subnet_id                            = "${aws_subnet.main.id}"
+  user_data                            = "${var.user_data}"
+  ipv6_address_count                   = 1
 
   tags {
     Environment = "Algo"

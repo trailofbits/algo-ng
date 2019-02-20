@@ -5,6 +5,7 @@ resource "random_id" "resource_group_name" {
 resource "azurerm_resource_group" "main" {
   name     = "AlgoVPN-${var.algo_name}-${random_id.resource_group_name.hex}"
   location = "${var.region}"
+
   tags {
     Environment = "Algo"
   }
@@ -84,7 +85,7 @@ resource "azurerm_virtual_network" "algo" {
   name                = "${var.algo_name}"
   location            = "${var.region}"
   resource_group_name = "${azurerm_resource_group.main.name}"
-  address_space       = [ "10.10.0.0/16" ]
+  address_space       = ["10.10.0.0/16"]
 
   tags {
     Environment = "Algo"
@@ -92,17 +93,17 @@ resource "azurerm_virtual_network" "algo" {
 }
 
 resource "azurerm_subnet" "algo" {
-  name                  = "${var.algo_name}"
-  resource_group_name   = "${azurerm_resource_group.main.name}"
-  virtual_network_name  = "${azurerm_virtual_network.algo.name}"
-  address_prefix        = "10.10.0.0/24"
+  name                 = "${var.algo_name}"
+  resource_group_name  = "${azurerm_resource_group.main.name}"
+  virtual_network_name = "${azurerm_virtual_network.algo.name}"
+  address_prefix       = "10.10.0.0/24"
 }
 
 resource "azurerm_public_ip" "algo" {
-  name                          = "${var.algo_name}"
-  location                      = "${var.region}"
-  resource_group_name           = "${azurerm_resource_group.main.name}"
-  public_ip_address_allocation  = "static"
+  name                         = "${var.algo_name}"
+  location                     = "${var.region}"
+  resource_group_name          = "${azurerm_resource_group.main.name}"
+  public_ip_address_allocation = "static"
 
   tags {
     Environment = "Algo"
@@ -124,13 +125,13 @@ resource "azurerm_network_interface" "algo" {
 }
 
 resource "azurerm_virtual_machine" "algo" {
-  name                              = "${var.algo_name}"
-  location                          = "${var.region}"
-  resource_group_name               = "${azurerm_resource_group.main.name}"
-  network_interface_ids             = [ "${azurerm_network_interface.algo.id}" ]
-  vm_size                           = "${var.size}"
-  delete_os_disk_on_termination     = true
-  delete_data_disks_on_termination  = true
+  name                             = "${var.algo_name}"
+  location                         = "${var.region}"
+  resource_group_name              = "${azurerm_resource_group.main.name}"
+  network_interface_ids            = ["${azurerm_network_interface.algo.id}"]
+  vm_size                          = "${var.size}"
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"

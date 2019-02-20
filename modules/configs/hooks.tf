@@ -1,5 +1,5 @@
 resource "null_resource" "deploy_crl" {
-  triggers    = {
+  triggers = {
     users = "${join(",", var.vpn_users)}"
   }
 
@@ -11,7 +11,7 @@ resource "null_resource" "deploy_crl" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo bash -c 'mkdir -p /etc/ipsec.d/crls >/dev/null 2>&1 || true'"
+      "sudo bash -c 'mkdir -p /etc/ipsec.d/crls >/dev/null 2>&1 || true'",
     ]
   }
 
@@ -22,14 +22,14 @@ resource "null_resource" "deploy_crl" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo mv /tmp/crl.pem /etc/ipsec.d/crls/crl.pem"
+      "sudo mv /tmp/crl.pem /etc/ipsec.d/crls/crl.pem",
     ]
   }
 
   provisioner "remote-exec" {
     inline = [
       "sudo systemctl status strongswan 2>&1 >/dev/null && sudo sh -c 'ipsec rereadcrls; ipsec purgecrls' || true",
-      "sudo touch /root/.terraform_complete"
+      "sudo touch /root/.terraform_complete",
     ]
   }
 }
@@ -50,7 +50,7 @@ resource "null_resource" "deploy_certificates" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo bash -c 'mkdir -p /etc/ipsec.d/{cacerts,certs,private} >/dev/null 2>&1 || true'"
+      "sudo bash -c 'mkdir -p /etc/ipsec.d/{cacerts,certs,private} >/dev/null 2>&1 || true'",
     ]
   }
 
@@ -73,7 +73,7 @@ resource "null_resource" "deploy_certificates" {
     inline = [
       "sudo mv /tmp/ca.pem /etc/ipsec.d/cacerts/ca.pem",
       "sudo mv /tmp/server-cert.pem /etc/ipsec.d/certs/server.pem",
-      "sudo mv /tmp/server-key.pem /etc/ipsec.d/private/server.pem"
+      "sudo mv /tmp/server-key.pem /etc/ipsec.d/private/server.pem",
     ]
   }
 
@@ -83,19 +83,19 @@ resource "null_resource" "deploy_certificates" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo systemctl status strongswan 2>&1 >/dev/null && sudo systemctl restart strongswan || true"
+      "sudo systemctl status strongswan 2>&1 >/dev/null && sudo systemctl restart strongswan || true",
     ]
   }
 }
 
 resource "null_resource" "wait-until-deploy-finished" {
-  depends_on  = [
+  depends_on = [
     "null_resource.deploy_certificates",
-    "null_resource.deploy_crl"
+    "null_resource.deploy_crl",
   ]
 
   triggers {
-    server_id   = "${var.server_id}"
+    server_id = "${var.server_id}"
   }
 
   connection {
@@ -106,15 +106,16 @@ resource "null_resource" "wait-until-deploy-finished" {
 
   provisioner "remote-exec" {
     inline = [
-      "until test -f /tmp/booted; do sleep 5; done"
+      "until test -f /tmp/booted; do sleep 5; done",
     ]
   }
 }
 
 resource "null_resource" "get_wireguard_server_pubkey" {
-  depends_on  = [
-    "null_resource.wait-until-deploy-finished"
+  depends_on = [
+    "null_resource.wait-until-deploy-finished",
   ]
+
   triggers {
     users     = "${join(",", var.vpn_users)}"
     server_id = "${var.server_id}"
@@ -128,7 +129,7 @@ resource "null_resource" "get_wireguard_server_pubkey" {
 
   provisioner "remote-exec" {
     inline = [
-      "until test -f /tmp/.wg-server.pub; do sleep 5; done"
+      "until test -f /tmp/.wg-server.pub; do sleep 5; done",
     ]
   }
 

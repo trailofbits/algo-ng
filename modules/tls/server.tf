@@ -8,8 +8,9 @@ resource "tls_cert_request" "server" {
   private_key_pem = "${tls_private_key.server.private_key_pem}"
   ip_addresses    = ["${var.server_address}"]
   dns_names       = ["algo.vpn"]
+
   subject {
-    common_name  = "algo.vpn"
+    common_name = "algo.vpn"
   }
 }
 
@@ -19,10 +20,11 @@ resource "tls_locally_signed_cert" "server" {
   ca_private_key_pem    = "${tls_private_key.ca.private_key_pem}"
   ca_cert_pem           = "${tls_self_signed_cert.ca.cert_pem}"
   validity_period_hours = 87600
-  allowed_uses          = [
+
+  allowed_uses = [
     "key_encipherment",
     "digital_signature",
     "server_auth",
-    "client_auth"
+    "client_auth",
   ]
 }

@@ -2,7 +2,11 @@ variable "region" {}
 variable "algo_name" {}
 variable "public_key_openssh" {}
 variable "user_data" {}
-variable "wireguard_network" { type = "map" }
+
+variable "wireguard_network" {
+  type = "map"
+}
+
 variable "google_credentials" {}
 
 variable "image" {

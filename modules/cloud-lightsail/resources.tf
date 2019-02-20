@@ -17,6 +17,7 @@ resource "aws_lightsail_instance" "main" {
   blueprint_id      = "${var.image}"
   bundle_id         = "${var.size}"
   key_pair_name     = "${aws_lightsail_key_pair.main.id}"
+
   # user_data         = "${var.user_data}"
 }
 
@@ -25,6 +26,6 @@ resource "aws_lightsail_static_ip" "main" {
 }
 
 resource "aws_lightsail_static_ip_attachment" "main" {
-  static_ip_name  = "${aws_lightsail_static_ip.main.name}"
-  instance_name   = "${aws_lightsail_instance.main.name}"
+  static_ip_name = "${aws_lightsail_static_ip.main.name}"
+  instance_name  = "${aws_lightsail_instance.main.name}"
 }
