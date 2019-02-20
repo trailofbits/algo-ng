@@ -7,9 +7,32 @@ addons:
     - terraform
 
 env:
-  - TF_VAR_algo_provider=digitalocean TF_VAR_algo_name=us-east-1 TF_VAR_region=fra1
+  global:
+    - TF_VAR_algo_name=algo
+    - TF_VAR_region=nil
+    - DIGITALOCEAN_TOKEN=nil
+    - AWS_ACCESS_KEY_ID=nil
+    - AWS_SECRET_ACCESS_KEY=nil
+    - TF_VAR_google_credentials=/dev/null GOOGLE_CREDENTIALS=/dev/null
+    - ARM_CLIENT_SECRET=nil
+    - ARM_TENANT_ID=nil
+    - ARM_CLIENT_ID=nil
+    - ARM_SUBSCRIPTION_ID=nil
+  matrix:
+    - PROVIDERS="digitalocean ec2 gce azure"
+
+matrix:
+  fast_finish: true
 
 script:
-  - terraform init modules/cloud-${TF_VAR_algo_provider}
-  - terraform validate modules/cloud-${TF_VAR_algo_provider}
+  - set -e
+  - |
+    for i in $PROVIDERS; do
+      export TF_VAR_algo_provider=$i
+      terraform init cloud/${i}
+      terraform validate cloud/${i}
+    done
   - terraform fmt -write=false -list=true -diff=true -check=true
+
+notifications:
+  email: false
