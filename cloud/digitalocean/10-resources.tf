@@ -1,11 +1,11 @@
 module "ssh-key" {
   source      = "../../modules/ssh-key/"
-  algo_config = "${local.algo_config}"
+  algo_config = "${module.post-cloud.algo_config}"
 }
 
 module "tls" {
   source         = "../../modules/tls/"
-  algo_config    = "${local.algo_config}"
+  algo_config    = "${module.post-cloud.algo_config}"
   vpn_users      = "${var.vpn_users}"
   components     = "${var.components}"
   server_address = "${module.cloud-digitalocean.server_address}"
@@ -42,11 +42,11 @@ module "cloud-digitalocean" {
 
 module "configs" {
   source             = "../../modules/configs/"
-  algo_config        = "${local.algo_config}"
+  algo_config        = "${module.post-cloud.algo_config}"
   vpn_users          = "${var.vpn_users}"
   components         = "${var.components}"
   ipv6               = "${module.cloud-digitalocean.ipv6}"
-  server_address     = "${local.server_address}"
+  server_address     = "${module.cloud-digitalocean.server_address}"
   client_p12_pass    = "${module.tls.client_p12_pass}"
   clients_p12_base64 = "${module.tls.clients_p12_base64}"
   ca_cert            = "${module.tls.ca_cert}"
@@ -61,4 +61,9 @@ module "configs" {
   local_service_ip   = "${module.user-data.local_service_ip}"
   wireguard_network  = "${module.user-data.wireguard_network}"
   ondemand           = "${var.ondemand}"
+}
+
+module "post-cloud" {
+  source          = "../../modules/post-cloud/"
+  server_address  = "${module.cloud-digitalocean.server_address}"
 }

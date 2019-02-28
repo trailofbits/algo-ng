@@ -9,7 +9,6 @@ resource "random_id" "config" {
 locals {
   algo_config_tmp = ".tmp/.algo-configs-${random_id.config.hex}/"
   algo_config     = "configs/${local.algo_config_tmp}"
-  server_address  = "${module.cloud-digitalocean.server_address}"
 }
 
 resource "null_resource" "config" {
@@ -20,12 +19,12 @@ resource "null_resource" "config" {
 
 resource "null_resource" "config-link" {
   provisioner "local-exec" {
-    command     = "ln -sf '${local.algo_config_tmp}' '${local.server_address}'"
+    command     = "ln -sf '${local.algo_config_tmp}' '${var.server_address}'"
     working_dir = "configs"
   }
 
   provisioner "local-exec" {
-    command     = "rm '${local.server_address}' || true"
+    command     = "rm '${var.server_address}' || true"
     when        = "destroy"
     working_dir = "configs"
   }

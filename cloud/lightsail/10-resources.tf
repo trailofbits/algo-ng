@@ -1,12 +1,12 @@
 module "ssh-key" {
   source            = "../../modules/ssh-key/"
-  algo_config       = "${local.algo_config}"
+  algo_config       = "${module.post-cloud.algo_config}"
   ssh_key_algorithm = "RSA"
 }
 
 module "tls" {
   source         = "../../modules/tls/"
-  algo_config    = "${local.algo_config}"
+  algo_config    = "${module.post-cloud.algo_config}"
   vpn_users      = "${var.vpn_users}"
   components     = "${var.components}"
   server_address = "${module.cloud-lightsail.server_address}"
@@ -34,11 +34,11 @@ module "cloud-lightsail" {
 
 module "configs" {
   source             = "../../modules/configs/"
-  algo_config        = "${local.algo_config}"
+  algo_config        = "${module.post-cloud.algo_config}"
   vpn_users          = "${var.vpn_users}"
   components         = "${var.components}"
   ipv6               = "${module.cloud-lightsail.ipv6}"
-  server_address     = "${local.server_address}"
+  server_address     = "${module.cloud-lightsail.server_address}"
   client_p12_pass    = "${module.tls.client_p12_pass}"
   clients_p12_base64 = "${module.tls.clients_p12_base64}"
   ca_cert            = "${module.tls.ca_cert}"
@@ -52,4 +52,9 @@ module "configs" {
   wg_users_public    = "${module.user-data.wg_users_public}"
   local_service_ip   = "${module.user-data.local_service_ip}"
   wireguard_network  = "${module.user-data.wireguard_network}"
+}
+
+module "post-cloud" {
+  source          = "../../modules/post-cloud/"
+  server_address  = "${module.cloud-lightsail.server_address}"
 }
