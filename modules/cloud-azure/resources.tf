@@ -100,10 +100,10 @@ resource "azurerm_subnet" "algo" {
 }
 
 resource "azurerm_public_ip" "algo" {
-  name                         = "${var.algo_name}"
-  location                     = "${var.region}"
-  resource_group_name          = "${azurerm_resource_group.main.name}"
-  public_ip_address_allocation = "static"
+  name                = "${var.algo_name}"
+  location            = "${var.region}"
+  resource_group_name = "${azurerm_resource_group.main.name}"
+  allocation_method   = "Static"
 
   tags {
     Environment = "Algo"

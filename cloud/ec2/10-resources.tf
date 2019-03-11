@@ -55,6 +55,6 @@ module "configs" {
 }
 
 module "post-cloud" {
-  source          = "../../modules/post-cloud/"
-  server_address  = "${module.cloud-ec2.server_address}"
+  source         = "../../modules/post-cloud/"
+  server_address = "${module.cloud-ec2.server_address}"
 }

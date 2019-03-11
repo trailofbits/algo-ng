@@ -64,6 +64,6 @@ module "configs" {
 }
 
 module "post-cloud" {
-  source          = "../../modules/post-cloud/"
-  server_address  = "${module.cloud-digitalocean.server_address}"
+  source         = "../../modules/post-cloud/"
+  server_address = "${module.cloud-digitalocean.server_address}"
 }
