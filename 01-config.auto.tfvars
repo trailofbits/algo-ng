@@ -1,3 +1,4 @@
+# TODO: https://github.com/trailofbits/algo/pull/1183
 vpn_users = [
   "phone",
   "laptop",

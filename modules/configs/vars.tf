@@ -56,3 +56,10 @@ variable "ondemand" {
     wifi_exclude = ""
   }
 }
+
+# If you're behind NAT or a firewall and you want to receive incoming connections long after network traffic has gone silent.
+# This option will keep the "connection" open in the eyes of NAT.
+# See: https://www.wireguard.com/quickstart/#nat-and-firewall-traversal-persistence
+variable "WireGuard_PersistentKeepalive" {
+  default = 0
+}

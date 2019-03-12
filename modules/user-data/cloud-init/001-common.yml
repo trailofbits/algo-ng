@@ -21,6 +21,7 @@ packages:
   - cgroup-tools
   - openssl
   - linux-headers-generic
+  - cfget
 
 write_files:
   - path: /etc/apt/apt.conf.d/50unattended-upgrades

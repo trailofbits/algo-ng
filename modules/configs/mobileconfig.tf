@@ -19,40 +19,40 @@ resource "random_uuid" "PayloadIdentifier_conf" {
 }
 
 locals {
-  WiFi_Exclude = <<EOF
-<dict>
-  <key>Action</key>
-  <string>Disconnect</string>
-  <key>InterfaceTypeMatch</key>
-  <string>WiFi</string>
-  <key>SSIDMatch</key>
-  <array>
-    ${join("\n", formatlist("<string>%s</string>", split(",", var.ondemand["wifi_exclude"])))}
-  </array>
-</dict>
-EOF
+  WiFi_Exclude = <<-EOF
+  <dict>
+    <key>Action</key>
+    <string>Disconnect</string>
+    <key>InterfaceTypeMatch</key>
+    <string>WiFi</string>
+    <key>SSIDMatch</key>
+    <array>
+      ${join("\n", formatlist("<string>%s</string>", split(",", var.ondemand["wifi_exclude"])))}
+    </array>
+  </dict>
+  EOF
 
-  WiFi_OnDemand = <<EOF
-<dict>
-  <key>Action</key>
-    <string>Connect</string>
-  <key>InterfaceTypeMatch</key>
-    <string>${var.ondemand["wifi"] == 1 ? "WiFi" : ""}</string>
-  <key>URLStringProbe</key>
-    <string>http://captive.apple.com/hotspot-detect.html</string>
-</dict>
-EOF
+  WiFi_OnDemand = <<-EOF
+  <dict>
+    <key>Action</key>
+      <string>Connect</string>
+    <key>InterfaceTypeMatch</key>
+      <string>${var.ondemand["wifi"] == 1 ? "WiFi" : ""}</string>
+    <key>URLStringProbe</key>
+      <string>http://captive.apple.com/hotspot-detect.html</string>
+  </dict>
+  EOF
 
-  Cellular_OnDemand = <<EOF
-<dict>
-  <key>Action</key>
-    <string>Connect</string>
-  <key>InterfaceTypeMatch</key>
-    <string>${var.ondemand["cellular"] == 1 ? "Cellular" : ""}</string>
-  <key>URLStringProbe</key>
-    <string>http://captive.apple.com/hotspot-detect.html</string>
-</dict>
-EOF
+  Cellular_OnDemand = <<-EOF
+  <dict>
+    <key>Action</key>
+      <string>Connect</string>
+    <key>InterfaceTypeMatch</key>
+      <string>${var.ondemand["cellular"] == 1 ? "Cellular" : ""}</string>
+    <key>URLStringProbe</key>
+      <string>http://captive.apple.com/hotspot-detect.html</string>
+  </dict>
+  EOF
 }
 
 data "template_file" "mobileconfig" {
@@ -79,9 +79,9 @@ data "template_file" "mobileconfig" {
 resource "local_file" "mobileconfig" {
   count    = "${length(var.vpn_users)}"
   content  = "${data.template_file.mobileconfig.*.rendered[count.index]}"
-  filename = "${var.algo_config}/${var.vpn_users[count.index]}.mobileconfig"
+  filename = "${var.algo_config}/ipsec/apple/${var.vpn_users[count.index]}.mobileconfig"
 
   provisioner "local-exec" {
-    command = "chmod 0600 ${var.algo_config}/${var.vpn_users[count.index]}.mobileconfig"
+    command = "chmod 0600 ${var.algo_config}/ipsec/apple/${var.vpn_users[count.index]}.mobileconfig"
   }
 }

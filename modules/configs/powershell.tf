@@ -13,9 +13,9 @@ data "template_file" "powershell" {
 resource "local_file" "powershell" {
   count    = "${length(var.vpn_users)}"
   content  = "${data.template_file.powershell.*.rendered[count.index]}"
-  filename = "${var.algo_config}/${var.vpn_users[count.index]}.ps1"
+  filename = "${var.algo_config}/ipsec/windows/${var.vpn_users[count.index]}.ps1"
 
   provisioner "local-exec" {
-    command = "chmod 0600 ${var.algo_config}/${var.vpn_users[count.index]}.ps1"
+    command = "chmod 0600 ${var.algo_config}/ipsec/windows/${var.vpn_users[count.index]}.ps1"
   }
 }

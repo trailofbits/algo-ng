@@ -63,3 +63,10 @@ variable "ciphers_compat" {
     esp = "aes256gcm16-ecp384,aes256-sha2_512-prfsha512-ecp384!"
   }
 }
+
+# If you're behind NAT or a firewall and you want to receive incoming connections long after network traffic has gone silent.
+# This option will keep the "connection" open in the eyes of NAT.
+# See: https://www.wireguard.com/quickstart/#nat-and-firewall-traversal-persistence
+variable "WireGuard_PersistentKeepalive" {
+  default = 0
+}

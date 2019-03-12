@@ -111,29 +111,13 @@ resource "null_resource" "wait-until-deploy-finished" {
   }
 }
 
-resource "null_resource" "get_wireguard_server_pubkey" {
-  depends_on = [
-    "null_resource.wait-until-deploy-finished",
+data "external" "wg-server-pub" {
+  depends_on = ["null_resource.wait-until-deploy-finished"]
+
+  program = [
+    "${path.module}/external/read-file-ssh.sh",
+    "${var.ssh_user}@${var.server_address}",
+    "${var.algo_config}/algo.pem",
+    "/etc/wireguard/.wg-server.pub",
   ]
-
-  triggers {
-    users     = "${join(",", var.vpn_users)}"
-    server_id = "${var.server_id}"
-  }
-
-  connection {
-    host        = "${var.server_address}"
-    user        = "${var.ssh_user}"
-    private_key = "${var.private_key}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "until test -f /tmp/.wg-server.pub; do sleep 5; done",
-    ]
-  }
-
-  provisioner "local-exec" {
-    command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i '${var.algo_config}/algo.pem' ${var.ssh_user}@${var.server_address}:/tmp/.wg-server.pub ${var.algo_config}/.wg-server.pub"
-  }
 }
