@@ -451,7 +451,8 @@ algo_provisioning () {
     What provider would you like to use?
       1. DigitalOcean
       2. Amazon EC2
-      3. Google Compute Engine
+      3. Azure
+      4. Google Compute Engine
 
     Enter the number of your desired provider
     : "
@@ -470,7 +471,7 @@ algo_provisioning () {
     1|digitalocean) ALGO_PROVIDER=digitalocean; digitalocean; ;;
     2|ec2) ALGO_PROVIDER=ec2; ec2; ;;
     3|azure) ALGO_PROVIDER=azure; azure; ;;
-    3|gce) ALGO_PROVIDER=gce; gce; ;;
+    4|gce) ALGO_PROVIDER=gce; gce; ;;
     # 5|non_cloud) ALGO_PROVIDER=non_cloud; non_cloud; ;;
     *) exit 1 ;;
   esac
