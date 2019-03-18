@@ -21,18 +21,18 @@ resource "tls_self_signed_cert" "ca" {
 
 resource "local_file" "ca_cert" {
   content  = "${tls_self_signed_cert.ca.cert_pem}"
-  filename = "${var.algo_config}/keys/ca.crt.pem"
+  filename = "${var.algo_config}/ipsec/manual/ca.crt.pem"
 
   provisioner "local-exec" {
-    command = "chmod 0600 ${var.algo_config}/keys/ca.crt.pem"
+    command = "chmod 0600 ${var.algo_config}/ipsec/manual/ca.crt.pem"
   }
 }
 
 resource "local_file" "ca_key" {
   content  = "${tls_private_key.ca.private_key_pem}"
-  filename = "${var.algo_config}/keys/ca.key.pem"
+  filename = "${var.algo_config}/ipsec/manual/ca.key.pem"
 
   provisioner "local-exec" {
-    command = "chmod 0600 ${var.algo_config}/keys/ca.key.pem"
+    command = "chmod 0600 ${var.algo_config}/ipsec/manual/ca.key.pem"
   }
 }

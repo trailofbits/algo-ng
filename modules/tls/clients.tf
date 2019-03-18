@@ -35,10 +35,10 @@ resource "tls_locally_signed_cert" "client" {
 resource "local_file" "user_private_keys" {
   count    = "${length(var.vpn_users)}"
   content  = "${tls_private_key.client.*.private_key_pem[count.index]}"
-  filename = "${var.algo_config}/keys/${var.vpn_users[count.index]}.key.pem"
+  filename = "${var.algo_config}/ipsec/manual/${var.vpn_users[count.index]}.key.pem"
 
   provisioner "local-exec" {
-    command = "chmod 0600 ${var.algo_config}/keys/${var.vpn_users[count.index]}.key.pem"
+    command = "chmod 0600 ${var.algo_config}/ipsec/manual/${var.vpn_users[count.index]}.key.pem"
   }
 }
 
@@ -46,18 +46,18 @@ resource "local_file" "user_certs" {
   depends_on = ["null_resource.user_crl"]
   count      = "${length(var.vpn_users)}"
   content    = "${tls_locally_signed_cert.client.*.cert_pem[count.index]}"
-  filename   = "${var.algo_config}/keys/${var.vpn_users[count.index]}.crt.pem"
+  filename   = "${var.algo_config}/ipsec/manual/${var.vpn_users[count.index]}.crt.pem"
 
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-ec"]
-    working_dir = "${var.algo_config}/keys/"
+    working_dir = "${var.algo_config}/ipsec/manual/"
 
-    command = <<EOF
-chmod 0600 ${var.vpn_users[count.index]}.crt.pem
-mkdir .for_crl/ || true
-cp -f ${var.vpn_users[count.index]}.crt.pem \
-      .for_crl/${var.vpn_users[count.index]}.crt.pem
-EOF
+    command = <<-EOF
+      chmod 0600 ${var.vpn_users[count.index]}.crt.pem
+      mkdir .for_crl/ || true
+      cp -f ${var.vpn_users[count.index]}.crt.pem \
+        .for_crl/${var.vpn_users[count.index]}.crt.pem
+    EOF
   }
 }
 
@@ -84,18 +84,18 @@ resource "null_resource" "client_p12" {
 
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-ec"]
-    working_dir = "${var.algo_config}/keys/"
+    working_dir = "${var.algo_config}/ipsec/manual/"
 
-    command = <<EOF
-    umask 077;
-    openssl pkcs12 \
-      -in <(echo "$CERT") \
-      -inkey <(echo "$KEY") \
-      -export \
-      -name ${var.vpn_users[count.index]} \
-      -out ${var.vpn_users[count.index]}.p12 \
-      -passout pass:"${random_id.client_p12_pass.hex}"
-EOF
+    command = <<-EOF
+      umask 077;
+      openssl pkcs12 \
+        -in <(echo "$CERT") \
+        -inkey <(echo "$KEY") \
+        -export \
+        -name ${var.vpn_users[count.index]} \
+        -out ${var.vpn_users[count.index]}.p12 \
+        -passout pass:"${random_id.client_p12_pass.hex}"
+    EOF
 
     environment {
       CERT = "${tls_locally_signed_cert.client.*.cert_pem[count.index]}"
@@ -107,16 +107,16 @@ EOF
 data "local_file" "client_p12" {
   depends_on = ["null_resource.client_p12"]
   count      = "${length(var.vpn_users)}"
-  filename   = "${var.algo_config}/keys/${var.vpn_users[count.index]}.p12"
+  filename   = "${var.algo_config}/ipsec/manual/${var.vpn_users[count.index]}.p12"
 }
 
 resource "local_file" "client_p12_base64" {
   count    = "${length(var.vpn_users)}"
   content  = "${base64encode(data.local_file.client_p12.*.content[count.index])}"
-  filename = "${var.algo_config}/keys/${var.vpn_users[count.index]}.p12.base64"
+  filename = "${var.algo_config}/ipsec/manual/${var.vpn_users[count.index]}.p12.base64"
 
   provisioner "local-exec" {
-    command = "chmod 0600 ${var.algo_config}/keys/${var.vpn_users[count.index]}.p12.base64"
+    command = "chmod 0600 ${var.algo_config}/ipsec/manual/${var.vpn_users[count.index]}.p12.base64"
   }
 
   lifecycle {
@@ -131,7 +131,7 @@ resource "null_resource" "user_crl" {
 
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-ec"]
-    working_dir = "${var.algo_config}/keys/"
+    working_dir = "${var.algo_config}/ipsec/manual/"
     command     = "${path.module}/files/make_crl.sh"
 
     environment {
@@ -145,5 +145,5 @@ resource "null_resource" "user_crl" {
 
 data "local_file" "user_crl" {
   depends_on = ["null_resource.user_crl"]
-  filename   = "${var.algo_config}/keys/crl.pem"
+  filename   = "${var.algo_config}/ipsec/manual/crl.pem"
 }

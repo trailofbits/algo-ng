@@ -14,6 +14,8 @@ module "tls" {
 
 module "user-data" {
   source                     = "../../modules/user-data/"
+  base64_encode              = true
+  gzip = true
   vpn_users                  = "${var.vpn_users}"
   components                 = "${var.components}"
   unmanaged                  = "${var.unmanaged}"
@@ -26,9 +28,9 @@ module "user-data" {
 module "cloud-ec2" {
   source             = "../../modules/cloud-ec2/"
   region             = "${var.region}"
+  algo_name          = "${var.algo_name}"
   public_key_openssh = "${module.ssh-key.public_key_openssh}"
   user_data          = "${module.user-data.template_cloudinit_config}"
-  algo_name          = "${var.algo_name}"
   wireguard_network  = "${module.user-data.wireguard_network}"
 }
 
