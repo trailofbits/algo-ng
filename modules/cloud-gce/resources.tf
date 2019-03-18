@@ -12,12 +12,14 @@ locals {
 
 resource "google_compute_network" "main" {
   name                    = "${local.name}"
+  description             = "${var.algo_name}"
   auto_create_subnetworks = true
 }
 
 resource "google_compute_firewall" "ingress" {
-  name    = "${local.name}"
-  network = "${google_compute_network.main.name}"
+  name        = "${local.name}"
+  description = "${var.algo_name}"
+  network     = "${google_compute_network.main.name}"
 
   allow {
     protocol = "udp"
@@ -41,14 +43,23 @@ resource "google_compute_firewall" "ingress" {
 
 resource "google_compute_address" "main" {
   name         = "${local.name}"
-  region       = "${element(split("-", var.region), 0)}-${element(split("-", var.region), 1)}"
+  description  = "${var.algo_name}"
+  region       = "${var.region}"
   address_type = "EXTERNAL"
+}
+
+data "google_compute_zones" "available" {}
+
+resource "random_shuffle" "az" {
+  input        = ["${data.google_compute_zones.available.names}"]
+  result_count = 1
 }
 
 resource "google_compute_instance" "algo" {
   name           = "${var.algo_name}"
+  description    = "${var.algo_name}"
   machine_type   = "${var.size}"
-  zone           = "${var.region}"
+  zone           = "${random_shuffle.az.result[0]}"
   can_ip_forward = true
 
   boot_disk {
