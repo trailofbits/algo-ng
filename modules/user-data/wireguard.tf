@@ -7,13 +7,13 @@ resource "random_string" "wg_server_private_key" {
 }
 
 resource "random_string" "wg_client_private_key" {
-  count    = "${length(var.vpn_users)}"
+  count   = "${length(var.vpn_users)}"
   length  = 32
   special = true
 }
 
 locals {
-  wg_server_private_key   = "${base64encode(random_string.wg_server_private_key.result)}"
+  wg_server_private_key = "${base64encode(random_string.wg_server_private_key.result)}"
 }
 
 #
@@ -22,6 +22,7 @@ locals {
 
 data "template_file" "wireguard_peer" {
   count = "${length(var.vpn_users)}"
+
   template = <<-EOF
     [Peer]
     # ${var.vpn_users[count.index]}
@@ -32,11 +33,12 @@ data "template_file" "wireguard_peer" {
 
 data "template_file" "wg0conf" {
   template = "${file("${path.module}/files/wg0.conf")}"
+
   vars {
     InterfaceAddress    = "${cidrhost(var.wireguard_network["ipv4"], 1)}${var.ipv6 == 0 ? "" : ",${cidrhost(var.wireguard_network["ipv6"], 1)}"}"
     InterfaceListenPort = "${var.wireguard_network["port"]}"
     InterfacePrivateKey = "${local.wg_server_private_key}"
-    Peers = "${join("\n", data.template_file.wireguard_peer.*.rendered)}"
+    Peers               = "${join("\n", data.template_file.wireguard_peer.*.rendered)}"
   }
 }
 
@@ -55,7 +57,6 @@ data "template_file" "wireguard_peer_pubkey_configure" {
     wg pubkey <<< '${base64encode(random_string.wg_server_private_key.result)}' > /etc/wireguard/.wg-server.pub
   EOF
 }
-
 
 data "template_file" "wireguard" {
   template = "${file("${path.module}/cloud-init/020-wireguard.yml")}"

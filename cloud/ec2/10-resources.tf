@@ -15,7 +15,7 @@ module "tls" {
 module "user-data" {
   source                     = "../../modules/user-data/"
   base64_encode              = true
-  gzip = true
+  gzip                       = true
   vpn_users                  = "${var.vpn_users}"
   components                 = "${var.components}"
   unmanaged                  = "${var.unmanaged}"
