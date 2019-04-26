@@ -1,0 +1,80 @@
+#cloud-config
+output: {all: '| tee -a /var/log/cloud-init-output.log'}
+
+groups:
+  - algo
+
+users:
+  - default
+
+package_update: true
+package_upgrade: ${system_upgrade}
+
+packages:
+  - unattended-upgrades
+  - git
+  - screen
+  - apparmor-utils
+  - uuid-runtime
+  - coreutils
+  - iptables-persistent
+  - cgroup-tools
+  - openssl
+  - linux-headers-generic
+  - cfget
+
+write_files:
+  - path: /etc/apt/apt.conf.d/50unattended-upgrades
+    permissions: '0644'
+    content: |
+      Unattended-Upgrade::Automatic-Reboot "${unattended_reboot}";
+      Unattended-Upgrade::Automatic-Reboot-Time "${unattended_reboot_time}";
+      Unattended-Upgrade::Allowed-Origins {
+          "$${distro_id}:$${distro_codename}-security";
+          "$${distro_id}:$${distro_codename}-updates";
+      };
+
+  - path: /etc/apt/apt.conf.d/10periodic
+    permissions: '0644'
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Download-Upgradeable-Packages "1";
+      APT::Periodic::AutocleanInterval "7";
+      APT::Periodic::Unattended-Upgrade "1";
+
+  - path: /etc/systemd/network/10-algo-lo100.network
+    permissions: '0644'
+    content: |
+      [Match]
+      Name=lo
+      [Network]
+      Label=lo:100
+      Address=${local_service_ip}/32
+      Address=FCAA::1/64
+
+  - path: /etc/sysctl.d/10-algo.conf
+    permissions: '0644'
+    content: |
+      net.ipv4.ip_forward=1
+      net.ipv4.conf.all.forwarding=1
+      net.ipv6.conf.all.forwarding=1
+
+  - path: /etc/iptables/rules.v4
+    permissions: '0644'
+    content: ${rules.v4}
+
+  - path: /etc/iptables/rules.v6
+    permissions: '0644'
+    content: ${rules.v6}
+
+runcmd:
+  - set -x
+  - echo BEGIN >> /tmp/pipeline
+  - ln -sf /bin/bash /bin/sh
+  - apt install linux-headers-$(uname -r) -y
+  - apt remove resolvconf -y
+  - sysctl -p /etc/sysctl.d/10-algo.conf
+  - systemctl enable systemd-networkd systemd-resolved netfilter-persistent
+  - systemctl restart systemd-networkd systemd-resolved netfilter-persistent
+  - printf '%s\n' '#!/bin/bash' '/usr/bin/touch /tmp/booted' | sudo tee -a /etc/rc.local
+  - chmod +x /etc/rc.local

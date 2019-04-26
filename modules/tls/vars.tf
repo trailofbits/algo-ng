@@ -1,4 +1,11 @@
 variable "server_address" {}
-variable "vpn_users" { type = "map" }
-# variable "algo_config" {}
-variable "openssl_config" {}
+
+variable "vpn_users" {
+  type = "list"
+}
+
+variable "algo_config" {}
+
+variable "components" {
+  type = "map"
+}

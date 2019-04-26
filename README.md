@@ -2,18 +2,19 @@
 
 [![Join the chat at https://gitter.im/trailofbits/algo](https://badges.gitter.im/trailofbits/algo.svg)](https://gitter.im/trailofbits/algo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/fold_left.svg?style=social&label=Follow%20%40AlgoVPN)](https://twitter.com/AlgoVPN)
+[![TravisCI Status](https://api.travis-ci.org/trailofbits/algo-ng.svg?branch=master)](https://travis-ci.org/trailofbits/algo-ng)
 
-Algo VPN is a set of Terraform and Ansible scripts that simplify the setup of a personal IPSEC VPN. It uses the most secure defaults available, works with common cloud providers, and does not require client software on most devices. See our [release announcement](https://blog.trailofbits.com/2016/12/12/meet-algo-the-vpn-that-works/) for more information.
+Algo VPN is a set of Terraform files that simplify the setup of a personal VPN. It uses the most secure defaults available, works with common cloud providers, and does not require client software on most devices. See our [release announcement](https://blog.trailofbits.com/2016/12/12/meet-algo-the-vpn-that-works/) for more information.
 
 ## Features
 
-* Supports only IKEv2 with strong crypto: AES-GCM, SHA2, and P-256
+* Supports only IKEv2 with strong crypto (AES-GCM, SHA2, and P-256) and [WireGuard](https://www.wireguard.com/)
 * Generates Apple profiles to auto-configure iOS and macOS devices
 * Includes a helper script to add and remove users
 * Blocks ads with a local DNS resolver (optional)
 * Sets up limited SSH users for tunneling traffic (optional)
 * Based on current versions of Ubuntu and strongSwan
-* Installs to DigitalOcean, Amazon EC2, Microsoft Azure, Google Compute Engine, or your own server
+* Installs to DigitalOcean, Amazon Lightsail, Amazon EC2, Vultr, Microsoft Azure, Google Compute Engine, Scaleway, OpenStack, or your own Ubuntu 18.04 LTS server
 
 ## Anti-features
 
@@ -32,9 +33,22 @@ The easiest way to get an Algo server running is to let it set up a _new_ virtua
 
 2. **[Download Algo](https://github.com/trailofbits/algo-ng/archive/master.zip).** Unzip it in a convenient location on your local machine.
 
-3. **[Download Terraform binary](https://www.terraform.io/downloads.html).** Unzip it and place it inside the algo directory you just unzipped.
+3. **Install Algo's core dependencies.** Open the Terminal.
 
-4. **List the users to create.** Open `config.auto.tfvars` in your favorite text editor. Specify the users you wish to create in the `users` list separated by a comma.
+  - macOS:
+    ```bash
+    $ brew install terraform
+    ```
+  - Ubuntu (16.04 or later):
+    ```bash
+    $ sudo apt-get update && sudo apt-get install snapd -y \
+    $ sudo snap install terraform
+    ```
+
+  - Others:  
+    **[Download Terraform binary](https://www.terraform.io/downloads.html)**
+
+4. **List the users to create.** Open `01-config.auto.tfvars` in your favorite text editor. Specify the users you wish to create in the `vpn_users` list.
 
 5. **Start the deployment.** Return to your terminal. In the Algo directory, run `./algo apply` and follow the instructions. There are several optional features available. None are required for a fully functional VPN server.
 

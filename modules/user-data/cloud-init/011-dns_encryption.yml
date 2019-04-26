@@ -1,0 +1,41 @@
+#cloud-config
+apt:
+  sources:
+    shevchuk-ubuntu-dnscrypt-proxy.list:
+      source: deb http://ppa.launchpad.net/shevchuk/dnscrypt-proxy/ubuntu bionic main
+      keyid: 6C46343FA0B41DB7
+
+packages:
+ - dnscrypt-proxy
+
+write_files:
+  - path: /etc/apt/apt.conf.d/50-dnscrypt-proxy-unattended-upgrades
+    permissions: '0644'
+    content: |
+      Unattended-Upgrade::Allowed-Origins {
+          "LP-PPA-shevchuk-dnscrypt-proxy:$${distro_codename}";
+      };
+
+  - path: /etc/apparmor.d/usr.sbin.dnscrypt-proxy
+    permissions: '0644'
+    content: ${apparmor_dnscrypt-proxy}
+
+  - path: /etc/systemd/system/dnscrypt-proxy.service.d/99-capabilities.conf
+    permissions: '0644'
+    content: |
+      [Service]
+      AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+  - path: /etc/dnscrypt-proxy/ip-blacklist.txt
+    permissions: '0644'
+    content: ${ip-blacklist.txt}
+
+  - path: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
+    permissions: '0644'
+    content: ${dnscrypt-proxy.toml}
+
+runcmd:
+  - aa-enforce usr.sbin.dnscrypt-proxy
+  - systemctl daemon-reload
+  - systemctl restart dnscrypt-proxy
+  - systemctl enable dnscrypt-proxy
