@@ -5,12 +5,12 @@ resource "tls_private_key" "ca" {
 
 resource "tls_self_signed_cert" "ca" {
   key_algorithm         = "ECDSA"
-  private_key_pem       = "${tls_private_key.ca.private_key_pem}"
+  private_key_pem       = tls_private_key.ca.private_key_pem
   validity_period_hours = 87600
   is_ca_certificate     = true
 
   subject {
-    common_name = "${var.server_address}"
+    common_name = var.server_address
   }
 
   allowed_uses = [
@@ -20,7 +20,7 @@ resource "tls_self_signed_cert" "ca" {
 }
 
 resource "local_file" "ca_cert" {
-  content  = "${tls_self_signed_cert.ca.cert_pem}"
+  content  = tls_self_signed_cert.ca.cert_pem
   filename = "${var.algo_config}/ipsec/manual/ca.crt.pem"
 
   provisioner "local-exec" {
@@ -29,7 +29,7 @@ resource "local_file" "ca_cert" {
 }
 
 resource "local_file" "ca_key" {
-  content  = "${tls_private_key.ca.private_key_pem}"
+  content  = tls_private_key.ca.private_key_pem
   filename = "${var.algo_config}/ipsec/manual/ca.key.pem"
 
   provisioner "local-exec" {

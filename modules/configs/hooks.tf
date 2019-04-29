@@ -1,12 +1,12 @@
 resource "null_resource" "deploy_crl" {
   triggers = {
-    users = "${join(",", var.vpn_users)}"
+    users = join(",", var.vpn_users)
   }
 
   connection {
-    host        = "${var.server_address}"
-    user        = "${var.ssh_user}"
-    private_key = "${var.private_key}"
+    host        = var.server_address
+    user        = var.ssh_user
+    private_key = var.private_key
   }
 
   provisioner "remote-exec" {
@@ -16,7 +16,7 @@ resource "null_resource" "deploy_crl" {
   }
 
   provisioner "file" {
-    content     = "${var.crl}"
+    content     = var.crl
     destination = "/tmp/crl.pem"
   }
 
@@ -36,16 +36,16 @@ resource "null_resource" "deploy_crl" {
 
 resource "null_resource" "deploy_certificates" {
   triggers = {
-    server_id   = "${var.server_id}"
-    ca_cert     = "${var.ca_cert}"
-    server_cert = "${var.server_cert}"
-    server_key  = "${var.server_key}"
+    server_id   = var.server_id
+    ca_cert     = var.ca_cert
+    server_cert = var.server_cert
+    server_key  = var.server_key
   }
 
   connection {
-    host        = "${var.server_address}"
-    user        = "${var.ssh_user}"
-    private_key = "${var.private_key}"
+    host        = var.server_address
+    user        = var.ssh_user
+    private_key = var.private_key
   }
 
   provisioner "remote-exec" {
@@ -55,17 +55,17 @@ resource "null_resource" "deploy_certificates" {
   }
 
   provisioner "file" {
-    content     = "${var.ca_cert}"
+    content     = var.ca_cert
     destination = "/tmp/ca.pem"
   }
 
   provisioner "file" {
-    content     = "${var.server_cert}"
+    content     = var.server_cert
     destination = "/tmp/server-cert.pem"
   }
 
   provisioner "file" {
-    content     = "${var.server_key}"
+    content     = var.server_key
     destination = "/tmp/server-key.pem"
   }
 
@@ -90,18 +90,18 @@ resource "null_resource" "deploy_certificates" {
 
 resource "null_resource" "wait-until-deploy-finished" {
   depends_on = [
-    "null_resource.deploy_certificates",
-    "null_resource.deploy_crl",
+    null_resource.deploy_certificates,
+    null_resource.deploy_crl,
   ]
 
-  triggers {
-    server_id = "${var.server_id}"
+  triggers = {
+    server_id = var.server_id
   }
 
   connection {
-    host        = "${var.server_address}"
-    user        = "${var.ssh_user}"
-    private_key = "${var.private_key}"
+    host        = var.server_address
+    user        = var.ssh_user
+    private_key = var.private_key
   }
 
   provisioner "remote-exec" {
@@ -112,7 +112,7 @@ resource "null_resource" "wait-until-deploy-finished" {
 }
 
 data "external" "wg-server-pub" {
-  depends_on = ["null_resource.wait-until-deploy-finished"]
+  depends_on = [null_resource.wait-until-deploy-finished]
 
   program = [
     "${path.module}/external/read-file-ssh.sh",

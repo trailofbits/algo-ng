@@ -4,7 +4,13 @@ variable "public_key_openssh" {}
 variable "user_data" {}
 
 variable "wireguard_network" {
-  type = "map"
+  type = map(string)
+
+  default = {
+    ipv4 = "10.19.49.0/24"
+    ipv6 = "fd9d:bc11:4021::/48"
+    port = 51820
+  }
 }
 
 variable "image" {

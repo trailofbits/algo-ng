@@ -1,9 +1,9 @@
 variable "vpn_users" {
-  type = "list"
+  type = list(string)
 }
 
 variable "components" {
-  type = "map"
+  type = map(string)
 }
 
 variable "gzip" {
@@ -23,12 +23,12 @@ variable "unmanaged" {
 }
 
 variable "clients_public_key_openssh" {
-  type    = "list"
+  type    = list(string)
   default = []
 }
 
 variable "ipsec_network" {
-  type = "map"
+  type = map(string)
 
   default = {
     ipv4 = "10.19.48.0/24"
@@ -37,7 +37,7 @@ variable "ipsec_network" {
 }
 
 variable "wireguard_network" {
-  type = "map"
+  type = map(string)
 
   default = {
     ipv4 = "10.19.49.0/24"
@@ -47,7 +47,7 @@ variable "wireguard_network" {
 }
 
 variable "ciphers" {
-  type = "map"
+  type = map(string)
 
   default = {
     ike = "aes256gcm16-prfsha512-ecp384!"
@@ -56,7 +56,7 @@ variable "ciphers" {
 }
 
 variable "ciphers_compat" {
-  type = "map"
+  type = map(string)
 
   default = {
     ike = "aes256gcm16-prfsha512-ecp384,aes256-sha2_512-prfsha512-ecp384,aes256-sha2_384-prfsha384-ecp384!"

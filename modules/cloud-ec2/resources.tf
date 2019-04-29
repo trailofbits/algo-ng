@@ -19,7 +19,7 @@ resource "aws_ami_copy" "encrypted" {
   encrypted         = true
   kms_key_id        = "${var.kms_key_id}"
 
-  tags {
+  tags = {
     Environment = "Algo"
     "tag:Algo"  = "encrypted"
   }
@@ -30,7 +30,7 @@ resource "aws_vpc" "main" {
   instance_tenancy                 = "default"
   assign_generated_ipv6_cidr_block = true
 
-  tags {
+  tags = {
     Environment = "Algo"
   }
 }
@@ -38,7 +38,7 @@ resource "aws_vpc" "main" {
 resource "aws_internet_gateway" "main" {
   vpc_id = "${aws_vpc.main.id}"
 
-  tags {
+  tags = {
     Environment = "Algo"
   }
 }
@@ -48,7 +48,7 @@ resource "aws_subnet" "main" {
   cidr_block      = "172.16.254.0/23"
   ipv6_cidr_block = "${cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, 1)}"
 
-  tags {
+  tags = {
     Environment = "Algo"
   }
 }
@@ -66,7 +66,7 @@ resource "aws_route_table" "default" {
     gateway_id      = "${aws_internet_gateway.main.id}"
   }
 
-  tags {
+  tags = {
     Environment = "Algo"
   }
 }
@@ -79,6 +79,9 @@ resource "aws_route_table_association" "default" {
 resource "aws_security_group" "main" {
   description = "Enable SSH and IPsec"
   vpc_id      = "${aws_vpc.main.id}"
+  tags = {
+    Environment = "Algo"
+  }
 
   ingress {
     from_port        = -1
@@ -128,9 +131,6 @@ resource "aws_security_group" "main" {
     ipv6_cidr_blocks = ["::/0"]
   }
 
-  tags {
-    Environment = "Algo"
-  }
 }
 
 resource "aws_key_pair" "main" {
@@ -148,11 +148,11 @@ resource "aws_instance" "main" {
   user_data                            = "${var.user_data}"
   ipv6_address_count                   = 1
 
-  tags {
+  tags = {
     Environment = "Algo"
   }
 
-  volume_tags {
+  volume_tags = {
     Environment = "Algo"
   }
 

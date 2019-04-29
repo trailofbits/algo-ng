@@ -28,7 +28,7 @@ variable "strongswan_log_level" {
 }
 
 variable "adblock_lists" {
-  type = "list"
+  type = list(string)
 
   default = [
     "http://winhelp2002.mvps.org/hosts.txt",
@@ -44,9 +44,9 @@ variable "adblock_lists" {
 # which case a reboot will take place if necessary at the time specified (as
 # HH:MM) in the time zone of your Algo server. The default time zone is UTC.
 variable "unattended_reboot" {
-  type = "map"
+  type = map(string)
 
-  default {
+  default = {
     enabled = false
     time    = "06:00"
   }
@@ -59,9 +59,9 @@ variable "unattended_reboot" {
 # here:
 # https://github.com/DNSCrypt/dnscrypt-resolvers/blob/master/v2/public-resolvers.md
 variable "dnscrypt_servers" {
-  type = "map"
+  type = map(string)
 
-  default {
+  default = {
     ipv4 = "cloudflare"
     ipv6 = "cloudflare-ipv6"
   }
@@ -70,7 +70,7 @@ variable "dnscrypt_servers" {
 # DNS servers which will be used if 'dns_encryption' is 'false'.
 # The default is to use Cloudflare.
 variable "ipv4_dns_servers" {
-  type = "list"
+  type = list(string)
 
   default = [
     "1.1.1.1",
@@ -79,7 +79,7 @@ variable "ipv4_dns_servers" {
 }
 
 variable "ipv6_dns_servers" {
-  type = "list"
+  type = list(string)
 
   default = [
     "2606:4700:4700::1111",

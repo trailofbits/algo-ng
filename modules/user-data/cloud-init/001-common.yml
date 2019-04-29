@@ -61,11 +61,11 @@ write_files:
 
   - path: /etc/iptables/rules.v4
     permissions: '0644'
-    content: ${rules.v4}
+    content: ${rulesV4}
 
   - path: /etc/iptables/rules.v6
     permissions: '0644'
-    content: ${rules.v6}
+    content: ${rulesV6}
 
 runcmd:
   - set -x

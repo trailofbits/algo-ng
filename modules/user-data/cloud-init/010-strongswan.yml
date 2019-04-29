@@ -6,11 +6,11 @@ packages:
 write_files:
   - path: /etc/strongswan.conf
     permissions: '0600'
-    content: ${strongswan.conf}
+    content: ${strongswan}
 
   - path: /etc/ipsec.conf
     permissions: '0600'
-    content: ${ipsec.conf}
+    content: ${ipsec}
 
   - path: /etc/ipsec.secrets
     permissions: '0600'

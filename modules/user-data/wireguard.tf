@@ -7,13 +7,13 @@ resource "random_string" "wg_server_private_key" {
 }
 
 resource "random_string" "wg_client_private_key" {
-  count   = "${length(var.vpn_users)}"
+  count   = length(var.vpn_users)
   length  = 32
   special = true
 }
 
 locals {
-  wg_server_private_key = "${base64encode(random_string.wg_server_private_key.result)}"
+  wg_server_private_key = base64encode(random_string.wg_server_private_key.result)
 }
 
 #
@@ -21,24 +21,25 @@ locals {
 #
 
 data "template_file" "wireguard_peer" {
-  count = "${length(var.vpn_users)}"
+  count = length(var.vpn_users)
 
   template = <<-EOF
     [Peer]
     # ${var.vpn_users[count.index]}
     PublicKey = ::${var.vpn_users[count.index]}::
     AllowedIPs = ${cidrhost(var.wireguard_network["ipv4"], 2 + count.index)}/32${var.ipv6 == 0 ? "" : ",${cidrhost(var.wireguard_network["ipv6"], 2 + count.index)}/128"}
-  EOF
+EOF
+
 }
 
 data "template_file" "wg0conf" {
-  template = "${file("${path.module}/files/wg0.conf")}"
+  template = file("${path.module}/files/wg0.conf")
 
-  vars {
-    InterfaceAddress    = "${cidrhost(var.wireguard_network["ipv4"], 1)}${var.ipv6 == 0 ? "" : ",${cidrhost(var.wireguard_network["ipv6"], 1)}"}"
-    InterfaceListenPort = "${var.wireguard_network["port"]}"
-    InterfacePrivateKey = "${local.wg_server_private_key}"
-    Peers               = "${join("\n", data.template_file.wireguard_peer.*.rendered)}"
+  vars = {
+    InterfaceAddress = "${cidrhost(var.wireguard_network["ipv4"], 1)}${var.ipv6 == 0 ? "" : ",${cidrhost(var.wireguard_network["ipv6"], 1)}"}"
+    InterfaceListenPort = var.wireguard_network["port"]
+    InterfacePrivateKey = local.wg_server_private_key
+    Peers = join("\n", data.template_file.wireguard_peer.*.rendered)
   }
 }
 
@@ -47,30 +48,36 @@ data "template_file" "wg0conf" {
 #
 
 data "template_file" "wireguard_peer_pubkey_configure" {
-  count = "${length(var.vpn_users)}"
+  count = length(var.vpn_users)
 
   template = <<-EOF
     ${count.index == 0 ? "set -x" : ":"}
     PUBKEY=$(wg pubkey <<< '${base64encode(random_string.wg_client_private_key.*.result[count.index])}')
     sed s~::${var.vpn_users[count.index]}::~$PUBKEY~ -i /etc/wireguard/wg0.conf
-    ${count.index+1 == length(var.vpn_users) ? "systemctl restart wg-quick@wg0" : "true"}
+    ${count.index + 1 == length(var.vpn_users) ? "systemctl restart wg-quick@wg0" : "true"}
     wg pubkey <<< '${base64encode(random_string.wg_server_private_key.result)}' > /etc/wireguard/.wg-server.pub
-  EOF
+EOF
+
 }
 
 data "template_file" "wireguard" {
-  template = "${file("${path.module}/cloud-init/020-wireguard.yml")}"
+template = file("${path.module}/cloud-init/020-wireguard.yml")
 
-  vars {
-    wg0.conf = "${jsonencode(data.template_file.wg0conf.rendered)}"
-    wg0.sh   = "${jsonencode(join("\n", data.template_file.wireguard_peer_pubkey_configure.*.rendered))}"
-  }
+vars = {
+wg0Conf = jsonencode(data.template_file.wg0conf.rendered)
+wg0Sh = jsonencode(
+join(
+"\n",
+data.template_file.wireguard_peer_pubkey_configure.*.rendered,
+),
+)
+}
 }
 
 output "wg_users_private" {
-  value = ["${random_string.wg_client_private_key.*.result}"]
+value = random_string.wg_client_private_key.*.result
 }
 
 output "wg_users_public" {
-  value = ["${random_string.wg_client_private_key.*.result}"]
+value = random_string.wg_client_private_key.*.result
 }

@@ -1,1 +1,3 @@
-variable "server_address" {}
+variable "server_address" {
+}
+

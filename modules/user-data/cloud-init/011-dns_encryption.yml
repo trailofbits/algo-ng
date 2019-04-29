@@ -28,11 +28,11 @@ write_files:
 
   - path: /etc/dnscrypt-proxy/ip-blacklist.txt
     permissions: '0644'
-    content: ${ip-blacklist.txt}
+    content: ${ip-blacklist}
 
   - path: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
     permissions: '0644'
-    content: ${dnscrypt-proxy.toml}
+    content: ${dnscrypt-proxy}
 
 runcmd:
   - aa-enforce usr.sbin.dnscrypt-proxy

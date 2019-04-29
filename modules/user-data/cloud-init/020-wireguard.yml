@@ -12,10 +12,10 @@ packages:
 write_files:
   - path: /etc/wireguard/wg0.conf
     permissions: '0600'
-    content: ${wg0.conf}
+    content: ${wg0Conf}
   - path: /opt/wg0.sh
     permissions: '0700'
-    content: ${wg0.sh}
+    content: ${wg0Sh}
 
 runcmd:
   - bash -x /opt/wg0.sh && rm -rf /opt/wg0.sh

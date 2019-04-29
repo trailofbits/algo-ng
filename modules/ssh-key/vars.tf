@@ -14,4 +14,6 @@ variable "ssh_key_rsa_bits" {
   default = "2048"
 }
 
-variable "algo_config" {}
+variable "algo_config" {
+}
+
