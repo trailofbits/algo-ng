@@ -6,10 +6,10 @@ vpn_users = [
 ]
 
 components = {
-  "ipsec"           = true
-  "wireguard"       = true
-  "dns_encryption"  = true
-  "dns_adblocking"  = false
-  "ssh_tunneling"   = false
-  "windows"         = false
+  "ipsec"          = true
+  "wireguard"      = true
+  "dns_encryption" = true
+  "dns_adblocking" = true
+  "ssh_tunneling"  = true
+  "windows"        = true
 }

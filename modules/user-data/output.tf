@@ -9,4 +9,3 @@ output "wireguard_network" {
 output "local_service_ip" {
   value = var.local_service_ip
 }
-

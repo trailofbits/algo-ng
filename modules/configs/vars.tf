@@ -16,18 +16,6 @@ variable "algo_config" {
 variable "server_address" {
 }
 
-variable "ca_cert" {
-}
-
-variable "server_cert" {
-}
-
-variable "server_key" {
-}
-
-variable "crl" {
-}
-
 variable "client_p12_pass" {
 }
 
@@ -37,13 +25,7 @@ variable "private_key" {
 variable "server_id" {
 }
 
-variable "wg_users_private" {
-  type = list(string)
-}
-
-variable "wg_users_public" {
-  type = list(string)
-}
+variable "pki" {}
 
 variable "wireguard_network" {
   type = map(string)
@@ -58,7 +40,7 @@ variable "ssh_user" {
 
 # VPN On Demand
 variable "ondemand" {
-  type = object({cellular=bool, wifi=bool, wifi_exclude=string})
+  type = object({ cellular = bool, wifi = bool, wifi_exclude = string })
 
   default = {
     cellular = false

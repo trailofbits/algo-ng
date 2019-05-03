@@ -11,4 +11,3 @@ variable "algo_config" {
 variable "components" {
   type = map(string)
 }
-

@@ -1,0 +1,7 @@
+#cloud-config
+
+runcmd:
+  - echo "Run additional tasks"; ${vars.additional_tasks}
+  - echo END >> /tmp/pipeline
+  - touch /tmp/booted && sleep 20
+  - '[ -f /var/run/reboot-required ] && shutdown -r now "Algo updates triggered" || true'

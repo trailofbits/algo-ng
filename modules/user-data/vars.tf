@@ -22,10 +22,7 @@ variable "unmanaged" {
   default = false
 }
 
-variable "clients_public_key_openssh" {
-  type    = list(string)
-  default = []
-}
+variable "pki" {}
 
 variable "ipsec_network" {
   type = map(string)

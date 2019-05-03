@@ -82,7 +82,7 @@ $$VpnServerAddress = "${var.server_address}"
 $$VpnName = "Algo VPN ${var.server_address} IKEv2"
 $$VpnUser = "${var.vpn_users[index]}"
 $$CaCertificateBase64 = "${var.CaCertificateBase64}"
-$$UserPkcs12Base64 = '${filebase64("${var.algo_config}/ipsec/manual/${var.vpn_users[index]}.p12")}'
+$$UserPkcs12Base64 = '${pki.ipsec.pkcs12[index]}'
 
 if ($$PsCmdlet.ParameterSetName -eq "Add" -and -not $$Pkcs12DecryptionPassword) {
     $$Pkcs12DecryptionPassword = Read-Host -AsSecureString -Prompt "Pkcs12DecryptionPassword"

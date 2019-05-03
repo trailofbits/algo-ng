@@ -131,7 +131,7 @@
             <string>${var.vpn_users[index]}.p12</string>
             <key>PayloadContent</key>
             <data>
-            ${filebase64("${var.algo_config}/ipsec/manual/${var.vpn_users[index]}.p12")}
+            ${pki.ipsec.pkcs12[index]}
             </data>
             <key>PayloadDescription</key>
             <string>Adds a PKCS#12-formatted certificate</string>

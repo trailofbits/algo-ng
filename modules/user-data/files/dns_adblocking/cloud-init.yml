@@ -1,0 +1,41 @@
+#cloud-config
+
+packages:
+ - dnsmasq
+
+write_files:
+  - path: /etc/apparmor.d/usr.sbin.dnsmasq
+    permissions: '0644'
+    content: ${jsonencode(vars.apparmor_dnsmasq)}
+
+  - path: /etc/systemd/system/dnsmasq.service.d/100-CustomLimitations.conf
+    permissions: '0644'
+    content: |
+      [Service]
+      ExecStartPre=/usr/local/sbin/adblock.sh
+      MemoryLimit=16777216
+      CPUAccounting=true
+      CPUQuota=5%
+
+  - path: /etc/dnsmasq.conf
+    permissions: '0644'
+    content: ${jsonencode(vars.dnsmasq_conf)}
+
+  - path: /etc/default/adblock
+    permissions: '0644'
+    content: ${jsonencode(vars.adblock_lists)}
+
+  - path: /usr/local/sbin/adblock.sh
+    permissions: '0755'
+    content: ${jsonencode(vars.adblock_sh)}
+
+  - path: /etc/cron.d/adblock
+    permissions: '0644'
+    content: |
+      10 2 * * * root /usr/local/sbin/adblock.sh && /bin/systemctl reload dnsmasq
+
+runcmd:
+  - aa-enforce usr.sbin.dnsmasq
+  - systemctl daemon-reload
+  - systemctl restart dnsmasq
+  - systemctl enable dnsmasq

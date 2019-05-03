@@ -1,0 +1,25 @@
+#cloud-config
+users:
+%{ for index, user in vars.vpn_users ~}
+  - name: ${user}
+    shell: /bin/false
+    groups: algo
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ${vars.ssh_keys[index]}
+%{ endfor ~}
+
+write_files:
+  - path: /etc/ssh/sshd_config
+    append: true
+    content: |
+
+      Match Group algo
+        AllowTcpForwarding local
+        AllowAgentForwarding no
+        AllowStreamLocalForwarding no
+        PermitTunnel no
+        X11Forwarding no
+
+runcmd:
+  - systemctl reload sshd

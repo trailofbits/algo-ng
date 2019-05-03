@@ -76,6 +76,16 @@ resource "aws_route_table_association" "default" {
   route_table_id = "${aws_route_table.default.id}"
 }
 
+locals {
+  services = {
+    "icmp" = -1
+    "tcp" = 22
+    "udp" = 500
+    "udp" = 4500
+    "udp" = var.wireguard_network["port"]
+  }
+}
+
 resource "aws_security_group" "main" {
   description = "Enable SSH and IPsec"
   vpc_id      = "${aws_vpc.main.id}"
@@ -83,44 +93,19 @@ resource "aws_security_group" "main" {
     Environment = "Algo"
   }
 
-  ingress {
-    from_port        = -1
-    to_port          = -1
-    protocol         = "icmp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
+  dynamic "ingress" {
+    for_each = [for k, v in local.services : {
+      protocol = k
+      port = v
+    }]
 
-  ingress {
-    from_port        = 22
-    to_port          = 22
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    from_port        = 500
-    to_port          = 500
-    protocol         = "udp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    from_port        = 4500
-    to_port          = 4500
-    protocol         = "udp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    from_port        = "${var.wireguard_network["port"]}"
-    to_port          = "${var.wireguard_network["port"]}"
-    protocol         = "udp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+    content {
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+      from_port = ingress.value.port
+      to_port   = ingress.value.port
+      protocol  = ingress.value.protocol
+    }
   }
 
   egress {
@@ -130,7 +115,6 @@ resource "aws_security_group" "main" {
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
-
 }
 
 resource "aws_key_pair" "main" {
@@ -161,7 +145,7 @@ resource "aws_instance" "main" {
   }
 }
 
-resource "aws_eip" "main" {
-  instance = "${aws_instance.main.id}"
-  vpc      = true
+resource "aws_eip_association" "main" {
+  instance_id   = "${aws_instance.main.id}"
+  allocation_id = var.algo_ip
 }

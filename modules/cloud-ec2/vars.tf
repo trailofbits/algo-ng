@@ -14,7 +14,7 @@ variable "wireguard_network" {
 }
 
 variable "image" {
-  default = "ubuntu-bionic-18.04"
+  default = "ubuntu-disco-19.04"
 }
 
 variable "size" {
@@ -32,3 +32,5 @@ variable "encrypted" {
 variable "kms_key_id" {
   default = ""
 }
+
+variable "algo_ip" {}
