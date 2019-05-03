@@ -76,16 +76,6 @@ resource "aws_route_table_association" "default" {
   route_table_id = "${aws_route_table.default.id}"
 }
 
-locals {
-  services = [
-    "-1:icmp",
-    "22:tcp",
-    "500:udp",
-    "4500:udp",
-    "${var.wireguard_network["port"]}:udp"
-  ]
-}
-
 resource "aws_security_group" "main" {
   description = "Enable SSH and IPsec"
   vpc_id      = "${aws_vpc.main.id}"
@@ -94,17 +84,20 @@ resource "aws_security_group" "main" {
   }
 
   dynamic "ingress" {
-    for_each = [for i in local.services : {
-      protocol = split(":", i)[1]
-      port = split(":", i)[0]
-    }]
+    for_each = [
+      "-1:icmp",
+      "22:tcp",
+      "500:udp",
+      "4500:udp",
+      "${var.wireguard_network["port"]}:udp"
+    ]
 
     content {
       cidr_blocks      = ["0.0.0.0/0"]
       ipv6_cidr_blocks = ["::/0"]
-      from_port = ingress.value.port
-      to_port   = ingress.value.port
-      protocol  = ingress.value.protocol
+      from_port = split(":", ingress.value)[0]
+      to_port   = split(":", ingress.value)[0]
+      protocol  = split(":", ingress.value)[1]
     }
   }
 
