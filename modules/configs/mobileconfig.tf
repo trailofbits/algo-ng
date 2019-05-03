@@ -17,8 +17,8 @@ locals {
   }
 }
 
-# resource "local_file" "mobileconfig" {
-#   count    = length(var.vpn_users)
-#   content  = templatefile("${path.module}/files/mobileconfig.xml", { var = local.mobileconfig, index = count.index, pki = var.pki })
-#   filename = "${var.algo_config}/ipsec/apple/${var.vpn_users[count.index]}.mobileconfig"
-# }
+resource "local_file" "mobileconfig" {
+  count    = length(var.vpn_users)
+  content  = templatefile("${path.module}/files/mobileconfig.xml", { var = local.mobileconfig, index = count.index, pki = var.pki })
+  filename = "${var.algo_config}/ipsec/apple/${var.vpn_users[count.index]}.mobileconfig"
+}

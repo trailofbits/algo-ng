@@ -77,13 +77,13 @@ resource "aws_route_table_association" "default" {
 }
 
 locals {
-  services = {
-    "icmp" = -1
-    "tcp" = 22
-    "udp" = 500
-    "udp" = 4500
-    "udp" = var.wireguard_network["port"]
-  }
+  services = [
+    "-1:icmp",
+    "22:tcp",
+    "500:udp",
+    "4500:udp",
+    "${var.wireguard_network["port"]}:udp"
+  ]
 }
 
 resource "aws_security_group" "main" {
@@ -94,9 +94,9 @@ resource "aws_security_group" "main" {
   }
 
   dynamic "ingress" {
-    for_each = [for k, v in local.services : {
-      protocol = k
-      port = v
+    for_each = [for i in local.services : {
+      protocol = split(":", i)[1]
+      port = split(":", i)[0]
     }]
 
     content {
