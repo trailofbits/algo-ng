@@ -21,8 +21,3 @@ resource "digitalocean_droplet" "algo" {
     create_before_destroy = true
   }
 }
-
-resource "digitalocean_floating_ip" "algo" {
-  droplet_id = "${digitalocean_droplet.algo.id}"
-  region     = "${digitalocean_droplet.algo.region}"
-}

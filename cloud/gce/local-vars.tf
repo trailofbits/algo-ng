@@ -1,0 +1,1 @@
+variable "google_credentials" { }

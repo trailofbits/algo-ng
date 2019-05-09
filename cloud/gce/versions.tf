@@ -1,0 +1,1 @@
+../../modules/cloud-gce/versions.tf

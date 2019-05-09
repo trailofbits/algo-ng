@@ -17,3 +17,7 @@ provider "null" {
 provider "random" {
   version = "~> 2.1"
 }
+
+provider "external" {
+  version = "~> 1.1"
+}

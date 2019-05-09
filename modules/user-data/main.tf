@@ -19,7 +19,7 @@ data "template_cloudinit_config" "cloud_init" {
     content    = var.components["ipsec"] == 0 ? "" : templatefile("${path.module}/files/strongswan/cloud-init.yml", { vars = local.strongswan })
     merge_type = "list(append)+dict(recurse_array)+str()"
   }
-  
+
   part {
     filename   = "wireguard"
     content    = var.components["wireguard"] == 0 ? "" : templatefile("${path.module}/files/wireguard/cloud-init.yml", { vars = local.wireguard })
@@ -43,4 +43,10 @@ data "template_cloudinit_config" "cloud_init" {
     content    = templatefile("${path.module}/files/common/099-cloud-init-end.yml", { vars = local.common_end })
     merge_type = "list(append)+dict(recurse_array)+str()"
   }
+}
+
+locals {
+  cloud_config = <<-EOF
+                ${templatefile("${path.module}/files/common/001-cloud-init-start.yml", { vars = local.common_start })}
+                EOF
 }

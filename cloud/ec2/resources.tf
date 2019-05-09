@@ -3,8 +3,8 @@ resource "aws_eip" "algo" {
 }
 
 locals {
-  algo_config = "${path.cwd}/configs/${aws_eip.algo.public_ip}"
   server_address = "${aws_eip.algo.public_ip}"
+  algo_config    = "${path.cwd}/configs/${local.server_address}"
 }
 
 module "ssh-key" {
