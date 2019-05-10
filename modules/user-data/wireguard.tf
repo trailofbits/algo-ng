@@ -1,6 +1,6 @@
 locals {
   wg_conf = {
-    InterfaceAddress    = "${cidrhost(var.wireguard_network["ipv4"], 1)}${var.ipv6 == 0 ? "" : ",${cidrhost(var.wireguard_network["ipv6"], 1)}"}"
+    InterfaceAddress    = "${cidrhost(var.wireguard_network["ipv4"], 1)}${var.ipv6 == false ? "" : ",${cidrhost(var.wireguard_network["ipv6"], 1)}"}"
     InterfaceListenPort = var.wireguard_network["port"]
     InterfacePrivateKey = var.pki.wireguard.server_private_key
     vpn_users           = var.vpn_users

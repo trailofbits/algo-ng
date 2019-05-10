@@ -30,7 +30,6 @@ module "user-data" {
   components     = var.components
   unmanaged      = var.unmanaged
   max_mss        = var.max_mss
-  system_upgrade = var.system_upgrade
   pki            = module.tls.pki
 }
 

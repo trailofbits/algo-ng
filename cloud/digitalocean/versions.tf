@@ -1,3 +1,1 @@
-provider "digitalocean" {
-  version = "~> 1.2"
-}
+../../modules/cloud-digitalocean/versions.tf

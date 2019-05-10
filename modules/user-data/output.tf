@@ -2,10 +2,6 @@ output "template_cloudinit_config" {
   value = data.template_cloudinit_config.cloud_init.rendered
 }
 
-output "cloud_config" {
-  value = local.cloud_config
-}
-
 output "wireguard_network" {
   value = var.wireguard_network
 }

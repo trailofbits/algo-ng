@@ -11,9 +11,7 @@ variable "algo_provider" {
 variable "region" {
 }
 
-variable "components" {
-  type = map(string)
-}
+variable "components" { }
 
 # Config
 variable "max_mss" {

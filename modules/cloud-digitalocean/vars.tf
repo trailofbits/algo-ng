@@ -4,7 +4,7 @@ variable "public_key_openssh" {}
 variable "user_data" {}
 
 variable "image" {
-  default = "ubuntu-18-04-x64"
+  default = "ubuntu-19-04-x64"
 }
 
 variable "size" {
@@ -14,3 +14,5 @@ variable "size" {
 variable "ipv6" {
   default = true
 }
+
+variable "algo_ip" {}

@@ -1,8 +1,8 @@
 locals {
   dnscrypt_proxy_toml = {
     local_service_ip = var.local_service_ip
-    server_names     = "'${var.dnscrypt_servers["ipv4"]}'${var.ipv6 == 0 ? "" : ",'${var.dnscrypt_servers["ipv6"]}'"}"
-    ipv6             = var.ipv6 == 1 ? "true" : "false"
+    server_names     = "'${var.dnscrypt_servers["ipv4"]}'${var.ipv6 == false ? "" : ",'${var.dnscrypt_servers["ipv6"]}'"}"
+    ipv6             = var.ipv6 == true ? "true" : "false"
     cache            = var.components["dns_adblocking"] == 1 ? "false" : "true"
   }
 

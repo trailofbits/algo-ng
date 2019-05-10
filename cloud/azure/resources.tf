@@ -34,7 +34,7 @@ module "user-data" {
 }
 
 module "cloud" {
-  source             = "../../modules/cloud-ec2/"
+  source             = "../../modules/cloud-azure/"
   region             = var.region
   algo_name          = var.algo_name
   algo_ip            = aws_eip.algo.id

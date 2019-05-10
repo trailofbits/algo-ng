@@ -2,9 +2,7 @@ variable "vpn_users" {
   type = list(string)
 }
 
-variable "components" {
-  type = map(string)
-}
+variable "components" { }
 
 variable "gzip" {
   default = false
