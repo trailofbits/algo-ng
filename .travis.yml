@@ -2,15 +2,6 @@
 language: bash
 dist: xenial
 
-addons:
-  apt:
-    packages:
-      - libarchive-tools
-
-# addons:
-#   snaps:
-#     - terraform
-
 env:
   global:
     - TF_VAR_algo_name=algo
@@ -29,9 +20,13 @@ env:
 matrix:
   fast_finish: true
 
+before_script:
+  - |
+    wget -q -O terraform.zip https://releases.hashicorp.com/terraform/0.12.0-rc1/terraform_0.12.0-rc1_linux_amd64.zip
+    unzip terraform.zip
+
 script:
   - set -e
-  - wget -qO - https://releases.hashicorp.com/terraform/0.12.0-rc1/terraform_0.12.0-rc1_linux_amd64.zip | bsdtar -xvf-; chmod +x terraform
   - |
     for i in $PROVIDERS; do
       export TF_VAR_algo_provider=$i
