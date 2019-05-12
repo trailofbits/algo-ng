@@ -78,7 +78,7 @@ resource "google_compute_instance" "algo" {
   }
 
   metadata = {
-    sshKeys   = "ubuntu:${var.public_key_openssh}"
+    sshKeys   = "ubuntu:${var.ssh_public_key}"
     user-data = "${var.user_data}"
   }
 

@@ -95,9 +95,9 @@ resource "aws_security_group" "main" {
     content {
       cidr_blocks      = ["0.0.0.0/0"]
       ipv6_cidr_blocks = ["::/0"]
-      from_port = split(":", ingress.value)[0]
-      to_port   = split(":", ingress.value)[0]
-      protocol  = split(":", ingress.value)[1]
+      from_port        = split(":", ingress.value)[0]
+      to_port          = split(":", ingress.value)[0]
+      protocol         = split(":", ingress.value)[1]
     }
   }
 
@@ -112,7 +112,7 @@ resource "aws_security_group" "main" {
 
 resource "aws_key_pair" "main" {
   key_name_prefix = "algo-"
-  public_key      = "${var.public_key_openssh}"
+  public_key      = "${var.ssh_public_key}"
 }
 
 resource "aws_instance" "main" {

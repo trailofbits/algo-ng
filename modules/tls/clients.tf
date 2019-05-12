@@ -8,15 +8,7 @@ resource "tls_cert_request" "client" {
   count           = length(var.vpn_users)
   key_algorithm   = "ECDSA"
   private_key_pem = tls_private_key.client.*.private_key_pem[count.index]
-  # TF-UPGRADE-TODO: In Terraform v0.10 and earlier, it was sometimes necessary to
-  # force an interpolation expression to be interpreted as a list by wrapping it
-  # in an extra set of list brackets. That form was supported for compatibilty in
-  # v0.11, but is no longer supported in Terraform v0.12.
-  #
-  # If the expression in the following list itself returns a list, remove the
-  # brackets to avoid interpretation as a list of lists. If the expression
-  # returns a single list item then leave it as-is and remove this TODO comment.
-  dns_names = [var.vpn_users[count.index]]
+  dns_names       = [var.vpn_users[count.index]]
 
   subject {
     common_name = var.vpn_users[count.index]
@@ -65,7 +57,7 @@ resource "local_file" "user_certs" {
 }
 
 resource "random_id" "client_p12_pass" {
-  byte_length = 8
+  byte_length = 6
 }
 
 data "external" "pkcs12" {

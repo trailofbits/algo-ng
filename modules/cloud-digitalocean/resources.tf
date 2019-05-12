@@ -1,6 +1,6 @@
 resource "digitalocean_ssh_key" "main" {
   name       = "${var.algo_name}"
-  public_key = "${var.public_key_openssh}"
+  public_key = "${var.ssh_public_key}"
 }
 
 resource "digitalocean_tag" "main" {

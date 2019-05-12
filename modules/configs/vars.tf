@@ -10,17 +10,13 @@ variable "ipv6" {
   default = false
 }
 
-variable "algo_config" {
-}
+variable "algo_config" {}
 
-variable "server_address" {
-}
+variable "server_address" {}
 
-variable "client_p12_pass" {
-}
+variable "client_p12_pass" {}
 
-variable "private_key" {
-}
+variable "ssh_private_key" {}
 
 variable "server_id" {
 }

@@ -158,7 +158,7 @@ resource "azurerm_virtual_machine" "algo" {
 
     ssh_keys {
       path     = "/home/ubuntu/.ssh/authorized_keys"
-      key_data = "${var.public_key_openssh}"
+      key_data = "${var.ssh_public_key}"
     }
   }
 

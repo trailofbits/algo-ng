@@ -27,7 +27,3 @@ output "pki" {
 output "client_p12_pass" {
   value = random_id.client_p12_pass.hex
 }
-
-output "crl" {
-  value = "data.local_file.user_crl.content"
-}

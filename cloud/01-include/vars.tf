@@ -11,7 +11,7 @@ variable "algo_provider" {
 variable "region" {
 }
 
-variable "components" { }
+variable "components" {}
 
 # Config
 variable "max_mss" {

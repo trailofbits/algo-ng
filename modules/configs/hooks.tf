@@ -6,7 +6,7 @@ resource "null_resource" "wait-until-deploy-finished" {
   connection {
     host        = var.server_address
     user        = var.ssh_user
-    private_key = var.private_key
+    private_key = var.ssh_private_key
   }
 
   provisioner "remote-exec" {

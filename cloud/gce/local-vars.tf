@@ -1,1 +1,0 @@
-variable "google_credentials" { }

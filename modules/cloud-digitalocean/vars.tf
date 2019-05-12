@@ -1,6 +1,6 @@
 variable "region" {}
 variable "algo_name" {}
-variable "public_key_openssh" {}
+variable "ssh_public_key" {}
 variable "user_data" {}
 
 variable "image" {

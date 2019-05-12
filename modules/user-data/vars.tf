@@ -2,7 +2,7 @@ variable "vpn_users" {
   type = list(string)
 }
 
-variable "components" { }
+variable "components" {}
 
 variable "gzip" {
   default = false

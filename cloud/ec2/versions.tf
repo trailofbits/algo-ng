@@ -1,4 +1,1 @@
-provider "aws" {
-  region  = "${var.region}"
-  version = "~> 2.9"
-}
+../../modules/cloud-ec2/versions.tf
