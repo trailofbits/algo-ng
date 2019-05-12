@@ -15,7 +15,7 @@ env:
     - ARM_CLIENT_ID=nil
     - ARM_SUBSCRIPTION_ID=nil
   matrix:
-    - PROVIDERS="digitalocean ec2 gce azure"
+    - PROVIDERS="digitalocean ec2 gce"
 
 matrix:
   fast_finish: true
@@ -26,7 +26,7 @@ before_script:
     unzip terraform.zip
 
 script:
-  - set -e
+  - set -ex
   - |
     for i in $PROVIDERS; do
       export TF_VAR_algo_provider=$i
