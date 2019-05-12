@@ -15,7 +15,7 @@ env:
     - ARM_CLIENT_ID=nil
     - ARM_SUBSCRIPTION_ID=nil
   matrix:
-    - PROVIDERS="digitalocean ec2 gce"
+    - PROVIDERS="digitalocean ec2 gce azure"
 
 matrix:
   fast_finish: true

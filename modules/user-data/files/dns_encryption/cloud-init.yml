@@ -1,8 +1,17 @@
 #cloud-config
+apt:
+  sources:
+    shevchuk-ubuntu-dnscrypt-proxy.list:
+      source: ppa:shevchuk/dnscrypt-proxy
+
 packages:
  - dnscrypt-proxy
 
 write_files:
+  - path: /etc/apparmor.d/usr.bin.dnscrypt-proxy
+    permissions: '0644'
+    content: ${jsonencode(vars.apparmor_dnscrypt-proxy)}
+
   - path: /etc/systemd/system/dnscrypt-proxy.service.d/99-capabilities.conf
     permissions: '0644'
     content: |
@@ -18,7 +27,7 @@ write_files:
     content: ${jsonencode(vars.dnscrypt_proxy_toml)}
 
 runcmd:
-  - aa-enforce usr.sbin.dnscrypt-proxy
+  - aa-enforce /etc/apparmor.d/usr.bin.dnscrypt-proxy
   - systemctl daemon-reload
   - systemctl restart dnscrypt-proxy
   - systemctl enable dnscrypt-proxy

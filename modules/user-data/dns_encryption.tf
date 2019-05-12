@@ -7,8 +7,9 @@ locals {
   }
 
   dns_encryption = {
-    dnscrypt_proxy_toml = templatefile("${path.module}/files/dns_encryption/dnscrypt-proxy.toml", { vars = local.dnscrypt_proxy_toml })
-    ip-blacklist        = file("${path.module}/files/dns_encryption/ip-blacklist.txt")
-    local_service_ip    = var.local_service_ip
+    apparmor_dnscrypt-proxy = file("${path.module}/files/dns_encryption/usr.bin.dnscrypt-proxy")
+    dnscrypt_proxy_toml     = templatefile("${path.module}/files/dns_encryption/dnscrypt-proxy.toml", { vars = local.dnscrypt_proxy_toml })
+    ip-blacklist            = file("${path.module}/files/dns_encryption/ip-blacklist.txt")
+    local_service_ip        = var.local_service_ip
   }
 }

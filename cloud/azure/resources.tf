@@ -1,24 +1,35 @@
-resource "aws_eip" "algo" {
-  vpc = true
+resource "azurerm_resource_group" "main" {
+  name     = "${var.algo_name}"
+  location = "${var.region}"
+
+  tags = {
+    Environment = "Algo"
+  }
+}
+
+resource "azurerm_public_ip" "main" {
+  name                = "${var.algo_name}"
+  location            = "${var.region}"
+  resource_group_name = "${azurerm_resource_group.main.name}"
+  allocation_method   = "Static"
+
+  tags = {
+    Environment = "Algo"
+  }
 }
 
 locals {
-  server_address = "${aws_eip.algo.public_ip}"
+  server_address = "${azurerm_public_ip.main.ip_address}"
   algo_config    = "${path.cwd}/configs/${local.server_address}"
 }
 
-module "ssh-key" {
-  source            = "../../modules/ssh-key/"
-  algo_config       = local.algo_config
-  ssh_key_algorithm = "RSA"
-}
-
 module "tls" {
-  source         = "../../modules/tls/"
-  algo_config    = local.algo_config
-  vpn_users      = var.vpn_users
-  components     = var.components
-  server_address = local.server_address
+  source            = "../../modules/tls/"
+  algo_config       = local.algo_config
+  vpn_users         = var.vpn_users
+  components        = var.components
+  server_address    = local.server_address
+  ssh_key_algorithm = "RSA"
 }
 
 module "user-data" {
@@ -34,12 +45,13 @@ module "user-data" {
 }
 
 module "cloud" {
-  source         = "../../modules/cloud-azure/"
-  region         = var.region
-  algo_name      = var.algo_name
-  algo_ip        = aws_eip.algo.id
-  ssh_public_key = module.tls.ssh_public_key
-  user_data      = module.user-data.template_cloudinit_config
+  source              = "../../modules/cloud-azure/"
+  region              = var.region
+  algo_name           = var.algo_name
+  algo_ip             = azurerm_public_ip.main.id
+  ssh_public_key      = module.tls.ssh_public_key
+  user_data           = module.user-data.template_cloudinit_config
+  resource_group_name = azurerm_resource_group.main.name
 }
 
 module "configs" {
