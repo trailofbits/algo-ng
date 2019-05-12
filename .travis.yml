@@ -20,6 +20,11 @@ env:
 matrix:
   fast_finish: true
 
+before_script:
+  - |
+    wget -q -O terraform.zip https://releases.hashicorp.com/terraform/0.12.0-rc1/terraform_0.12.0-rc1_linux_amd64.zip
+    unzip -o terraform.zip
+
 script:
   - set -ex
   - |
