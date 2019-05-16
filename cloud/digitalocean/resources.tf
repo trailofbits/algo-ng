@@ -11,7 +11,7 @@ module "tls" {
   source         = "../../modules/tls/"
   algo_config    = local.algo_config
   vpn_users      = var.vpn_users
-  components     = var.components
+  components     = local.components
   server_address = local.server_address
 }
 
@@ -21,10 +21,11 @@ module "user-data" {
   gzip          = false
   ipv6          = true
   vpn_users     = var.vpn_users
-  components    = var.components
+  components    = local.components
   unmanaged     = var.unmanaged
   max_mss       = var.max_mss
   pki           = module.tls.pki
+  local_service_ip  = local.local_service_ip
 }
 
 module "cloud" {
@@ -40,7 +41,7 @@ module "configs" {
   source            = "../../modules/configs/"
   algo_config       = local.algo_config
   vpn_users         = var.vpn_users
-  components        = var.components
+  components        = local.components
   ipv6              = true
   server_address    = local.server_address
   client_p12_pass   = module.tls.client_p12_pass
@@ -48,7 +49,7 @@ module "configs" {
   ssh_private_key   = module.tls.ssh_private_key
   server_id         = module.cloud.server_id
   pki               = module.tls.pki
-  local_service_ip  = module.user-data.local_service_ip
+  local_service_ip  = local.local_service_ip
   wireguard_network = module.user-data.wireguard_network
-  ondemand          = var.ondemand
+  ondemand          = local.ondemand
 }

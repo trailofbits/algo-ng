@@ -27,3 +27,11 @@ output "pki" {
 output "client_p12_pass" {
   value = random_id.client_p12_pass.hex
 }
+
+output "ssh_public_key" {
+  value = tls_private_key.algo_ssh.public_key_openssh
+}
+
+output "ssh_private_key" {
+  value = tls_private_key.algo_ssh.private_key_pem
+}

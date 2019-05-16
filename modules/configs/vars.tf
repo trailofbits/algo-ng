@@ -1,3 +1,11 @@
+variable "algo_config" { }
+variable "server_address" { }
+variable "client_p12_pass" { }
+variable "ssh_private_key" { }
+variable "server_id" { }
+variable "pki" {}
+variable "local_service_ip" { }
+
 variable "vpn_users" {
   type = list(string)
 }
@@ -10,24 +18,8 @@ variable "ipv6" {
   default = false
 }
 
-variable "algo_config" {}
-
-variable "server_address" {}
-
-variable "client_p12_pass" {}
-
-variable "ssh_private_key" {}
-
-variable "server_id" {
-}
-
-variable "pki" {}
-
 variable "wireguard_network" {
   type = map(string)
-}
-
-variable "local_service_ip" {
 }
 
 variable "ssh_user" {
@@ -36,14 +28,12 @@ variable "ssh_user" {
 
 # VPN On Demand
 variable "ondemand" {
-  type = object({ cellular = bool, wifi = bool, wifi_exclude = string })
+  type = object({ cellular = bool, wifi = bool, wifi_exclude = list(string) })
 
   default = {
     cellular = false
     wifi     = false
-    # List the names of trusted Wi-Fi networks (if any) that macOS/iOS clients exclude from using the VPN
-    # (e.g., your home network. Comma-separated value, e.g., HomeNet,OfficeWifi)
-    wifi_exclude = ""
+    wifi_exclude = []
   }
 }
 

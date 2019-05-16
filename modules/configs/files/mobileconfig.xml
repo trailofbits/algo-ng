@@ -12,14 +12,14 @@
               <key>OnDemandRules</key>
               <array>
               <dict>
-                %{ if length(split(",", var.ondemand.wifi_exclude)) > 0 && var.ondemand.wifi == true }
+                %{ if length(var.ondemand.wifi_exclude) > 0 && var.ondemand.wifi == true }
                 <key>Action</key>
                 <string>Disconnect</string>
                 <key>InterfaceTypeMatch</key>
                 <string>WiFi</string>
                 <key>SSIDMatch</key>
                 <array>
-                  %{ for i in split(",", var.ondemand.wifi_exclude) ~}
+                  %{ for i in var.ondemand.wifi_exclude ~}
                   <string>${i}</string>
                   %{ endfor }
                 </array>

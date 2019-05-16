@@ -5,11 +5,6 @@ vpn_users = [
   "desktop"
 ]
 
-components = {
-  "ipsec"          = true
-  "wireguard"      = true
-  "dns_encryption" = true
-  "dns_adblocking" = true
-  "ssh_tunneling"  = true
-  "windows"        = true
-}
+ipsec_enabled     = true
+wireguard_enabled = true
+dns_encryption    = true

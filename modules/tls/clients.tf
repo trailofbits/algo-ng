@@ -16,8 +16,7 @@ resource "tls_cert_request" "client" {
 }
 
 resource "tls_locally_signed_cert" "client" {
-  count = length(var.vpn_users)
-  # depends_on            = [null_resource.user_crl]
+  count                 = length(var.vpn_users)
   cert_request_pem      = tls_cert_request.client.*.cert_request_pem[count.index]
   ca_key_algorithm      = "ECDSA"
   ca_private_key_pem    = tls_private_key.ca.private_key_pem
@@ -39,7 +38,6 @@ resource "local_file" "user_private_keys" {
 }
 
 resource "local_file" "user_certs" {
-  # depends_on = [null_resource.user_crl]
   count    = length(var.vpn_users)
   content  = tls_locally_signed_cert.client.*.cert_pem[count.index]
   filename = "${var.algo_config}/ipsec/manual/${var.vpn_users[count.index]}.crt.pem"
@@ -54,6 +52,12 @@ resource "local_file" "user_certs" {
         .for_crl/${var.vpn_users[count.index]}.crt.pem
     EOF
   }
+}
+
+data "local_file" "user_certs" {
+  depends_on = [local_file.user_certs]
+  count = length(var.vpn_users)
+  filename = "${var.algo_config}/ipsec/manual/${var.vpn_users[count.index]}.crt.pem"
 }
 
 resource "random_id" "client_p12_pass" {
@@ -80,5 +84,6 @@ data "external" "crl" {
     users = join("\n", var.vpn_users)
     ca_cert = tls_self_signed_cert.ca.cert_pem
     ca_key = tls_private_key.ca.private_key_pem
+    users_certs = md5(join(",", data.local_file.user_certs.*.content))
   }
 }

@@ -5,7 +5,3 @@ output "template_cloudinit_config" {
 output "wireguard_network" {
   value = var.wireguard_network
 }
-
-output "local_service_ip" {
-  value = var.local_service_ip
-}

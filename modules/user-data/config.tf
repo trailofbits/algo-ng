@@ -87,7 +87,4 @@ variable "ipv6_dns_servers" {
   ]
 }
 
-# IP address for the local dns resolver
-variable "local_service_ip" {
-  default = "172.16.0.1"
-}
+variable "local_service_ip" { }

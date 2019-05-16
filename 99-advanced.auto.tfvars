@@ -12,9 +12,6 @@ max_mss = 0
 # Block traffic between connected clients
 BetweenClients_DROP = true
 
-# Upgrade the system during the deployment
-system_upgrade = false
-
 strongswan_log_level = "2"
 
 adblock_lists = [
@@ -56,8 +53,5 @@ ipv6_dns_servers = [
   "2606:4700:4700::1111",
   "2606:4700:4700::1001"
 ]
-
-# IP address for the local dns resolver
-local_service_ip = "172.16.0.1"
 
 unmanaged = false
