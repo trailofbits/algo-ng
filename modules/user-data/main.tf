@@ -9,6 +9,12 @@ data "template_cloudinit_config" "cloud_init" {
   }
 
   part {
+    filename   = "cloud_specific"
+    content    = var.cloud_specific
+    merge_type = "list(append)+dict(recurse_array)+str()"
+  }
+
+  part {
     filename   = "ssh_tunneling"
     content    = var.components["ssh_tunneling"] == false ? "" : templatefile("${path.module}/files/ssh_tunneling/cloud-init.yml", { vars = local.ssh_tunneling })
     merge_type = "list(append)+dict(recurse_array)+str()"

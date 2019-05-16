@@ -1,10 +1,10 @@
-variable "algo_config" { }
-variable "server_address" { }
-variable "client_p12_pass" { }
-variable "ssh_private_key" { }
-variable "server_id" { }
+variable "algo_config" {}
+variable "server_address" {}
+variable "client_p12_pass" {}
+variable "ssh_private_key" {}
+variable "server_id" {}
 variable "pki" {}
-variable "local_service_ip" { }
+variable "local_service_ip" {}
 
 variable "vpn_users" {
   type = list(string)
@@ -31,8 +31,8 @@ variable "ondemand" {
   type = object({ cellular = bool, wifi = bool, wifi_exclude = list(string) })
 
   default = {
-    cellular = false
-    wifi     = false
+    cellular     = false
+    wifi         = false
     wifi_exclude = []
   }
 }

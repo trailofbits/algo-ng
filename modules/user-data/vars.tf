@@ -4,6 +4,10 @@ variable "vpn_users" {
 
 variable "components" {}
 
+variable "cloud_specific" {
+  default = ""
+}
+
 variable "gzip" {
   default = false
 }

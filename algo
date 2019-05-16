@@ -41,40 +41,9 @@ askForRegion(){
   TF_VAR_region="$(getRegionCodeByIndex "$1" $region)"
 }
 
-additional_roles () {
-
-  if [[ "$ALGO_COMMAND" == "apply" ]]; then
-    # OnDemand
-    if [[ -z $OnDemandCellular ]]; then
-      read -p "
-      Do you want macOS/iOS clients to enable \"VPN On Demand\" when connected to cellular networks?
-      [y/N]: " -r OnDemandCellular
-    fi; [[ "$OnDemandCellular" =~ $TRUE ]] && OnDemandCellular=true || OnDemandCellular=false
-
-    if [[ -z $OnDemandWiFi ]]; then
-      read -p "
-      Do you want macOS/iOS clients to enable \"VPN On Demand\" when connected to Wi-Fi?
-      [y/N]: " -r OnDemandWiFi
-    fi; [[ "$OnDemandWiFi" =~ $TRUE ]] && OnDemandWiFi=true || OnDemandWiFi=false
-
-    if [[ -z $OnDemandWiFiExclude && $OnDemandWiFi =~ $TRUE ]]; then
-      read -p "
-      List the names of trusted Wi-Fi networks (if any) that macOS/iOS clients exclude from using the VPN
-      (e.g., your home network. Comma-separated value, e.g., HomeNet,OfficeWifi,AlgoWiFi)
-      : " -r OnDemandWiFiExclude
-    fi
-  fi
-
-  TF_CLI_ARGS_apply+=" -var=ondemand='{ cellular = ${OnDemandCellular:-false},
-                                        wifi  = ${OnDemandWiFi:-false},
-                                        wifi_exclude = \"${OnDemandWiFiExclude}\"
-                                      }'"
-}
-
 deploy () {
-  export  TF_CLI_ARGS_apply+=" -auto-approve -parallelism=1"
-  export  TF_CLI_ARGS_destroy="-force"
-  export  TF_VAR_algo_name="${ALGO_SERVER_NAME}" \
+  export  TF_CLI_ARGS_apply+=" -auto-approve -parallelism=1" \
+          TF_VAR_algo_name="${ALGO_SERVER_NAME}" \
           TF_VAR_algo_provider="${ALGO_PROVIDER}" \
           TF_VAR_region="$TF_VAR_region"
 

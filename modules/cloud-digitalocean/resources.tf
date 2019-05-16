@@ -55,8 +55,8 @@ resource "digitalocean_firewall" "main" {
     ]
 
     content {
-      protocol         = rule.value
-      port_range       = "1-65535"
+      protocol   = rule.value
+      port_range = "1-65535"
       destination_addresses = [
         "0.0.0.0/0",
         "::/0"

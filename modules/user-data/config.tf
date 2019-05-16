@@ -87,4 +87,4 @@ variable "ipv6_dns_servers" {
   ]
 }
 
-variable "local_service_ip" { }
+variable "local_service_ip" {}

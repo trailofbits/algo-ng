@@ -88,15 +88,15 @@ provider "random" {
 }
 
 resource "random_integer" "local_service_ip" {
-  min     = 1
-  max     = 16777214
+  min = 1
+  max = 16777214
 }
 
 locals {
   true_exp = "/^(y|Y|true|yes)$/"
 
   exclude_networks = [
-    for i in split(",", var.ondemand_wifi_exclude):
+    for i in split(",", var.ondemand_wifi_exclude) :
     i
     if length(i) > 0
   ]

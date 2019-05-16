@@ -1,9 +1,11 @@
-resource "digitalocean_floating_ip" "main" {
-  region = "${var.region}"
+resource "hcloud_floating_ip" "main" {
+  type          = "ipv4"
+  description   = var.algo_name
+  home_location = var.region
 }
 
 locals {
-  server_address = "${digitalocean_floating_ip.main.ip_address}"
+  server_address = "${hcloud_floating_ip.main.ip_address}"
   algo_config    = "${path.cwd}/configs/${local.server_address}"
 }
 
@@ -26,15 +28,29 @@ module "user-data" {
   max_mss          = var.max_mss
   pki              = module.tls.pki
   local_service_ip = local.local_service_ip
+  cloud_specific   = <<-EOF
+                      #cloud-config
+                      write_files:
+                        - path: /etc/network/interfaces.d/60-my-floating-ip.cfg
+                          permissions: '0644'
+                          content: |
+                            auto eth0:1
+                            iface eth0:1 inet static
+                                address ${local.server_address}
+                                netmask 32
+                      runcmd:
+                        - systemctl restart networking
+                      EOF
 }
 
 module "cloud" {
-  source         = "../../modules/cloud-digitalocean/"
+  source         = "../../modules/cloud-hetzner/"
   region         = var.region
   algo_name      = var.algo_name
-  algo_ip        = digitalocean_floating_ip.main.id
+  algo_ip        = hcloud_floating_ip.main.id
   ssh_public_key = module.tls.ssh_public_key
   user_data      = module.user-data.template_cloudinit_config
+  server_address = local.server_address
 }
 
 module "configs" {
