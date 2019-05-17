@@ -27,9 +27,9 @@ resource "hcloud_server" "main" {
   labels = {
     "Environment" = "Algo"
   }
-  # lifecycle {
-  #   create_before_destroy = true
-  # }
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "hcloud_floating_ip_assignment" "main" {
