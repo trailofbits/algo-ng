@@ -3,5 +3,6 @@ terraform {
 }
 
 provider "scaleway" {
-  region = "${var.region}"
+  region  = "${var.region}"
+  version = "~> 1.10"
 }

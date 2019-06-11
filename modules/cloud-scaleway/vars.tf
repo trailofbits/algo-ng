@@ -14,7 +14,7 @@ variable "wireguard_network" {
 }
 
 variable "image" {
-  default = "Ubuntu Bionic Beaver"
+  default = "Ubuntu Bionic"
 }
 
 variable "size" {

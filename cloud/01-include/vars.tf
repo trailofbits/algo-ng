@@ -117,5 +117,8 @@ locals {
     windows        = replace(var.windows, local.true_exp, "yes") == "yes" ? true : false
   }
 
-  local_service_ip = cidrhost("10.0.0.0/8", random_integer.local_service_ip.result)
+  local_service_ip = [
+    cidrhost("10.0.0.0/8", random_integer.local_service_ip.result),
+    cidrhost("fd00::0/64", random_integer.local_service_ip.result)
+  ]
 }

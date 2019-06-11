@@ -2,8 +2,7 @@
 vpn_users = [
   "phone",
   "laptop",
-  "desktop",
-  "qwe"
+  "desktop"
 ]
 
 ipsec_enabled     = true
