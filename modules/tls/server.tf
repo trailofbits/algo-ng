@@ -28,4 +28,3 @@ resource "tls_locally_signed_cert" "server" {
     "client_auth",
   ]
 }
-

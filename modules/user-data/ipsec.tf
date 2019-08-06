@@ -1,10 +1,10 @@
 locals {
   ipsec_conf = {
-    ike                  = var.components["windows"] == true ? var.ciphers_compat["ike"] : var.ciphers["ike"]
-    esp                  = var.components["windows"] == true ? var.ciphers_compat["esp"] : var.ciphers["esp"]
-    strongswan_log_level = var.strongswan_log_level
-    rightsourceip        = "${var.ipsec_network["ipv4"]}${var.ipv6 == false ? "" : ",${var.ipsec_network["ipv6"]}"}"
-    rightdns             = var.components["dns_encryption"] == true || var.components["dns_adblocking"] == true ? var.local_service_ip : "${join(",", var.ipv4_dns_servers)}${var.ipv6 == false ? "" : ",${join(",", var.ipv6_dns_servers)}"}"
+    ike                  = var.config.ciphers.ipsec.ike
+    esp                  = var.config.ciphers.ipsec.esp
+    strongswan_log_level = var.config.strongswan_log_level
+    rightsourceip        = ["${cidrhost(var.config.ipsec.ipv4, 2)}-${cidrhost(var.config.ipsec.ipv4, -2)},${cidrhost(var.config.ipsec.ipv6, 2)}-${cidrhost(var.config.ipsec.ipv6, 9223372036854775807)}"]
+    rightdns             = var.config.dns.encryption.enabled || var.config.dns.adblocking.enabled ? values(var.config.ipsec_dns) : concat(var.config.dns.resolvers.ipv4, var.ipv6 ? var.config.dns.resolvers.ipv6 : [])
   }
 
   strongswan = {

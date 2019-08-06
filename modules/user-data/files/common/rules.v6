@@ -81,10 +81,7 @@ COMMIT
 # particular virtual (tun,tap,...) or physical (ethernet) interface.
 
 # Accept DNS traffic to the local DNS resolver
--A INPUT -d fcaa::1 -p udp --dport 53 -j ACCEPT
-
-# Drop traffic between VPN clients
--A FORWARD -s ${vars.v6.ipsec_network},${vars.v6.wireguard_network} -d ${vars.v6.ipsec_network},${vars.v6.wireguard_network} -j ${vars.common.BetweenClients_DROP}
+-A INPUT -d ${join(",", vars.v6.dns)} -p udp --dport 53 -j ACCEPT
 
 -A FORWARD -j ICMPV6-CHECK
 -A FORWARD -p tcp --dport 445 -j DROP

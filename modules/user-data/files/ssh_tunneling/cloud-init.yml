@@ -1,9 +1,12 @@
 #cloud-config
+groups:
+  - algo
+
 users:
 %{ for index, user in vars.vpn_users ~}
   - name: ${user}
     shell: /bin/false
-    groups: algo
+    primary_group: algo
     lock_passwd: true
     ssh_authorized_keys:
       - ${vars.ssh_keys[index]}

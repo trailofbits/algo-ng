@@ -1,13 +1,6 @@
 variable "server_address" {}
 variable "algo_config" {}
-
-variable "vpn_users" {
-  type = list(string)
-}
-
-variable "components" {
-  type = map(string)
-}
+variable "vpn_users" {}
 
 variable "ssh_key_algorithm" {
   default = "RSA"

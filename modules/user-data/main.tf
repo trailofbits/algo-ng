@@ -16,31 +16,25 @@ data "template_cloudinit_config" "cloud_init" {
 
   part {
     filename   = "ssh_tunneling"
-    content    = var.components["ssh_tunneling"] == false ? "" : templatefile("${path.module}/files/ssh_tunneling/cloud-init.yml", { vars = local.ssh_tunneling })
+    content    = var.config.ssh_tunneling ? templatefile("${path.module}/files/ssh_tunneling/cloud-init.yml", { vars = local.ssh_tunneling }) : ""
     merge_type = "list(append)+dict(recurse_array)+str()"
   }
 
   part {
     filename   = "strongswan"
-    content    = var.components["ipsec"] == false ? "" : templatefile("${path.module}/files/strongswan/cloud-init.yml", { vars = local.strongswan })
+    content    = var.config.ipsec.enabled ? templatefile("${path.module}/files/strongswan/cloud-init.yml", { vars = local.strongswan }) : ""
     merge_type = "list(append)+dict(recurse_array)+str()"
   }
 
   part {
     filename   = "wireguard"
-    content    = var.components["wireguard"] == false ? "" : templatefile("${path.module}/files/wireguard/cloud-init.yml", { vars = local.wireguard })
+    content    = var.config.wireguard.enabled ? templatefile("${path.module}/files/wireguard/cloud-init.yml", { vars = local.wireguard }) : ""
     merge_type = "list(append)+dict(recurse_array)+str()"
   }
 
   part {
-    filename   = "dns_encryption"
-    content    = var.components["dns_encryption"] == false ? "" : templatefile("${path.module}/files/dns_encryption/cloud-init.yml", { vars = local.dns_encryption })
-    merge_type = "list(append)+dict(recurse_array)+str()"
-  }
-
-  part {
-    filename   = "dns_adblocking"
-    content    = var.components["dns_adblocking"] == false ? "" : templatefile("${path.module}/files/dns_adblocking/cloud-init.yml", { vars = local.dns_adblocking })
+    filename   = "dns"
+    content    = var.config.dns.encryption.enabled ? templatefile("${path.module}/files/dns/cloud-init.yml", { vars = local.dns.encryption }) : ""
     merge_type = "list(append)+dict(recurse_array)+str()"
   }
 

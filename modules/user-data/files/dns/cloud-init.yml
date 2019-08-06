@@ -26,6 +26,33 @@ write_files:
     permissions: '0644'
     content: ${jsonencode(vars.dnscrypt_proxy_toml)}
 
+  - path: /etc/default/adblock
+    permissions: '0644'
+    content: ${jsonencode(vars.adblock_lists)}
+
+  - path: /usr/local/sbin/adblock.sh
+    permissions: '0755'
+    content: ${jsonencode(vars.adblock_sh)}
+
+  - path: /etc/cron.d/adblock
+    permissions: '0644'
+    content: |
+      10 2 * * * root /usr/local/sbin/adblock.sh
+
+  - path: /etc/systemd/system/dnscrypt-proxy.socket.d/algo.conf
+    permissions: '0644'
+    content: |
+      [Socket]
+      FreeBind=yes
+      %{ for i in vars.ipsec_dns_address ~}
+      ListenDatagram=${i}:53
+      ListenStream=${i}:53
+      %{ endfor }
+      %{ for i in vars.wireguard_dns_address ~}
+      ListenDatagram=${i}:53
+      ListenStream=${i}:53
+      %{ endfor }
+
 runcmd:
   - aa-enforce /etc/apparmor.d/usr.bin.dnscrypt-proxy
   - systemctl daemon-reload

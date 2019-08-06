@@ -1,5 +1,5 @@
-server_names      = [ ${vars.server_names} ]
-listen_addresses  = [ '${vars.local_service_ip}:5353' ]
+server_names      = [ '${join("', '", vars.server_names)}' ]
+listen_addresses  = [ '127.0.0.1:53' ]
 max_clients = 250
 ipv4_servers = true
 ipv6_servers = ${vars.ipv6}
@@ -23,17 +23,21 @@ log_files_max_size = 10
 log_files_max_age = 7
 log_files_max_backups = 1
 block_ipv6 = false
-cache = ${vars.cache}
+cache = true
 cache_size = 512
 cache_min_ttl = 600
 cache_max_ttl = 86400
 cache_neg_min_ttl = 60
 cache_neg_max_ttl = 600
+refused_code_in_responses = false
+netprobe_timeout = 60
+netprobe_address = "1.1.1.1:53"
 [query_log]
   format = 'tsv'
 [nx_log]
   format = 'tsv'
 [blacklist]
+  ${vars.blacklist_file}
 [ip_blacklist]
   blacklist_file = 'ip-blacklist.txt'
 [whitelist]

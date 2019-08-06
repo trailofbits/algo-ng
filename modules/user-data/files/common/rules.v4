@@ -59,16 +59,20 @@ COMMIT
 # Allow any traffic from the VPN
 -A INPUT -p ipencap -m policy --dir in --pol ipsec --proto esp -j ACCEPT
 
-# TODO:
-# The IP of the resolver should be bound to a DUMMY interface.
-# DUMMY interfaces are the proper way to install IPs without assigning them any
-# particular virtual (tun,tap,...) or physical (ethernet) interface.
-
 # Accept DNS traffic to the local DNS resolver
--A INPUT -d ${vars.v4.local_service_ip} -p udp --dport 53 -j ACCEPT
+-A INPUT -d ${join(",", vars.v4.dns)} -p udp --dport 53 -j ACCEPT
 
 # Drop traffic between VPN clients
--A FORWARD -s ${vars.v4.ipsec_network},${vars.v4.wireguard_network} -d ${vars.v4.ipsec_network},${vars.v4.wireguard_network} -j ${vars.common.BetweenClients_DROP}
+-A FORWARD -s ${vars.v4.ipsec_network},${vars.v4.wireguard_network} -d ${vars.v4.ipsec_network},${vars.v4.wireguard_network} -j ${vars.common.drop_traffic_between_clients}
+
+# Drop traffic to VPN clients from SSH tunnels
+-A OUTPUT -d ${vars.v4.ipsec_network},${vars.v4.wireguard_network} -m owner --gid-owner algo -j ${vars.common.drop_traffic_between_clients}
+
+# Drop traffic to the link-local network
+-A FORWARD -s ${vars.v4.ipsec_network},${vars.v4.wireguard_network} -d 169.254.0.0/16 -j DROP
+
+# Drop traffic to the link-local network from SSH tunnels
+-A OUTPUT -d 169.254.0.0/16 -m owner --gid-owner algo -j DROP
 
 # Forward any packet that's part of an established connection
 -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
