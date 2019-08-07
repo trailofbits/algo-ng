@@ -32,18 +32,14 @@ module "cloud" {
   user_data      = module.user-data.template_cloudinit_config
 }
 
-# module "configs" {
-#   source            = "../../modules/configs/"
-#   algo_config       = local.algo_config
-#   vpn_users         = var.vpn_users
-#   components        = local.components
-#   ipv6              = true
-#   server_address    = local.server_address
-#   client_p12_pass   = module.tls.client_p12_pass
-#   ssh_user          = module.cloud.ssh_user
-#   ssh_private_key   = module.tls.ssh_private_key
-#   server_id         = module.cloud.server_id
-#   pki               = module.tls.pki
-#   wireguard_network = module.user-data.wireguard_network
-#   ondemand          = local.ondemand
-# }
+module "configs" {
+  source          = "../../modules/configs/"
+  algo_config     = local.algo_config
+  server_address  = local.server_address
+  client_p12_pass = module.tls.client_p12_pass
+  ssh_user        = module.cloud.ssh_user
+  ssh_private_key = module.tls.ssh_private_key
+  server_id       = module.cloud.server_id
+  pki             = module.tls.pki
+  config          = local.config
+}

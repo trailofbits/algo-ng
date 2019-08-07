@@ -1,24 +1,22 @@
-variable "algo_provider" {}
-variable "region" {}
 variable "config" {}
 
 #
 # Prompts
 
 variable "algo_name" {
-  default     = "algo.vpn"
+  default     = "algo"
   description = "Name the vpn server"
 }
 
 variable "ondemand_cellular" {
-  default     = "n"
+  default     = false
   description = <<-EOF
                   Do you want macOS/iOS IPsec clients to enable 'Connect On Demand' when connected to cellular networks?
                   [y/N]
                   EOF
 }
 variable "ondemand_wifi" {
-  default     = "n"
+  default     = false
   description = <<-EOF
                   Do you want macOS/iOS IPsec clients to enable 'Connect On Demand' when connected to Wi-Fi?
                   [y/N]
@@ -35,7 +33,7 @@ variable "ondemand_wifi_exclude" {
 }
 
 variable "dns_adblocking" {
-  default     = "y"
+  default     = false
   description = <<-EOF
                   Do you want to install an ad blocking DNS resolver on this VPN server?
                   [y/N]
@@ -43,7 +41,7 @@ variable "dns_adblocking" {
 }
 
 variable "ssh_tunneling" {
-  default     = "n"
+  default     = false
   description = <<-EOF
                   Do you want each user to have their own account for SSH tunneling?
                   [y/N]

@@ -15,14 +15,3 @@ resource "null_resource" "wait-until-deploy-finished" {
     ]
   }
 }
-
-data "external" "wg-server-pub" {
-  depends_on = [null_resource.wait-until-deploy-finished]
-
-  program = [
-    "${path.module}/external/read-file-ssh.sh",
-    "${var.ssh_user}@${var.server_address}",
-    "${var.algo_config}/algo.pem",
-    "/etc/wireguard/.wg-server.pub",
-  ]
-}

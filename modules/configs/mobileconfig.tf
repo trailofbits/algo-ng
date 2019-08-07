@@ -4,8 +4,8 @@ resource "random_uuid" "PayloadIdentifier" {
 
 locals {
   mobileconfig = {
-    ondemand                 = var.ondemand
-    vpn_users                = var.vpn_users
+    ondemand                 = var.config.ondemand
+    vpn_users                = var.config.vpn_users
     server_address           = var.server_address
     algo_config              = var.algo_config
     PayloadContentCA         = base64encode(var.pki.ipsec.ca_cert)
@@ -18,7 +18,7 @@ locals {
 }
 
 resource "local_file" "mobileconfig" {
-  count    = length(var.vpn_users)
+  count    = length(var.config.vpn_users)
   content  = templatefile("${path.module}/files/mobileconfig.xml", { var = local.mobileconfig, index = count.index, pki = var.pki })
-  filename = "${var.algo_config}/ipsec/apple/${var.vpn_users[count.index]}.mobileconfig"
+  filename = "${var.algo_config}/ipsec/apple/${var.config.vpn_users[count.index]}.mobileconfig"
 }

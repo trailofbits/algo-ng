@@ -9,14 +9,14 @@ config = {
 
   # Deploy StrongSwan to enable IPsec support
   ipsec = {
-    enabled = true
+    enabled = false
     ipv4    = "10.100.0.0/16"
     ipv6    = "fd9d:bc11:4020::/64"
   }
 
   # Deploy WireGuard
   wireguard = {
-    enabled = false
+    enabled = true
     ipv4    = "10.200.0.0/16"
     ipv6    = "fd9d:bc11:4021::/64"
     port    = 51820

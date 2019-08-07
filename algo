@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-TERRAFORM_VERSION="0.11.2"
-SKIP_TAGS="_null encrypted"
 SENSITIVE_PROMPT="[pasted values will not be displayed]"
 TRUE="^(y|Y|true)$"
 REGIONS_PATH="./regions"
@@ -165,6 +163,7 @@ help () {
   Common commands:
       apply              Builds or changes infrastructure
       destroy            Destroy Terraform-managed infrastructure
+      update-users       Update AlgoVPN users
   "
   exit 0
 }
@@ -179,14 +178,16 @@ locate_terraform () {
   fi
 }
 
-case "$1" in
-  apply) export ALGO_COMMAND="apply" ;;
-  destroy) export ALGO_COMMAND="destroy" ;;
-  get-terraform) get_terraform ;;
-  *) help "$@" ;;
-esac
+deploy () {
+  locate_terraform
+  algo_provisioning
+  deploy
+}
 
-locate_terraform
-algo_provisioning
-additional_roles
-deploy
+case "$1" in
+  apply)          export ALGO_COMMAND="apply"   ; deploy        ;;
+  destroy)        export ALGO_COMMAND="destroy" ; deploy        ;;
+  update-users)   export ALGO_COMMAND="apply"   ; update-users  ;;
+  get-terraform)                                  get_terraform ;;
+  *)                                              help "$@" ;;
+esac

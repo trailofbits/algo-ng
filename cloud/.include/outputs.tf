@@ -48,14 +48,10 @@ output "AlgoVPN" {
       "SSH tunneling" = local.config.ssh_tunneling
 
       "DNS" = {
-        encryption = local.config.dns.encryption.enabled
-        adblocking = local.config.dns.adblocking.enabled
-        servers    = local.output.dns_resolvers
+        "Encryption"  = local.config.dns.encryption.enabled
+        "Ad blocking" = local.config.dns.adblocking.enabled
+        "Servers"     = local.output.dns_resolvers
       }
     }
-
-
-
-
   }
 }
