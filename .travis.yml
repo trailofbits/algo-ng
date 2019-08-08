@@ -2,10 +2,6 @@
 language: bash
 dist: xenial
 
-addons:
-  snaps:
-    - terraform
-
 env:
   global:
     - TF_VAR_algo_name=algo TF_VAR_region=nil
@@ -21,6 +17,7 @@ matrix:
 
 script:
   - set -ex
+  - wget https://releases.hashicorp.com/terraform/0.12.6/terraform_0.12.6_linux_amd64.zip -O terraform.zip -q && unzip terraform.zip
   - |
     for i in $(ls ./cloud); do
       export TF_VAR_algo_provider=$i
