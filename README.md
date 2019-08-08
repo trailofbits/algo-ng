@@ -35,19 +35,18 @@ The easiest way to get an Algo server running is to let it set up a _new_ virtua
 
 3. **Install Algo's core dependencies.** Open the Terminal.
 
-  - macOS:
-    ```bash
-    $ brew install terraform
-    ```
+    - macOS:
+      ```bash
+      $ brew install terraform
+      ```
 
-  - Ubuntu (16.04 or later):
-    ```bash
-    $ sudo apt-get update && sudo apt-get install snapd -y \
-    $ sudo snap install terraform
-    ```
+    - Ubuntu (16.04 or later):
+      ```bash
+      $ sudo apt-get update && sudo apt-get install snapd -y \
+      $ sudo snap install terraform
+      ```
 
-  - Others:  
-    **[Download Terraform binary](https://www.terraform.io/downloads.html)**
+    - Others:  **[Download Terraform binary](https://www.terraform.io/downloads.html)**
 
 4. **List the users to create.** Open `config.auto.tfvars` in your favorite text editor. Specify the users you wish to create in the `vpn_users` list.
 

@@ -39,20 +39,8 @@ askForRegion(){
   TF_VAR_region="$(getRegionCodeByIndex "$1" $region)"
 }
 
-deploy () {
-  export  TF_CLI_ARGS_apply+=" -auto-approve -parallelism=1" \
-          TF_VAR_algo_name="${ALGO_SERVER_NAME}" \
-          TF_VAR_algo_provider="${ALGO_PROVIDER}" \
-          TF_VAR_region="$TF_VAR_region"
-
-  ${TERRAFORM_BIN} workspace select ${ALGO_PROVIDER}-${TF_VAR_region}-${ALGO_SERVER_NAME} \
-    || ${TERRAFORM_BIN} workspace new ${ALGO_PROVIDER}-${TF_VAR_region}-${ALGO_SERVER_NAME}
-  ${TERRAFORM_BIN} init cloud/$ALGO_PROVIDER/
-  ${TERRAFORM_BIN} ${ALGO_COMMAND:-apply} cloud/$ALGO_PROVIDER/
-}
-
 azure () {
-  if [[ -z $ALGO_REGION ]]; then
+  if [[ -z $ALGO_REGION && "$ALGO_COMMAND" == "apply"  ]]; then
     askForRegion ${ALGO_PROVIDER}
   else
     TF_VAR_region="$ALGO_REGION"
@@ -73,7 +61,7 @@ digitalocean () {
     read -p ": " -rs DIGITALOCEAN_TOKEN
   fi
 
-  if [[ -z $ALGO_REGION ]]; then
+  if [[ -z $ALGO_REGION && "$ALGO_COMMAND" == "apply" ]]; then
     askForRegion ${ALGO_PROVIDER}
   else
     TF_VAR_region="$ALGO_REGION"
@@ -99,7 +87,7 @@ aws () {
     read -p ": " -rs AWS_SECRET_ACCESS_KEY
   fi
 
-  if [[ -z $ALGO_REGION ]]; then
+  if [[ -z $ALGO_REGION && "$ALGO_COMMAND" == "apply"  ]]; then
     ALGN=15 askForRegion ${ALGO_PROVIDER}
   else
     TF_VAR_region="$ALGO_REGION"
@@ -117,7 +105,7 @@ gce () {
     read -p "[]: " -r GOOGLE_CREDENTIALS
   fi
 
-  if [[ -z $ALGO_REGION ]]; then
+  if [[ -z $ALGO_REGION && "$ALGO_COMMAND" == "apply"  ]]; then
     ALGN=25 askForRegion ${ALGO_PROVIDER}
   else
     TF_VAR_region="$ALGO_REGION"
@@ -129,21 +117,22 @@ gce () {
 }
 
 algo_provisioning () {
-  if [[ -z $ALGO_PROVIDER ]]; then
-    echo -e "\nWhat provider would you like to use?" \
+  if [[ -z $ALGO_PROVIDER && "$ALGO_COMMAND" == "apply"  ]]; then
+    echo -e "\nWhat provider would you like to use?\n" \
             "\n 1. DigitalOcean" \
             "\n 2. Amazon EC2" \
             "\n 3. Microsoft Azure" \
             "\n 4. Google Compute Engine" \
-            "\nEnter the number of your desired provider"
+            "\n\nEnter the number of your desired provider"
     read -p ": " -r ALGO_PROVIDER
   fi
 
   local default=algo
-  if [[ -z $ALGO_SERVER_NAME ]]; then
+  if [[ -z $ALGO_SERVER_NAME && "$ALGO_COMMAND" == "apply" ]]; then
     echo -e '\nName the vpn server:'
     read -p "[${default}]: " -r ALGO_SERVER_NAME
   fi
+
   export ALGO_SERVER_NAME=${ALGO_SERVER_NAME:-${default}}
 
   case "$ALGO_PROVIDER" in
@@ -153,6 +142,20 @@ algo_provisioning () {
     4|gce) ALGO_PROVIDER=gce; gce; ;;
     *) exit 1 ;;
   esac
+
+  export  TF_CLI_ARGS_apply+=" -auto-approve -parallelism=1" \
+          TF_VAR_algo_name="${ALGO_SERVER_NAME}" \
+          TF_VAR_algo_provider="${ALGO_PROVIDER}" \
+          TF_VAR_region="$TF_VAR_region"
+
+
+  if [[ -z $ALGO_SERVER_NAME && "$ALGO_COMMAND" == "apply" ]]; then
+    ${TERRAFORM_BIN} workspace select ${ALGO_PROVIDER}-${TF_VAR_region}-${ALGO_SERVER_NAME} \
+      || ${TERRAFORM_BIN} workspace new ${ALGO_PROVIDER}-${TF_VAR_region}-${ALGO_SERVER_NAME}
+    ${TERRAFORM_BIN} init cloud/$ALGO_PROVIDER/
+  fi
+
+  ${TERRAFORM_BIN} ${ALGO_COMMAND:-apply} cloud/$ALGO_PROVIDER/
 }
 
 help () {
@@ -178,16 +181,47 @@ locate_terraform () {
   fi
 }
 
-deploy () {
+apply () {
   locate_terraform
+
+  export ALGO_COMMAND="apply"
   algo_provisioning
-  deploy
+}
+
+destroyResources () {
+  locate_terraform
+
+  CURRENT_WORKSPACE="$(${TERRAFORM_BIN} workspace list | grep "^*" | awk '{print $2}')"
+
+  if [[ -z $WORKSPACE ]]; then
+    echo -e "\nWhat workspace you want to destroy?\n" \
+      "\n$(${TERRAFORM_BIN} workspace list)\n" \
+      "\nEnter the full name of the workspace: "
+    read -p "[${CURRENT_WORKSPACE}]: " -r workspace
+
+    export WORKSPACE=${workspace:-$CURRENT_WORKSPACE}
+  fi
+
+  ${TERRAFORM_BIN} workspace select "${WORKSPACE}" || exit 1
+
+  export ALGO_COMMAND="destroy"
+  export ALGO_PROVIDER=$(echo $CURRENT_WORKSPACE | cut -f1 -d-)
+
+  algo_provisioning
+
+  ${TERRAFORM_BIN} workspace select default
+  ${TERRAFORM_BIN} workspace delete ${WORKSPACE}
+}
+
+destroy () {
+  locate_terraform
+  destroyResources
 }
 
 case "$1" in
-  apply)          export ALGO_COMMAND="apply"   ; deploy        ;;
-  destroy)        export ALGO_COMMAND="destroy" ; deploy        ;;
-  update-users)   export ALGO_COMMAND="apply"   ; update-users  ;;
-  get-terraform)                                  get_terraform ;;
-  *)                                              help "$@" ;;
+  apply)         apply         ;;
+  destroy)       destroy       ;;
+  update-users)  update-users  ;;
+  get-terraform) get_terraform ;;
+  *)             help "$@"     ;;
 esac
