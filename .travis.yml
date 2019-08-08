@@ -21,10 +21,10 @@ script:
   - |
     for i in $(ls ./cloud); do
       export TF_VAR_algo_provider=$i
-      terraform init cloud/${i}
-      terraform validate cloud/${i}
+      ./terraform init cloud/${i}
+      ./terraform  validate cloud/${i}
     done
-  - terraform fmt -write=false -list=true -diff=true -check=true -recursive
+  - ./terraform  fmt -write=false -list=true -diff=true -check=true -recursive
 
 notifications:
   email: false
