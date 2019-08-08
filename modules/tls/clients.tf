@@ -56,8 +56,8 @@ resource "local_file" "user_certs" {
 
 data "local_file" "user_certs" {
   depends_on = [local_file.user_certs]
-  count = length(var.vpn_users)
-  filename = "${var.algo_config}/ipsec/manual/${var.vpn_users[count.index]}.crt.pem"
+  count      = length(var.vpn_users)
+  filename   = "${var.algo_config}/ipsec/manual/${var.vpn_users[count.index]}.crt.pem"
 }
 
 resource "random_id" "client_p12_pass" {
@@ -65,25 +65,25 @@ resource "random_id" "client_p12_pass" {
 }
 
 data "external" "pkcs12" {
-  count = length(var.vpn_users)
+  count   = length(var.vpn_users)
   program = ["${path.cwd}/${path.module}/external/generate-p12.sh"]
 
   query = {
     user = var.vpn_users[count.index]
     cert = tls_locally_signed_cert.client.*.cert_pem[count.index]
-    key = tls_private_key.client.*.private_key_pem[count.index]
+    key  = tls_private_key.client.*.private_key_pem[count.index]
     pass = random_id.client_p12_pass.hex
   }
 }
 
 data "external" "crl" {
-  program = ["${path.cwd}/${path.module}/external/generate-crl.sh"]
+  program     = ["${path.cwd}/${path.module}/external/generate-crl.sh"]
   working_dir = "${var.algo_config}/ipsec/manual/"
 
   query = {
-    users = join("\n", var.vpn_users)
-    ca_cert = tls_self_signed_cert.ca.cert_pem
-    ca_key = tls_private_key.ca.private_key_pem
+    users       = join("\n", var.vpn_users)
+    ca_cert     = tls_self_signed_cert.ca.cert_pem
+    ca_key      = tls_private_key.ca.private_key_pem
     users_certs = md5(join(",", data.local_file.user_certs.*.content))
   }
 }
