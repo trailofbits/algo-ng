@@ -9,7 +9,7 @@ config = {
 
   # Deploy StrongSwan to enable IPsec support
   ipsec = {
-    enabled = false
+    enabled = true
     ipv4    = "10.100.0.0/16"
     ipv6    = "fd9d:bc11:4020::/64"
   }
@@ -113,6 +113,35 @@ config = {
     ipsec = {
       ike = "aes256gcm16-prfsha512-ecp384!"
       esp = "aes256gcm16-ecp384!"
+    }
+  }
+
+  clouds = {
+    azure = {
+      image  = "19.04"
+      size   = "Standard_B1S"
+      region = "eastus"
+    }
+
+    digitalocean = {
+      image  = "ubuntu-19-04-x64"
+      size   = "s-1vcpu-1gb"
+      region = "nyc1"
+    }
+
+    ec2 = {
+      # Change the encrypted flag to "true" to enable AWS volume encryption, for encryption of data at rest.
+      # Warning: the Algo script will take approximately 6 minutes longer to complete.
+      encrypted = false
+      image     = "ubuntu-disco-19.04"
+      size      = "t2.micro"
+      region    = "us-east-1"
+    }
+
+    gce = {
+      image  = "ubuntu-os-cloud/ubuntu-1904"
+      size   = "f1-micro"
+      region = "us-east1"
     }
   }
 }

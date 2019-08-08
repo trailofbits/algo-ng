@@ -2,6 +2,7 @@ variable "config" {}
 
 #
 # Prompts
+#
 
 variable "algo_name" {
   default     = "algo"
@@ -48,7 +49,9 @@ variable "ssh_tunneling" {
                   EOF
 }
 
+#
 # Variables
+#
 
 provider "random" {
   version = "~> 2.1"
@@ -92,8 +95,4 @@ locals {
   }
 
   config = merge(local.prompts, local.calculated, var.config)
-}
-
-variable "test" {
-  default = false
 }

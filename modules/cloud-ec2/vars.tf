@@ -2,6 +2,7 @@ variable "region" {}
 variable "algo_name" {}
 variable "ssh_public_key" {}
 variable "user_data" {}
+variable "config" {}
 
 variable "wireguard_network" {
   type = map(string)

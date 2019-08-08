@@ -1,5 +1,5 @@
 resource "digitalocean_floating_ip" "main" {
-  region = "${var.region}"
+  region = var.config.clouds.digitalocean.region
 }
 
 locals {
@@ -25,11 +25,13 @@ module "user-data" {
 
 module "cloud" {
   source         = "../../modules/cloud-digitalocean/"
-  region         = var.region
+  region         = var.config.clouds.digitalocean.region
   algo_name      = var.algo_name
   algo_ip        = digitalocean_floating_ip.main.id
   ssh_public_key = module.tls.ssh_public_key
   user_data      = module.user-data.template_cloudinit_config
+  image          = var.config.clouds.digitalocean.image
+  size           = var.config.clouds.digitalocean.size
 }
 
 module "configs" {
