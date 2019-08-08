@@ -1,19 +1,26 @@
 resource "random_id" "name" {
-  byte_length = 8
+  byte_length = 3
 
-  keepers {
-    ami_id = "${var.region}/${var.algo_name}"
+  keepers = {
+    region_name = "${var.region}/${var.algo_name}"
+    user_data   = "${var.user_data}"
   }
 }
 
 locals {
-  name = "algovpn-${random_id.name.hex}"
+  name = "${var.algo_name}-${random_id.name.hex}"
 }
 
 resource "google_compute_network" "main" {
   name                    = "${local.name}"
   description             = "${var.algo_name}"
-  auto_create_subnetworks = true
+  auto_create_subnetworks = false
+}
+
+resource "google_compute_subnetwork" "main" {
+  name          = "${local.name}"
+  ip_cidr_range = "10.2.0.0/16"
+  network       = "${google_compute_network.main.self_link}"
 }
 
 resource "google_compute_firewall" "ingress" {
@@ -21,37 +28,28 @@ resource "google_compute_firewall" "ingress" {
   description = "${var.algo_name}"
   network     = "${google_compute_network.main.name}"
 
-  allow {
-    protocol = "udp"
-
-    ports = [
-      "500",
-      "4500",
-      "${var.wireguard_network["port"]}",
+  dynamic "allow" {
+    for_each = [
+      ":icmp",
+      "22:tcp",
+      "500,4500,${var.wireguard_network["port"]}:udp"
     ]
-  }
 
-  allow {
-    protocol = "tcp"
-    ports    = ["22"]
+    content {
+      ports = [
+        for i in split(",", split(":", allow.value)[0]) :
+        i
+        if length(i) > 0
+      ]
+      protocol = split(":", allow.value)[1]
+    }
   }
-
-  allow {
-    protocol = "icmp"
-  }
-}
-
-resource "google_compute_address" "main" {
-  name         = "${local.name}"
-  description  = "${var.algo_name}"
-  region       = "${var.region}"
-  address_type = "EXTERNAL"
 }
 
 data "google_compute_zones" "available" {}
 
 resource "random_shuffle" "az" {
-  input        = ["${data.google_compute_zones.available.names}"]
+  input        = data.google_compute_zones.available.names
   result_count = 1
 }
 
@@ -71,19 +69,20 @@ resource "google_compute_instance" "algo" {
   }
 
   network_interface {
-    network = "${google_compute_network.main.name}"
+    network    = "${google_compute_network.main.name}"
+    subnetwork = "${google_compute_subnetwork.main.name}"
 
     access_config {
-      nat_ip = "${google_compute_address.main.address}"
+      nat_ip = "${var.server_address}"
     }
   }
 
-  metadata {
-    sshKeys   = "ubuntu:${var.public_key_openssh}"
+  metadata = {
+    sshKeys   = "ubuntu:${var.ssh_public_key}"
     user-data = "${var.user_data}"
   }
 
-  labels {
+  labels = {
     "environment" = "algo"
   }
 

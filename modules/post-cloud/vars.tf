@@ -1,1 +1,0 @@
-variable "server_address" {}

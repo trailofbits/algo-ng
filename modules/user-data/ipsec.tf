@@ -1,20 +1,15 @@
-data "template_file" "ipsec" {
-  template = "${file("${path.module}/files/ipsec.conf")}"
-
-  vars {
-    ike                  = "${lookup(var.components, "windows") == 1 ? var.ciphers_compat["ike"] : var.ciphers["ike"]}"
-    esp                  = "${lookup(var.components, "windows") == 1 ? var.ciphers_compat["esp"] : var.ciphers["esp"]}"
-    strongswan_log_level = "${var.strongswan_log_level}"
-    rightsourceip        = "${var.ipsec_network["ipv4"]}${var.ipv6 == 0 ? "" : ",${var.ipsec_network["ipv6"]}"}"
-    rightdns             = "${lookup(var.components, "dns_encryption") == 1 || lookup(var.components, "dns_adblocking") == 1 ? "${var.local_service_ip}" : "${join(",", var.ipv4_dns_servers)}${var.ipv6 == 0 ? "" : ",${join(",", var.ipv6_dns_servers)}"}"}"
+locals {
+  ipsec_conf = {
+    ike                  = var.config.ciphers.ipsec.ike
+    esp                  = var.config.ciphers.ipsec.esp
+    strongswan_log_level = var.config.strongswan_log_level
+    rightsourceip        = ["${cidrhost(var.config.ipsec.ipv4, 2)}-${cidrhost(var.config.ipsec.ipv4, -2)},${cidrhost(var.config.ipsec.ipv6, 2)}-${cidrhost(var.config.ipsec.ipv6, 9223372036854775807)}"]
+    rightdns             = var.config.dns.encryption.enabled || var.config.dns.adblocking.enabled ? values(var.config.ipsec_dns) : concat(var.config.dns.resolvers.ipv4, var.ipv6 ? var.config.dns.resolvers.ipv6 : [])
   }
-}
 
-data "template_file" "strongswan" {
-  template = "${file("${path.module}/cloud-init/010-strongswan.yml")}"
-
-  vars {
-    strongswan.conf = "${jsonencode(file("${path.module}/files/strongswan.conf"))}"
-    ipsec.conf      = "${jsonencode(data.template_file.ipsec.rendered)}"
+  strongswan = {
+    strongswan_conf = file("${path.module}/files/strongswan/strongswan.conf")
+    ipsec_conf      = templatefile("${path.module}/files/strongswan/ipsec.conf", { vars = local.ipsec_conf })
+    pki             = var.pki
   }
 }

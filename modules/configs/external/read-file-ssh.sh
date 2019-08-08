@@ -18,7 +18,7 @@ wait() {
 }
 
 read() {
-  FILE=$(connect "cat ${FILE}")
+  FILE=$(connect "cat ${FILE} || echo null")
 }
 
 if [[ "${WAIT}" == "wait" ]]; then

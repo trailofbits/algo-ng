@@ -1,27 +1,37 @@
-output "ca_cert" {
-  value = "${tls_self_signed_cert.ca.cert_pem}"
+locals {
+  pki = {
+    ipsec = {
+      server_cert = tls_locally_signed_cert.server.cert_pem
+      server_key  = tls_private_key.server.private_key_pem
+      ca_cert     = tls_self_signed_cert.ca.cert_pem
+      pkcs12      = data.external.pkcs12.*.result.pkcs12
+      crl         = data.external.crl.result.crl
+    }
+
+    wireguard = {
+      client_private_keys = random_string.wg_client_private_key.*.result
+      server_private_key  = random_string.wg_server_private_key.result
+    }
+
+    ssh = {
+      public_keys  = tls_private_key.client.*.public_key_openssh
+      private_keys = tls_private_key.client.*.private_key_pem
+    }
+  }
 }
 
-output "server_cert" {
-  value = "${tls_locally_signed_cert.server.cert_pem}"
-}
-
-output "server_key" {
-  value = "${tls_private_key.server.private_key_pem}"
-}
-
-output "clients_public_key_openssh" {
-  value = ["${tls_private_key.client.*.public_key_openssh}"]
-}
-
-output "clients_p12_base64" {
-  value = ["${local_file.client_p12_base64.*.content}"]
+output "pki" {
+  value = local.pki
 }
 
 output "client_p12_pass" {
-  value = "${random_id.client_p12_pass.hex}"
+  value = random_id.client_p12_pass.hex
 }
 
-output "crl" {
-  value = "${data.local_file.user_crl.content}"
+output "ssh_public_key" {
+  value = tls_private_key.algo_ssh.public_key_openssh
+}
+
+output "ssh_private_key" {
+  value = tls_private_key.algo_ssh.private_key_pem
 }

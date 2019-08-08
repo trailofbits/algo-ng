@@ -1,0 +1,41 @@
+#cloud-config
+
+packages:
+ - strongswan
+
+write_files:
+  - path: /etc/strongswan.conf
+    permissions: '0400'
+    content: ${jsonencode(vars.strongswan_conf)}
+
+  - path: /etc/ipsec.conf
+    permissions: '0400'
+    content: ${jsonencode(vars.ipsec_conf)}
+
+  - path: /etc/ipsec.secrets
+    permissions: '0400'
+    content: ': ECDSA server.pem'
+
+  - path: /etc/ipsec.d/cacerts/ca.pem
+    permissions: '0400'
+    content: ${jsonencode(vars.pki.ipsec.ca_cert)}
+
+  - path: /etc/ipsec.d/certs/server.pem
+    permissions: '0400'
+    content: ${jsonencode(vars.pki.ipsec.server_cert)}
+
+  - path: /etc/ipsec.d/private/server.pem
+    permissions: '0400'
+    content: ${jsonencode(vars.pki.ipsec.server_key)}
+
+  - path: /etc/ipsec.d/crls/crl.pem
+    permissions: '0400'
+    content: ${jsonencode(vars.pki.ipsec.crl)}
+
+  - path: /etc/apparmor.d/local/usr.lib.ipsec.charon
+    content: ' capability setpcap,'
+runcmd:
+  # just because of `write_files` runs before `users` we need to change the owner with this workaround
+  - bash -c 'chown strongswan:root /etc/ipsec.d/{cacerts/ca,certs/server,private/server}.pem /etc/{strongswan.conf,ipsec.conf,ipsec.secrets}'
+  - aa-enforce /etc/apparmor.d/usr.lib.ipsec.charon
+  - systemctl restart strongswan ; systemctl enable strongswan

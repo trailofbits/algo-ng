@@ -8,12 +8,43 @@
             <key>IKEv2</key>
             <dict>
               <key>OnDemandEnabled</key>
-                <integer>${OnDemandEnabled}</integer>
+                <integer>${var.ondemand.wifi || var.ondemand.cellular ? 1 : 0}</integer>
               <key>OnDemandRules</key>
               <array>
-              ${WiFi_Exclude}
-              ${WiFi_OnDemand}
-              ${Cellular_OnDemand}
+              <dict>
+                %{ if length(var.ondemand.wifi_exclude) > 0 && var.ondemand.wifi == true }
+                <key>Action</key>
+                <string>Disconnect</string>
+                <key>InterfaceTypeMatch</key>
+                <string>WiFi</string>
+                <key>SSIDMatch</key>
+                <array>
+                  %{ for i in var.ondemand.wifi_exclude ~}
+                  <string>${i}</string>
+                  %{ endfor }
+                </array>
+                %{ endif }
+              </dict>
+              %{ if var.ondemand.wifi == true }
+              <dict>
+                <key>Action</key>
+                  <string>Connect</string>
+                <key>InterfaceTypeMatch</key>
+                  <string>WiFi</string>
+                <key>URLStringProbe</key>
+                  <string>http://captive.apple.com/hotspot-detect.html</string>
+              </dict>
+              %{ endif }
+              %{ if var.ondemand.cellular == true }
+              <dict>
+                <key>Action</key>
+                  <string>Connect</string>
+                <key>InterfaceTypeMatch</key>
+                  <string>Cellular</string>
+                <key>URLStringProbe</key>
+                  <string>http://captive.apple.com/hotspot-detect.html</string>
+              </dict>
+              %{ endif }
               </array>
               <key>AuthenticationMethod</key>
               <string>Certificate</string>
@@ -50,15 +81,15 @@
                   <integer>20</integer>
               </dict>
               <key>LocalIdentifier</key>
-              <string>${LocalIdentifier}</string>
+              <string>${var.vpn_users[index]}</string>
               <key>PayloadCertificateUUID</key>
-              <string>${PayloadIdentifier_pkcs12}</string>
+              <string>${var.PayloadIdentifier_pkcs12}</string>
               <key>CertificateType</key>
               <string>ECDSA384</string>
               <key>ServerCertificateIssuerCommonName</key>
-              <string>${server_address}</string>
+              <string>${var.server_address}</string>
               <key>RemoteAddress</key>
-              <string>${server_address}</string>
+              <string>${var.server_address}</string>
               <key>RemoteIdentifier</key>
               <string>algo.vpn</string>
               <key>UseConfigurationAttributeInternalIPSubnet</key>
@@ -74,11 +105,11 @@
             <key>PayloadDisplayName</key>
             <string>VPN</string>
             <key>PayloadIdentifier</key>
-            <string>com.apple.vpn.managed.${PayloadIdentifier_vpn}</string>
+            <string>com.apple.vpn.managed.${var.PayloadIdentifier_vpn}</string>
             <key>PayloadType</key>
             <string>com.apple.vpn.managed</string>
             <key>PayloadUUID</key>
-            <string>${PayloadIdentifier_vpn}</string>
+            <string>${var.PayloadIdentifier_vpn}</string>
             <key>PayloadVersion</key>
             <real>1</real>
             <key>Proxies</key>
@@ -89,29 +120,29 @@
                 <integer>0</integer>
             </dict>
             <key>UserDefinedName</key>
-            <string>Algo VPN ${server_address} IKEv2</string>
+            <string>Algo VPN ${var.server_address} IKEv2</string>
             <key>VPNType</key>
             <string>IKEv2</string>
         </dict>
         <dict>
             <key>Password</key>
-            <string>${Password_pkcs12}</string>
+            <string>${var.Password_pkcs12}</string>
             <key>PayloadCertificateFileName</key>
-            <string>${LocalIdentifier}.p12</string>
+            <string>${var.vpn_users[index]}.p12</string>
             <key>PayloadContent</key>
             <data>
-            ${PayloadContent}
+            ${pki.ipsec.pkcs12[index]}
             </data>
             <key>PayloadDescription</key>
             <string>Adds a PKCS#12-formatted certificate</string>
             <key>PayloadDisplayName</key>
-            <string>${LocalIdentifier}.p12</string>
+            <string>${var.vpn_users[index]}.p12</string>
             <key>PayloadIdentifier</key>
-            <string>com.apple.security.pkcs12.${PayloadIdentifier_pkcs12}</string>
+            <string>com.apple.security.pkcs12.${var.PayloadIdentifier_pkcs12}</string>
             <key>PayloadType</key>
             <string>com.apple.security.pkcs12</string>
             <key>PayloadUUID</key>
-            <string>${PayloadIdentifier_pkcs12}</string>
+            <string>${var.PayloadIdentifier_pkcs12}</string>
             <key>PayloadVersion</key>
             <integer>1</integer>
         </dict>
@@ -120,32 +151,32 @@
             <string>ca.crt</string>
             <key>PayloadContent</key>
             <data>
-            ${PayloadContentCA}
+            ${var.PayloadContentCA}
             </data>
             <key>PayloadDescription</key>
             <string>Adds a CA root certificate</string>
             <key>PayloadDisplayName</key>
-            <string>${server_address}</string>
+            <string>${var.server_address}</string>
             <key>PayloadIdentifier</key>
-            <string>com.apple.security.root.${PayloadIdentifier_ca}</string>
+            <string>com.apple.security.root.${var.PayloadIdentifier_ca}</string>
             <key>PayloadType</key>
             <string>com.apple.security.root</string>
             <key>PayloadUUID</key>
-            <string>${PayloadIdentifier_ca}</string>
+            <string>${var.PayloadIdentifier_ca}</string>
             <key>PayloadVersion</key>
             <integer>1</integer>
         </dict>
     </array>
     <key>PayloadDisplayName</key>
-    <string>${server_address} IKEv2</string>
+    <string>${var.server_address} IKEv2</string>
     <key>PayloadIdentifier</key>
-    <string>donut.local.${PayloadIdentifier_conf}</string>
+    <string>donut.local.${var.PayloadIdentifier_conf}</string>
     <key>PayloadRemovalDisallowed</key>
     <false/>
     <key>PayloadType</key>
     <string>Configuration</string>
     <key>PayloadUUID</key>
-    <string>${PayloadIdentifier_conf}</string>
+    <string>${var.PayloadIdentifier_conf}</string>
     <key>PayloadVersion</key>
     <integer>1</integer>
 </dict>

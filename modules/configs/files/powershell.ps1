@@ -78,11 +78,11 @@ Save the embedded CA cert and encrypted user PKCS12 file.
 
 $$ErrorActionPreference = "Stop"
 
-$$VpnServerAddress = "${server_address}"
-$$VpnName = "Algo VPN ${server_address} IKEv2"
-$$VpnUser = "${username}"
-$$CaCertificateBase64 = "${CaCertificateBase64}"
-$$UserPkcs12Base64 = "${UserPkcs12Base64}"
+$$VpnServerAddress = "${var.server_address}"
+$$VpnName = "Algo VPN ${var.server_address} IKEv2"
+$$VpnUser = "${var.vpn_users[index]}"
+$$CaCertificateBase64 = "${var.CaCertificateBase64}"
+$$UserPkcs12Base64 = '${pki.ipsec.pkcs12[index]}'
 
 if ($$PsCmdlet.ParameterSetName -eq "Add" -and -not $$Pkcs12DecryptionPassword) {
     $$Pkcs12DecryptionPassword = Read-Host -AsSecureString -Prompt "Pkcs12DecryptionPassword"

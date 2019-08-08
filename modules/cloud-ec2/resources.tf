@@ -19,7 +19,7 @@ resource "aws_ami_copy" "encrypted" {
   encrypted         = true
   kms_key_id        = "${var.kms_key_id}"
 
-  tags {
+  tags = {
     Environment = "Algo"
     "tag:Algo"  = "encrypted"
   }
@@ -30,7 +30,7 @@ resource "aws_vpc" "main" {
   instance_tenancy                 = "default"
   assign_generated_ipv6_cidr_block = true
 
-  tags {
+  tags = {
     Environment = "Algo"
   }
 }
@@ -38,7 +38,7 @@ resource "aws_vpc" "main" {
 resource "aws_internet_gateway" "main" {
   vpc_id = "${aws_vpc.main.id}"
 
-  tags {
+  tags = {
     Environment = "Algo"
   }
 }
@@ -48,7 +48,7 @@ resource "aws_subnet" "main" {
   cidr_block      = "172.16.254.0/23"
   ipv6_cidr_block = "${cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, 1)}"
 
-  tags {
+  tags = {
     Environment = "Algo"
   }
 }
@@ -66,7 +66,7 @@ resource "aws_route_table" "default" {
     gateway_id      = "${aws_internet_gateway.main.id}"
   }
 
-  tags {
+  tags = {
     Environment = "Algo"
   }
 }
@@ -79,45 +79,26 @@ resource "aws_route_table_association" "default" {
 resource "aws_security_group" "main" {
   description = "Enable SSH and IPsec"
   vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port        = -1
-    to_port          = -1
-    protocol         = "icmp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+  tags = {
+    Environment = "Algo"
   }
 
-  ingress {
-    from_port        = 22
-    to_port          = 22
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
+  dynamic "ingress" {
+    for_each = [
+      "-1:icmp",
+      "22:tcp",
+      "500:udp",
+      "4500:udp",
+      "${var.wireguard_network["port"]}:udp"
+    ]
 
-  ingress {
-    from_port        = 500
-    to_port          = 500
-    protocol         = "udp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    from_port        = 4500
-    to_port          = 4500
-    protocol         = "udp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    from_port        = "${var.wireguard_network["port"]}"
-    to_port          = "${var.wireguard_network["port"]}"
-    protocol         = "udp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+    content {
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+      from_port        = split(":", ingress.value)[0]
+      to_port          = split(":", ingress.value)[0]
+      protocol         = split(":", ingress.value)[1]
+    }
   }
 
   egress {
@@ -127,15 +108,11 @@ resource "aws_security_group" "main" {
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
-
-  tags {
-    Environment = "Algo"
-  }
 }
 
 resource "aws_key_pair" "main" {
   key_name_prefix = "algo-"
-  public_key      = "${var.public_key_openssh}"
+  public_key      = "${var.ssh_public_key}"
 }
 
 resource "aws_instance" "main" {
@@ -148,11 +125,11 @@ resource "aws_instance" "main" {
   user_data                            = "${var.user_data}"
   ipv6_address_count                   = 1
 
-  tags {
+  tags = {
     Environment = "Algo"
   }
 
-  volume_tags {
+  volume_tags = {
     Environment = "Algo"
   }
 
@@ -161,7 +138,7 @@ resource "aws_instance" "main" {
   }
 }
 
-resource "aws_eip" "main" {
-  instance = "${aws_instance.main.id}"
-  vpc      = true
+resource "aws_eip_association" "main" {
+  instance_id   = "${aws_instance.main.id}"
+  allocation_id = var.algo_ip
 }

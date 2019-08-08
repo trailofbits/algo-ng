@@ -1,6 +1,0 @@
-- name: ${user}
-  shell: /bin/false
-  groups: algo
-  lock_passwd: true
-  ssh_authorized_keys:
-    - ${public_key_openssh}

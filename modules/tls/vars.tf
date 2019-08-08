@@ -1,11 +1,11 @@
 variable "server_address" {}
+variable "algo_config" {}
+variable "vpn_users" {}
 
-variable "vpn_users" {
-  type = "list"
+variable "ssh_key_algorithm" {
+  default = "RSA"
 }
 
-variable "algo_config" {}
-
-variable "components" {
-  type = "map"
+variable "ssh_key_rsa_bits" {
+  default = "2048"
 }

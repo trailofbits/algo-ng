@@ -13,8 +13,8 @@ Algo VPN is a set of Terraform files that simplify the setup of a personal VPN. 
 * Includes a helper script to add and remove users
 * Blocks ads with a local DNS resolver (optional)
 * Sets up limited SSH users for tunneling traffic (optional)
-* Based on current versions of Ubuntu and strongSwan
-* Installs to DigitalOcean, Amazon Lightsail, Amazon EC2, Vultr, Microsoft Azure, Google Compute Engine, Scaleway, OpenStack, or your own Ubuntu 18.04 LTS server
+* Based on current versions of Ubuntu and StrongSwan
+* Installs to DigitalOcean, Amazon Lightsail, Amazon EC2, Microsoft Azure, Google Compute Engine, Hetzner, Scaleway
 
 ## Anti-features
 
@@ -35,20 +35,20 @@ The easiest way to get an Algo server running is to let it set up a _new_ virtua
 
 3. **Install Algo's core dependencies.** Open the Terminal.
 
-  - macOS:
-    ```bash
-    $ brew install terraform
-    ```
-  - Ubuntu (16.04 or later):
-    ```bash
-    $ sudo apt-get update && sudo apt-get install snapd -y \
-    $ sudo snap install terraform
-    ```
+    - macOS:
+      ```bash
+      $ brew install terraform
+      ```
 
-  - Others:  
-    **[Download Terraform binary](https://www.terraform.io/downloads.html)**
+    - Ubuntu (16.04 or later):
+      ```bash
+      $ sudo apt-get update && sudo apt-get install snapd -y \
+      $ sudo snap install terraform
+      ```
 
-4. **List the users to create.** Open `01-config.auto.tfvars` in your favorite text editor. Specify the users you wish to create in the `vpn_users` list.
+    - Others:  **[Download Terraform binary](https://www.terraform.io/downloads.html)**
+
+4. **List the users to create.** Open `config.auto.tfvars` in your favorite text editor. Specify the users you wish to create in the `vpn_users` list.
 
 5. **Start the deployment.** Return to your terminal. In the Algo directory, run `./algo apply` and follow the instructions. There are several optional features available. None are required for a fully functional VPN server.
 
@@ -70,16 +70,13 @@ Certificates and configuration files that users will need are placed in the `con
 
 ### Android Devices
 
-No version of Android supports IKEv2. Install the [strongSwan VPN Client for Android 4 and newer](https://play.google.com/store/apps/details?id=org.strongswan.android). Import the corresponding user.p12 certificate to your device. See the [Android setup instructions](/docs/client-android.md) for more a more detailed walkthrough.
+WireGuard is used to provide VPN services on Android. Install the [WireGuard VPN Client](https://play.google.com/store/apps/details?id=com.wireguard.android). Import the corresponding `wireguard/<name>.conf` file to your device, then setup a new connection with it. See the [Android setup instructions](/docs/client-android.md) for more detailed walkthrough.
 
-### Windows 10
+### Windows
 
-Copy your PowerShell script `windows_{username}.ps1` and p12 certificate `{username}.p12` to the Windows client and run the following command as Administrator to configure the VPN connection.
-```
-powershell -ExecutionPolicy ByPass -File windows_{username}.ps1 Add
-```
+WireGuard is used to provide VPN services on Windows. Algo generates a WireGuard configuration file, `wireguard/<username>.conf`, for each user defined in `config.cfg`.
 
-For a manual installation, see the [Windows setup instructions](/docs/client-windows.md).
+Install the [WireGuard VPN Client](https://www.wireguard.com/install/#windows-7-8-81-10-2012-2016-2019). Import the generated `wireguard/<username>.conf` file to your device, then setup a new connection with it.
 
 ### Linux Network Manager Clients (e.g., Ubuntu, Debian, or Fedora Desktop)
 
@@ -89,12 +86,12 @@ Network Manager does not support AES-GCM. In order to support Linux Desktop clie
 
 Install strongSwan, then copy the included ipsec_user.conf, ipsec_user.secrets, user.crt (user certificate), and user.key (private key) files to your client device. These will require customization based on your exact use case. These files were originally generated with a point-to-point OpenWRT-based VPN in mind.
 
-#### Ubuntu Server 16.04 example
+#### Ubuntu Server example
 
-1. `sudo apt-get install strongswan strongswan-plugin-openssl`: install strongSwan
-2. `/etc/ipsec.d/certs`: copy `<name>.crt` from `algo-master/configs/<server_ip>/pki/certs/<name>.crt`
-3. `/etc/ipsec.d/private`: copy `<name>.key` from `algo-master/configs/<server_ip>/pki/private/<name>.key`
-4. `/etc/ipsec.d/cacerts`: copy `cacert.pem` from `algo-master/configs/<server_ip>/pki/cacert.pem`
+1. `sudo apt-get install strongswan libstrongswan-standard-plugins`: install strongSwan
+2. `/etc/ipsec.d/certs`: copy `<name>.crt` from `algo-master/configs/<server_ip>/ipsec/manual/<name>.crt`
+3. `/etc/ipsec.d/private`: copy `<name>.key` from `algo-master/configs/<server_ip>/ipsec/manual/<name>.key`
+4. `/etc/ipsec.d/cacerts`: copy `cacert.pem` from `algo-master/configs/<server_ip>/ipsec/manual/cacert.pem`
 5. `/etc/ipsec.secrets`: add your `user.key` to the list, e.g. `<server_ip> : ECDSA <name>.key`
 6. `/etc/ipsec.conf`: add the connection from `ipsec_user.conf` and ensure `leftcert` matches the `<name>.crt` filename
 7. `sudo ipsec restart`: pick up config changes
@@ -105,22 +102,24 @@ One common use case is to let your server access your local LAN without going th
 
     conn lan-passthrough
     leftsubnet=192.168.1.1/24 # Replace with your LAN subnet
-    rightsubnet=192.168.1.1/24 # Replac with your LAND subnet
+    rightsubnet=192.168.1.1/24 # Replace with your LAN subnet
     authby=never # No authentication necessary
     type=pass # passthrough
     auto=route # no need to ipsec up lan-passthrough
+
+To configure the connection to come up at boot time replace `auto=add` with `auto=start`.
 
 ### Other Devices
 
 Depending on the platform, you may need one or multiple of the following files.
 
-* cacert.pem: CA Certificate
-* user.mobileconfig: Apple Profile
-* user.p12: User Certificate and Private Key (in PKCS#12 format)
-* user.sswan: Android strongSwan Profile
-* ipsec_user.conf: strongSwan client configuration
-* ipsec_user.secrets: strongSwan client configuration
-* windows_user.ps1: Powershell script to help setup a VPN connection on Windows
+* ipsec/manual/cacert.pem: CA Certificate
+* ipsec/manual/<user>.p12: User Certificate and Private Key (in PKCS#12 format)
+* ipsec/manual/<user>.conf: strongSwan client configuration
+* ipsec/manual/<user>.secrets: strongSwan client configuration
+* ipsec/apple/<user>.mobileconfig: Apple Profile
+* wireguard/<user>.conf: WireGuard configuration profile
+* wireguard/<user>.png: WireGuard configuration QR code
 
 ## Setup an SSH Tunnel
 
@@ -128,47 +127,29 @@ If you turned on the optional SSH tunneling role, then local user accounts will 
 
 Use the example command below to start an SSH tunnel by replacing `user` and `ip` with your own. Once the tunnel is setup, you can configure a browser or other application to use 127.0.0.1:1080 as a SOCKS proxy to route traffic through the Algo server.
 
- `ssh -D 127.0.0.1:1080 -f -q -C -N user@ip -i configs/ip_user.ssh.pem`
+ `ssh -D 127.0.0.1:1080 -f -q -C -N user@ip -i configs/<server_ip>/ssh-tunnel/<user>.pem`
 
 ## SSH into Algo Server
 
-To SSH into the Algo server for administrative purposes you can use the example command below by replacing `ip` with your own:
+Your Algo server is configured for key-only SSH access for administrative purposes. Open the Terminal app, `cd` into the `algo-master` directory where you originally downloaded Algo, and then use the command listed on the success message:
 
- `ssh root@ip -i ~/.ssh/algo.pem`
+ `ssh -i configs/algo.pem user@ip`
 
-If you find yourself regularly logging into Algo then it will be useful to load your Algo ssh key automatically. Add the following snippet to the bottom of `~/.bash_profile` to add it to your shell environment permanently.
+where `user` is either `root` or `ubuntu` as listed on the success message, and `ip` is the IP address of your Algo server. If you find yourself regularly logging into the server then it will be useful to load your Algo ssh key automatically. Add the following snippet to the bottom of `~/.bash_profile` to add it to your shell environment permanently.
 
  `ssh-add ~/.ssh/algo > /dev/null 2>&1`
-
-Note the admin username is `ubuntu` instead of `root` on providers other than Digital Ocean.
 
 ## Adding or Removing Users
 
 If you chose the save the CA certificate during the deploy process, then Algo's own scripts can easily add and remove users from the VPN server.
 
-1. Update the `users` list in your `config.cfg`
-2. Open a terminal, `cd` to the algo directory, and activate the virtual environment with `source env/bin/activate`
-3. Run the command: `./algo update-users`
+1. Update the `vpn_users` list in your `config.auto.tfvars`
+2. Open a terminal, `cd` to the algo directory, and run the command: `./algo update-users`
 
-After this process completes, the Algo VPN server will contains only the users listed in the `config.cfg` file.
+After this process completes, the Algo VPN server will contains only the users listed in the `config.auto.tfvars` file.
 
 ## Additional Documentation
-
-* Setup instructions
-  - Documentation for available [Ansible roles](docs/setup-roles.md)
-  - Deploy from [Fedora Workstation (26)](docs/deploy-from-fedora-workstation.md)
-  - Deploy from [RedHat/CentOS 6.x](docs/deploy-from-redhat-centos6.md)
-  - Deploy from [Windows](docs/deploy-from-windows.md)
-  - Deploy from [Ansible](docs/deploy-from-ansible.md) directly
-* Client setup
-  - Setup [Android](docs/client-android.md) clients
-  - Setup [Generic/Linux](docs/client-linux.md) clients with Ansible
-* Cloud setup
-  - Configure [Azure](docs/cloud-azure.md)
-* Advanced Deployment
-  - Deploy to your own [FreeBSD](docs/deploy-to-freebsd.md) server
-  - Deploy to your own [Ubuntu 16.04](docs/deploy-to-ubuntu.md) server
-  - Deploy to an [unsupported cloud provider](docs/deploy-to-unsupported-cloud.md)
+* [Deployment instructions, cloud provider setup instructions, and further client setup instructions available here.](docs/index.md)
 * [FAQ](docs/faq.md)
 * [Troubleshooting](docs/troubleshooting.md)
 
@@ -209,3 +190,5 @@ All donations support continued development. Thanks!
 * We accept donations via [PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CYZZD39GXUJ3E), [Patreon](https://www.patreon.com/algovpn), and [Flattr](https://flattr.com/submit/auto?fid=kxw60j&url=https%3A%2F%2Fgithub.com%2Ftrailofbits%2Falgo).
 * Use our [referral code](https://m.do.co/c/4d7f4ff9cfe4) when you sign up to Digital Ocean for a $10 credit.
 * We also accept and appreciate contributions of new code and bugfixes via Github Pull Requests.
+
+Algo is licensed and distributed under the AGPLv3. If you want to distribute a closed-source modification or service based on Algo, then please consider <a href="mailto:opensource@trailofbits.com">purchasing an exception</a> . As with the methods above, this will help support continued development.
