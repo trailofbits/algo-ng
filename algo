@@ -149,7 +149,7 @@ algo_provisioning () {
           TF_VAR_region="$TF_VAR_region"
 
 
-  if [[ -z $ALGO_SERVER_NAME && "$ALGO_COMMAND" == "apply" ]]; then
+  if [[ "$ALGO_COMMAND" == "apply" ]]; then
     ${TERRAFORM_BIN} workspace select ${ALGO_PROVIDER}-${TF_VAR_region}-${ALGO_SERVER_NAME} \
       || ${TERRAFORM_BIN} workspace new ${ALGO_PROVIDER}-${TF_VAR_region}-${ALGO_SERVER_NAME}
     ${TERRAFORM_BIN} init cloud/$ALGO_PROVIDER/
