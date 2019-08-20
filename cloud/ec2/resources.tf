@@ -33,6 +33,7 @@ module "cloud" {
   image          = var.config.clouds.ec2.image
   size           = var.config.clouds.ec2.size
   encrypted      = var.config.clouds.ec2.encrypted
+  kms_key_id     = var.config.clouds.ec2.kms_key_id
   config         = var.config
 }
 

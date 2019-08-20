@@ -131,11 +131,11 @@ config = {
 
     ec2 = {
       # Change the encrypted flag to "true" to enable AWS volume encryption, for encryption of data at rest.
-      # Warning: the Algo script will take approximately 6 minutes longer to complete.
-      encrypted = false
-      image     = "ubuntu-disco-19.04"
-      size      = "t2.micro"
-      region    = "us-east-1"
+      encrypted  = true
+      kms_key_id = ""
+      image      = "ubuntu-disco-19.04"
+      size       = "t2.micro"
+      region     = "us-east-1"
     }
 
     gce = {

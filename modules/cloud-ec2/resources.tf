@@ -10,21 +10,6 @@ data "aws_ami_ids" "main" {
   }
 }
 
-resource "aws_ami_copy" "encrypted" {
-  count             = "${var.encrypted == 1 ? 1 : 0}"
-  name              = "AlgoVPN encrypted AMI"
-  description       = "An encrypted copy of ${data.aws_ami_ids.main.ids[0]}"
-  source_ami_id     = "${data.aws_ami_ids.main.ids[0]}"
-  source_ami_region = "${var.region}"
-  encrypted         = true
-  kms_key_id        = "${var.kms_key_id}"
-
-  tags = {
-    Environment = "Algo"
-    "tag:Algo"  = "encrypted"
-  }
-}
-
 resource "aws_vpc" "main" {
   cidr_block                       = "172.16.0.0/16"
   instance_tenancy                 = "default"
@@ -116,7 +101,7 @@ resource "aws_key_pair" "main" {
 }
 
 resource "aws_instance" "main" {
-  ami                                  = "${var.encrypted == 1 ? join(" ", aws_ami_copy.encrypted.*.id) : data.aws_ami_ids.main.ids[0]}"
+  ami                                  = data.aws_ami_ids.main.ids[0]
   instance_type                        = "${var.size}"
   instance_initiated_shutdown_behavior = "terminate"
   key_name                             = "${aws_key_pair.main.key_name}"
@@ -124,6 +109,13 @@ resource "aws_instance" "main" {
   subnet_id                            = "${aws_subnet.main.id}"
   user_data                            = "${var.user_data}"
   ipv6_address_count                   = 1
+
+  root_block_device {
+    volume_size           = 8
+    delete_on_termination = true
+    encrypted             = var.encrypted
+    kms_key_id            = var.kms_key_id
+  }
 
   tags = {
     Environment = "Algo"

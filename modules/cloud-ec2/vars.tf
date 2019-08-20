@@ -27,7 +27,7 @@ variable "ipv6" {
 }
 
 variable "encrypted" {
-  default = false
+  default = true
 }
 
 variable "kms_key_id" {
