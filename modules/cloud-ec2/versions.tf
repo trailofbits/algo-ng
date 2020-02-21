@@ -6,6 +6,7 @@ terraform {
   }
 }
 
-provider "aws" {
-  region = var.config.clouds.ec2.region
-}
+# Does not work as a module if the provider is specified here.
+# provider "aws" {
+#   region = var.config.clouds.ec2.region
+# }

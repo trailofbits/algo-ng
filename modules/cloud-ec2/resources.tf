@@ -33,6 +33,11 @@ resource "aws_subnet" "main" {
   cidr_block      = "172.16.254.0/23"
   ipv6_cidr_block = "${cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, 1)}"
 
+  # If not specified, AWS defaults to us-west-2d, which does not have the
+  # t2.micro instance size
+  # TODO: Parametrize
+  availability_zone = "us-west-2a"
+
   tags = {
     Environment = "Algo"
   }
