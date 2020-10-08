@@ -3,7 +3,7 @@ resource "random_id" "name" {
 
   keepers = {
     region_name = "${var.region}/${var.algo_name}"
-    user_data   = "${var.user_data}"
+    user_data   = var.user_data
   }
 }
 
@@ -12,21 +12,21 @@ locals {
 }
 
 resource "google_compute_network" "main" {
-  name                    = "${local.name}"
-  description             = "${var.algo_name}"
+  name                    = local.name
+  description             = var.algo_name
   auto_create_subnetworks = false
 }
 
 resource "google_compute_subnetwork" "main" {
-  name          = "${local.name}"
+  name          = local.name
   ip_cidr_range = "10.2.0.0/16"
-  network       = "${google_compute_network.main.self_link}"
+  network       = google_compute_network.main.self_link
 }
 
 resource "google_compute_firewall" "ingress" {
-  name        = "${local.name}"
-  description = "${var.algo_name}"
-  network     = "${google_compute_network.main.name}"
+  name        = local.name
+  description = var.algo_name
+  network     = google_compute_network.main.name
 
   dynamic "allow" {
     for_each = [
@@ -54,32 +54,32 @@ resource "random_shuffle" "az" {
 }
 
 resource "google_compute_instance" "algo" {
-  name           = "${var.algo_name}"
-  description    = "${var.algo_name}"
-  machine_type   = "${var.size}"
-  zone           = "${random_shuffle.az.result[0]}"
+  name           = var.algo_name
+  description    = var.algo_name
+  machine_type   = var.size
+  zone           = random_shuffle.az.result[0]
   can_ip_forward = true
 
   boot_disk {
     auto_delete = true
 
     initialize_params {
-      image = "${var.image}"
+      image = var.image
     }
   }
 
   network_interface {
-    network    = "${google_compute_network.main.name}"
-    subnetwork = "${google_compute_subnetwork.main.name}"
+    network    = google_compute_network.main.name
+    subnetwork = google_compute_subnetwork.main.name
 
     access_config {
-      nat_ip = "${var.server_address}"
+      nat_ip = var.server_address
     }
   }
 
   metadata = {
     sshKeys   = "ubuntu:${var.ssh_public_key}"
-    user-data = "${var.user_data}"
+    user-data = var.user_data
   }
 
   labels = {

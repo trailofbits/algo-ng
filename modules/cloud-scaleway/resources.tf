@@ -1,6 +1,6 @@
 data "scaleway_image" "main" {
   architecture = "x86_64"
-  name         = "${var.image}"
+  name         = var.image
 }
 
 locals {
@@ -8,14 +8,14 @@ locals {
 }
 
 resource "scaleway_server" "main" {
-  name        = "${var.algo_name}"
-  image       = "${data.scaleway_image.main.id}"
-  type        = "${var.size}"
+  name        = var.algo_name
+  image       = data.scaleway_image.main.id
+  type        = var.size
   boot_type   = "local"
   enable_ipv6 = true
-  public_ip   = "${var.server_address}"
+  public_ip   = var.server_address
   state       = "running"
-  cloudinit   = "${var.user_data}"
+  cloudinit   = var.user_data
   tags = [
     "Environment:Algo",
     "AUTHORIZED_KEY=${local.authorized_key}"

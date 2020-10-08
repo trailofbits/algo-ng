@@ -1,5 +1,5 @@
 output "server_id" {
-  value = "${scaleway_server.main.id}"
+  value = scaleway_server.main.id
 }
 
 output "ssh_user" {
