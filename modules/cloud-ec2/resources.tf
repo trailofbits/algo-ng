@@ -21,7 +21,7 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_internet_gateway" "main" {
-  vpc_id = "${aws_vpc.main.id}"
+  vpc_id = aws_vpc.main.id
 
   tags = {
     Environment = "Algo"
@@ -29,9 +29,9 @@ resource "aws_internet_gateway" "main" {
 }
 
 resource "aws_subnet" "main" {
-  vpc_id          = "${aws_vpc.main.id}"
+  vpc_id          = aws_vpc.main.id
   cidr_block      = "172.16.254.0/23"
-  ipv6_cidr_block = "${cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, 1)}"
+  ipv6_cidr_block = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 8, 1)
 
   tags = {
     Environment = "Algo"
@@ -39,16 +39,16 @@ resource "aws_subnet" "main" {
 }
 
 resource "aws_route_table" "default" {
-  vpc_id = "${aws_vpc.main.id}"
+  vpc_id = aws_vpc.main.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.main.id}"
+    gateway_id = aws_internet_gateway.main.id
   }
 
   route {
     ipv6_cidr_block = "::/0"
-    gateway_id      = "${aws_internet_gateway.main.id}"
+    gateway_id      = aws_internet_gateway.main.id
   }
 
   tags = {
@@ -57,13 +57,13 @@ resource "aws_route_table" "default" {
 }
 
 resource "aws_route_table_association" "default" {
-  subnet_id      = "${aws_subnet.main.id}"
-  route_table_id = "${aws_route_table.default.id}"
+  subnet_id      = aws_subnet.main.id
+  route_table_id = aws_route_table.default.id
 }
 
 resource "aws_security_group" "main" {
   description = "Enable SSH and IPsec"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = aws_vpc.main.id
   tags = {
     Environment = "Algo"
   }
@@ -97,17 +97,17 @@ resource "aws_security_group" "main" {
 
 resource "aws_key_pair" "main" {
   key_name_prefix = "algo-"
-  public_key      = "${var.ssh_public_key}"
+  public_key      = var.ssh_public_key
 }
 
 resource "aws_instance" "main" {
   ami                                  = data.aws_ami_ids.main.ids[0]
-  instance_type                        = "${var.size}"
+  instance_type                        = var.size
   instance_initiated_shutdown_behavior = "terminate"
-  key_name                             = "${aws_key_pair.main.key_name}"
-  vpc_security_group_ids               = ["${aws_security_group.main.id}"]
-  subnet_id                            = "${aws_subnet.main.id}"
-  user_data                            = "${var.user_data}"
+  key_name                             = aws_key_pair.main.key_name
+  vpc_security_group_ids               = [aws_security_group.main.id]
+  subnet_id                            = aws_subnet.main.id
+  user_data                            = var.user_data
   ipv6_address_count                   = 1
 
   root_block_device {
@@ -131,6 +131,6 @@ resource "aws_instance" "main" {
 }
 
 resource "aws_eip_association" "main" {
-  instance_id   = "${aws_instance.main.id}"
+  instance_id   = aws_instance.main.id
   allocation_id = var.algo_ip
 }

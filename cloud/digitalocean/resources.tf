@@ -3,7 +3,7 @@ resource "digitalocean_floating_ip" "main" {
 }
 
 locals {
-  server_address = "${digitalocean_floating_ip.main.ip_address}"
+  server_address = digitalocean_floating_ip.main.ip_address
   algo_config    = "${path.cwd}/configs/${local.server_address}"
 }
 

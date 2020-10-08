@@ -9,7 +9,7 @@ resource "google_compute_address" "main" {
 }
 
 locals {
-  server_address = "${google_compute_address.main.address}"
+  server_address = google_compute_address.main.address
   algo_config    = "${path.cwd}/configs/${local.server_address}"
 }
 
