@@ -1,8 +1,6 @@
-variable "gzip" {}
-variable "base64_encode" {}
-variable "ipv6" {}
-variable "pki" {}
-variable "config" {}
-variable "cloud_specific" {
-  default = ""
+variable "gzip" {
+  default = false
+}
+variable "base64_encode" {
+  default = false
 }

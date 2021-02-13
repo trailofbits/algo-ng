@@ -1,23 +1,23 @@
 terraform {
-  required_version = ">= 0.12"
-}
-
-provider "tls" {
-  version = "~> 2.0"
-}
-
-provider "local" {
-  version = "~> 1.2"
-}
-
-provider "null" {
-  version = "~> 2.1"
-}
-
-provider "random" {
-  version = "~> 2.1"
-}
-
-provider "external" {
-  version = "~> 1.1"
+  required_version = ">= 0.14"
+  required_providers {
+    external = {
+      source = "hashicorp/external"
+    }
+    local = {
+      source = "hashicorp/local"
+    }
+    null = {
+      source = "hashicorp/null"
+    }
+    random = {
+      source = "hashicorp/random"
+    }
+    tls = {
+      source = "hashicorp/tls"
+    }
+    tls-x25519 = {
+      source = "jackivanov/tls"
+    }
+  }
 }

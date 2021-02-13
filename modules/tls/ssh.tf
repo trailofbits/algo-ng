@@ -1,4 +1,5 @@
 resource "tls_private_key" "algo_ssh" {
+  provider  = tls
   algorithm = var.ssh_key_algorithm
   rsa_bits  = var.ssh_key_rsa_bits
 }

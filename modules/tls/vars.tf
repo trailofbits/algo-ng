@@ -1,4 +1,3 @@
-variable "server_address" {}
 variable "algo_config" {}
 variable "vpn_users" {}
 

@@ -1,8 +1,6 @@
 variable "region" {}
 variable "algo_name" {}
 variable "ssh_public_key" {}
-variable "user_data" {}
-
 variable "wireguard_network" {
   type = map(string)
 
@@ -14,7 +12,7 @@ variable "wireguard_network" {
 }
 
 variable "image" {
-  default = "ubuntu-19-04-x64"
+  default = "ubuntu-20-04-x64"
 }
 
 variable "size" {
@@ -24,5 +22,3 @@ variable "size" {
 variable "ipv6" {
   default = true
 }
-
-variable "algo_ip" {}

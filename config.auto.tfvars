@@ -7,13 +7,6 @@ config = {
     "desktop"
   ]
 
-  # Deploy StrongSwan to enable IPsec support
-  ipsec = {
-    enabled = true
-    ipv4    = "10.100.0.0/16"
-    ipv6    = "fd9d:bc11:4020::/64"
-  }
-
   # Deploy WireGuard
   wireguard = {
     enabled = true
@@ -124,7 +117,7 @@ config = {
     }
 
     digitalocean = {
-      image  = "ubuntu-19-04-x64"
+      image  = "ubuntu-20-04-x64"
       size   = "s-1vcpu-1gb"
       region = "nyc1"
     }
