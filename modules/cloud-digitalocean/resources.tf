@@ -8,45 +8,44 @@ resource "digitalocean_floating_ip" "main" {
 }
 
 resource "digitalocean_tag" "main" {
-  name = "Environment:Algo"
+  name = "App:AlgoVPN"
 }
 
-resource "digitalocean_droplet" "main" {
-  depends_on = [digitalocean_floating_ip.main]
-  name       = var.algo_name
-  image      = var.image
-  size       = var.size
-  region     = var.region
-  tags       = [digitalocean_tag.main.id]
-  ssh_keys   = [digitalocean_ssh_key.main.id]
-  ipv6       = true
-  user_data  = module.user-data.cloud_config
+resource "digitalocean_floating_ip_assignment" "main" {
+  ip_address = digitalocean_floating_ip.main.ip_address
+  droplet_id = digitalocean_droplet.main.id
 
   lifecycle {
     create_before_destroy = true
   }
 }
 
-resource "digitalocean_floating_ip_assignment" "main" {
-  ip_address = digitalocean_floating_ip.main.ip_address
-  droplet_id = digitalocean_droplet.main.id
-}
-
 resource "digitalocean_firewall" "main" {
   name        = var.algo_name
   droplet_ids = [digitalocean_droplet.main.id]
+  tags        = [digitalocean_tag.main.id]
 
   dynamic "inbound_rule" {
     iterator = rule
     for_each = [
-      "22:tcp",
-      "${var.wireguard_network["port"]}:udp"
+      {
+        "port" : 22
+        "protocol" = "tcp"
+      },
+      {
+        "port" : var.config.wireguard.port,
+        "protocol" = "udp"
+      },
+      {
+        "port" : null
+        "protocol" = "icmp"
+      }
     ]
 
     content {
       source_addresses = ["0.0.0.0/0", "::/0"]
-      protocol         = split(":", rule.value)[1]
-      port_range       = split(":", rule.value)[0]
+      protocol         = rule.value.protocol
+      port_range       = rule.value.port
     }
   }
 
@@ -65,5 +64,36 @@ resource "digitalocean_firewall" "main" {
         "::/0"
       ]
     }
+  }
+}
+
+resource "digitalocean_droplet" "main" {
+  name      = var.algo_name
+  image     = var.image
+  size      = var.size
+  region    = var.region
+  tags      = [digitalocean_tag.main.id]
+  ssh_keys  = [digitalocean_ssh_key.main.id]
+  ipv6      = var.ipv6
+  user_data = module.user-data.user_data
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  connection {
+    type        = "ssh"
+    host        = self.ipv4_address
+    port        = 22
+    user        = "root"
+    private_key = var.ssh_private_key
+    timeout     = "10m"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "cloud-init status --wait  >/dev/null",
+      "while ! systemctl --quiet is-system-running; do sleep 3; done",
+    ]
   }
 }

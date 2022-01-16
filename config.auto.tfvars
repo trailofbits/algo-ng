@@ -1,22 +1,42 @@
 config = {
+  cloud = "digitalocean"
+
   # This is the list of users to generate.
   # Every device must have a unique username.
   vpn_users = [
     "phone",
     "laptop",
-    "desktop"
+    "desktop",
   ]
 
   # Deploy WireGuard
   wireguard = {
-    enabled = true
-    ipv4    = "10.200.0.0/16"
-    ipv6    = "fd9d:bc11:4021::/64"
-    port    = 51820
+    ipv4 = "10.200.0.0/16"
+    port = 51820
+
+    # should be consistent with the ipv4 key
+    # `ipcalc 10.200.0.0/16` - 1
+    max_hosts = 65533
+
     # If you're behind NAT or a firewall and you want to receive incoming connections long after network traffic has gone silent.
     # This option will keep the "connection" open in the eyes of NAT.
     # See: https://www.wireguard.com/quickstart/#nat-and-firewall-traversal-persistence
     persistent_keepalive = 0
+  }
+
+  rebootstrap = 4
+
+  # Reduce the MTU of the VPN tunnel
+  # Some cloud and internet providers use a smaller MTU (Maximum Transmission
+  # Unit) than the normal value of 1500 and if you don't reduce the MTU of your
+  # VPN tunnel some network connections will hang. Algo will attempt to set this
+  # automatically based on your server, but if connections hang you might need to
+  # adjust this yourself.
+  # See: https://github.com/trailofbits/algo/blob/master/docs/troubleshooting.md#various-websites-appear-to-be-offline-through-the-vpn
+  reduce_mtu = 0
+
+  ssh_tunneling = {
+    enabled = true
   }
 
   dns = {
@@ -45,9 +65,6 @@ config = {
         ipv4 = [
           "cloudflare"
         ]
-        ipv6 = [
-          "cloudflare-ipv6"
-        ]
       }
     }
 
@@ -66,25 +83,9 @@ config = {
     }
   }
 
-  ssh_tunneling = true
-
-  # MSS is the TCP Max Segment Size
-  # Setting the 'max_mss' variable can solve some issues related to packet fragmentation
-  # This appears to be necessary on (at least) Google Cloud,
-  # however, some routers also require a change to this parameter
-  # See also:
-  # - https://github.com/trailofbits/algo/issues/216
-  # - https://github.com/trailofbits/algo/issues?utf8=%E2%9C%93&q=is%3Aissue%20mtu
-  # - https://serverfault.com/questions/601143/ssh-not-working-over-ipsec-tunnel-strongswan
-  # max_mss = 1316
-  max_mss = 0
-
   # Block traffic between connected clients
-  drop_traffic_between_clients = true
-
-  # StrongSwan log level
-  # https://wiki.strongswan.org/projects/strongswan/wiki/LoggerConfiguration
-  strongswan_log_level = "2"
+  block_traffic_between_clients = true
+  block_smb                     = true
 
   # Your Algo server will automatically install security updates. Some updates
   # require a reboot to take effect but your Algo server will not reboot itself
@@ -92,43 +93,36 @@ config = {
   # which case a reboot will take place if necessary at the time specified (as
   # HH:MM) in the time zone of your Algo server. The default time zone is UTC.
   unattended_reboot = {
-    enabled = false
+    enabled = true
     time    = "06:00"
   }
 
   # TODO: delete ssh authorized keys
   unmanaged = false
 
-  # Upgrade the system during the deployment
-  system_upgrade = true
-
-  ciphers = {
-    ipsec = {
-      ike = "aes256gcm16-prfsha512-ecp384!"
-      esp = "aes256gcm16-ecp384!"
-    }
-  }
-
   clouds = {
+    digitalocean = {
+      image   = "ubuntu-20-04-x64"
+      size    = "s-1vcpu-1gb"
+      region  = "fra1"
+      ipv6    = true
+      options = {}
+    }
+
+    ec2 = {
+      image  = "ubuntu-disco-19.04"
+      size   = "t2.micro"
+      region = "us-east-1"
+      options = {
+        encrypted  = true
+        kms_key_id = ""
+      }
+    }
+
     azure = {
       image  = "19.04"
       size   = "Standard_B1S"
       region = "eastus"
-    }
-
-    digitalocean = {
-      image  = "ubuntu-20-04-x64"
-      size   = "s-1vcpu-1gb"
-      region = "nyc1"
-    }
-
-    ec2 = {
-      # Change the encrypted flag to "true" to enable AWS volume encryption, for encryption of data at rest.
-      encrypted  = true
-      kms_key_id = ""
-      image      = "ubuntu-disco-19.04"
-      size       = "t2.micro"
-      region     = "us-east-1"
     }
 
     gce = {

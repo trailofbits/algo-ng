@@ -1,0 +1,15 @@
+[Unit]
+Description=dnscrypt-proxy listening socket
+Documentation=https://github.com/DNSCrypt/dnscrypt-proxy/wiki
+Before=nss-lookup.target
+Wants=nss-lookup.target
+Wants=dnscrypt-proxy-resolvconf.service
+
+[Socket]
+ListenStream=${cidrhost(wireguard.ipv4, 1)}:53
+ListenDatagram=${cidrhost(wireguard.ipv4, 1)}:53
+NoDelay=true
+DeferAcceptSec=1
+
+[Install]
+WantedBy=sockets.target

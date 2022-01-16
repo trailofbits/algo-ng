@@ -1,18 +1,5 @@
 variable "config" {}
 
-locals {
-  algo_config = "${path.cwd}/configs/${terraform.workspace}"
-}
-
-#
-# Prompts
-#
-
-variable "algo_name" {
-  default     = "algo"
-  description = "Name the vpn server"
-}
-
 # variable "ondemand_cellular" {
 #   default     = false
 #   description = <<-EOF

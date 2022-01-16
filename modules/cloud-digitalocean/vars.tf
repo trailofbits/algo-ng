@@ -1,15 +1,8 @@
 variable "region" {}
 variable "algo_name" {}
 variable "ssh_public_key" {}
-variable "wireguard_network" {
-  type = map(string)
-
-  default = {
-    ipv4 = "10.19.49.0/24"
-    ipv6 = "fd9d:bc11:4021::/48"
-    port = 51820
-  }
-}
+variable "ssh_private_key" {}
+variable "config" {}
 
 variable "image" {
   default = "ubuntu-20-04-x64"

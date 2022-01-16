@@ -5,12 +5,27 @@ module "tls" {
 }
 
 module "cloud" {
-  source         = "../../modules/cloud-digitalocean/"
-  region         = var.config.clouds.digitalocean.region
-  algo_name      = var.algo_name
-  ssh_public_key = module.tls.ssh_public_key
-  image          = var.config.clouds.digitalocean.image
-  size           = var.config.clouds.digitalocean.size
+  source          = "../../modules/cloud-digitalocean/"
+  region          = var.config.digitalocean.region
+  algo_name       = var.algo_name
+  image           = var.config.digitalocean.image
+  size            = var.config.digitalocean.size
+  ssh_public_key  = module.tls.default.ssh.public_key_openssh
+  ssh_private_key = module.tls.default.ssh.private_key_pem
+}
+
+module "bootstrap" {
+  depends_on      = [module.cloud]
+  source          = "../../modules/bootstrap/"
+  server_address  = module.cloud.server_address
+  ssh_user        = module.cloud.ssh_user
+  ssh_private_key = module.tls.default.ssh.private_key_pem
+  config          = var.config
+
+  triggers = {
+    server_id = module.cloud.server_id
+    1         = 123
+  }
 }
 
 # module "configs" {
@@ -24,10 +39,12 @@ module "cloud" {
 #   # config          = local.config
 # }
 
-# resource "tls_x25519" "example" {
-#   count = 3
+# output "test" {
+#   value = module.tls
 # }
 
-# output "test" {
-#   value = tls_x25519.example
-# }
+resource "local_file" "foo" {
+  content         = module.tls.default.ssh.private_key_pem
+  filename        = "/tmp/algo-sshs"
+  file_permission = 0400
+}
