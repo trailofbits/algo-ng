@@ -1,5 +1,5 @@
 resource "tls_private_key" "ssh" {
-  for_each    = {
+  for_each = {
     for k, v in toset(var.config.vpn_users) : k => v
     if var.config.ssh_tunneling.enabled
   }
@@ -18,17 +18,17 @@ locals {
 }
 
 resource "null_resource" "ssh-tunnel-templates" {
-  for_each    = {
+  for_each = {
     for k, v in toset(fileset("${path.module}/templates/ssh-tunnel/", "*")) : k => v
     if var.config.ssh_tunneling.enabled
   }
 
   connection {
     type        = "ssh"
-    host        = var.server_address
+    host        = var.config.cloud-local.server_address
     port        = 22
-    user        = var.ssh_user
-    private_key = var.ssh_private_key
+    user        = var.config.cloud-local.ssh_user
+    private_key = var.config.cloud-local.ssh_private_key
     timeout     = "30m"
   }
 
@@ -60,10 +60,10 @@ resource "null_resource" "ssh-tunnel" {
 
   connection {
     type        = "ssh"
-    host        = var.server_address
+    host        = var.config.cloud-local.server_address
     port        = 22
-    user        = var.ssh_user
-    private_key = var.ssh_private_key
+    user        = var.config.cloud-local.ssh_user
+    private_key = var.config.cloud-local.ssh_private_key
     timeout     = "30m"
   }
 

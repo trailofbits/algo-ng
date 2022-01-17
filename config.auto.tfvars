@@ -11,11 +11,12 @@ config = {
 
   # Deploy WireGuard
   wireguard = {
-    ipv4 = "10.200.0.0/16"
+    ipv4 = "10.49.0.0/16"
+    ipv6 = "2001:db8:a160::/48"
     port = 51820
 
-    # should be consistent with the ipv4 key
-    # `ipcalc 10.200.0.0/16` - 1
+    # should be consistent with the ipv4 max hosts
+    # `ipcalc 10.49.0.0/16` - 1
     max_hosts = 65533
 
     # If you're behind NAT or a firewall and you want to receive incoming connections long after network traffic has gone silent.
@@ -64,6 +65,9 @@ config = {
       servers = {
         ipv4 = [
           "cloudflare"
+        ],
+        ipv6 = [
+          "cloudflare-ipv6"
         ]
       }
     }

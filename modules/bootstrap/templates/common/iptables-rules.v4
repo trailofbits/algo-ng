@@ -29,11 +29,11 @@ COMMIT
 %{ if contains(local.wg_ports_avoid , wireguard.port)}
 # Handle the special case of allowing access to WireGuard over an already used
 # port like 53
--A PREROUTING -s ${join(",", local.subnets)} -p udp --dport ${wireguard.port} -j RETURN
+-A PREROUTING -s ${join(",", local.subnets.ipv4)} -p udp --dport ${wireguard.port} -j RETURN
 -A PREROUTING ! --in-interface wg0 -p udp --dport ${wireguard.port} -j REDIRECT --to-port ${ local.wg_port_actual }
 %{ endif }
 # Allow traffic from the VPN network to the outside world, and replies
--A POSTROUTING -s ${join(",", local.subnets)} -m policy --pol none --dir out -j MASQUERADE
+-A POSTROUTING -s ${join(",", local.subnets.ipv4)} -m policy --pol none --dir out -j MASQUERADE
 
 
 COMMIT
@@ -76,15 +76,15 @@ COMMIT
 # {% endif %}
 
 # Accept DNS traffic to the local DNS resolver
--A INPUT -d ${local.wg_server_ip} -p udp --dport 53 -j ACCEPT
+-A INPUT -d ${local.wg_server_ip.ipv4} -p udp --dport 53 -j ACCEPT
 
 # Drop traffic between VPN clients
--A FORWARD -s ${join(",", local.subnets)} -d ${join(",", local.subnets)} -j %{if block_traffic_between_clients}DROP%{else}ACCEPT%{endif}
+-A FORWARD -s ${join(",", local.subnets.ipv4)} -d ${join(",", local.subnets.ipv4)} -j %{if block_traffic_between_clients}DROP%{else}ACCEPT%{endif}
 # Drop traffic to VPN clients from SSH tunnels
--A OUTPUT -d ${join(",", local.subnets)} -m owner --gid-owner 15000 -j %{if block_traffic_between_clients}DROP%{else}ACCEPT%{endif}
+-A OUTPUT -d ${join(",", local.subnets.ipv4)} -m owner --gid-owner 15000 -j %{if block_traffic_between_clients}DROP%{else}ACCEPT%{endif}
 
 # Drop traffic to the link-local network
--A FORWARD -s ${join(",", local.subnets)} -d 169.254.0.0/16 -j DROP
+-A FORWARD -s ${join(",", local.subnets.ipv4)} -d 169.254.0.0/16 -j DROP
 
 # Drop traffic to the link-local network from SSH tunnels
 -A OUTPUT -d 169.254.0.0/16 -m owner --gid-owner 15000 -j DROP

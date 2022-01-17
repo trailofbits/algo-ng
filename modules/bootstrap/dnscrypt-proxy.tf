@@ -1,21 +1,22 @@
 resource "null_resource" "dnscrypt-template" {
-  for_each    = {
+  for_each = {
     for k, v in toset(fileset("${path.module}/templates/dnscrypt-proxy/", "*")) : k => v
     if var.config.dns.encryption.enabled
   }
 
   connection {
     type        = "ssh"
-    host        = var.server_address
+    host        = var.config.cloud-local.server_address
     port        = 22
-    user        = var.ssh_user
-    private_key = var.ssh_private_key
+    user        = var.config.cloud-local.ssh_user
+    private_key = var.config.cloud-local.ssh_private_key
     timeout     = "30m"
   }
 
-  triggers = merge(var.triggers,
-    { dns = md5(jsonencode(var.config.dns)) }
-  )
+  triggers = merge(var.triggers, {
+    dns      = md5(jsonencode(var.config.dns))
+    template = md5(file("${path.module}/templates/dnscrypt-proxy/${each.value}"))
+  })
 
   provisioner "file" {
     content     = templatefile("${path.module}/templates/dnscrypt-proxy/${each.value}", var.config)
@@ -32,16 +33,17 @@ resource "null_resource" "dnscrypt-script" {
 
   connection {
     type        = "ssh"
-    host        = var.server_address
+    host        = var.config.cloud-local.server_address
     port        = 22
-    user        = var.ssh_user
-    private_key = var.ssh_private_key
+    user        = var.config.cloud-local.ssh_user
+    private_key = var.config.cloud-local.ssh_private_key
     timeout     = "30m"
   }
 
-  triggers = merge(var.triggers,
-    { dns = md5(jsonencode(var.config.dns)) }
-  )
+  triggers = merge(var.triggers, {
+    dns       = md5(jsonencode(var.config.dns))
+    templates = md5(jsonencode({ for k, v in null_resource.dnscrypt-template : k => v.id }))
+  })
 
   provisioner "remote-exec" {
     inline = [

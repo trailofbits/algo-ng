@@ -28,7 +28,10 @@
 ## Remove the leading # first to enable this; lines starting with # are ignored.
 
 # Allow either list to be empty. Output nothing if both are empty. #
-server_names = ['${join(", ", dns.encryption.servers.ipv4)}']
+server_names = [
+  '${join(", ", dns.encryption.servers.ipv4)}'
+  %{ if cloud-local.ipv6 ~},'${join(", ", dns.encryption.servers.ipv6)}'%{ endif ~}
+  ]
 
 
 ## List of local addresses and ports to listen to. Can be IPv4 and/or IPv6.

@@ -2,14 +2,16 @@
 resource "null_resource" "common-init" {
   connection {
     type        = "ssh"
-    host        = var.server_address
+    host        = var.config.cloud-local.server_address
     port        = 22
-    user        = var.ssh_user
-    private_key = var.ssh_private_key
+    user        = var.config.cloud-local.ssh_user
+    private_key = var.config.cloud-local.ssh_private_key
     timeout     = "30m"
   }
 
-  triggers = var.triggers
+  triggers = merge(var.triggers, {
+    scripts = sha1(join(",", [for f in fileset("${path.module}/scripts/", "*") : filesha1("${path.module}/scripts/${f}")]))
+  })
 
   provisioner "remote-exec" {
     inline = [
@@ -28,14 +30,16 @@ resource "null_resource" "common-templates" {
 
   connection {
     type        = "ssh"
-    host        = var.server_address
+    host        = var.config.cloud-local.server_address
     port        = 22
-    user        = var.ssh_user
-    private_key = var.ssh_private_key
+    user        = var.config.cloud-local.ssh_user
+    private_key = var.config.cloud-local.ssh_private_key
     timeout     = "30m"
   }
 
-  triggers = var.triggers
+  triggers = merge(var.triggers, {
+    templates = md5(file("${path.module}/templates/common/${each.value}"))
+  })
 
   provisioner "file" {
     content = templatefile("${path.module}/templates/common/${each.value}", merge(
@@ -44,7 +48,11 @@ resource "null_resource" "common-templates" {
           wg_server_ip   = local.wg_server_ip
           wg_port_actual = var.wg_port_actual
           wg_ports_avoid = var.wg_ports_avoid
-          subnets        = concat([var.config.wireguard.ipv4])
+
+          subnets = {
+            ipv4 = [var.config.wireguard.ipv4]
+            ipv6 = [var.config.wireguard.ipv6]
+          }
         }
       }
     ))
@@ -59,14 +67,17 @@ resource "null_resource" "common-templates" {
 resource "null_resource" "common" {
   connection {
     type        = "ssh"
-    host        = var.server_address
+    host        = var.config.cloud-local.server_address
     port        = 22
-    user        = var.ssh_user
-    private_key = var.ssh_private_key
+    user        = var.config.cloud-local.ssh_user
+    private_key = var.config.cloud-local.ssh_private_key
     timeout     = "30m"
   }
 
-  triggers = var.triggers
+  triggers = merge(var.triggers, {
+    templates = md5(jsonencode({ for k, v in null_resource.common-templates : k => v.triggers }))
+    scripts   = null_resource.common-init.id
+  })
 
   provisioner "remote-exec" {
     inline = [
