@@ -43,7 +43,7 @@ locals {
       ListenPort = contains(var.wg_ports_avoid, var.config.wireguard.port) ? var.wg_port_actual : var.config.wireguard.port
       PrivateKey = tls_x25519.wg_server.private_key
       Peers      = local.wg_peers
-      ipv6       = var.config.cloud-local.ipv6
+      ipv6       = var.config.local.cloud.ipv6
     }
   )
 }
@@ -51,10 +51,10 @@ locals {
 resource "null_resource" "wireguard-script" {
   connection {
     type        = "ssh"
-    host        = var.config.cloud-local.server_address
+    host        = var.config.local.server_address
     port        = 22
-    user        = var.config.cloud-local.ssh_user
-    private_key = var.config.cloud-local.ssh_private_key
+    user        = var.config.local.ssh_user
+    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
   }
 
@@ -79,10 +79,10 @@ resource "null_resource" "wireguard-script" {
 resource "null_resource" "wireguard-config" {
   connection {
     type        = "ssh"
-    host        = var.config.cloud-local.server_address
+    host        = var.config.local.server_address
     port        = 22
-    user        = var.config.cloud-local.ssh_user
-    private_key = var.config.cloud-local.ssh_private_key
+    user        = var.config.local.ssh_user
+    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
   }
 

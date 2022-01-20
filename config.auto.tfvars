@@ -106,11 +106,10 @@ config = {
 
   clouds = {
     digitalocean = {
-      image   = "ubuntu-20-04-x64"
-      size    = "s-1vcpu-1gb"
-      region  = "fra1"
-      ipv6    = true
-      options = {}
+      image  = "ubuntu-20-04-x64"
+      size   = "s-1vcpu-1gb"
+      region = "fra1"
+      ipv6   = true
     }
 
     ec2 = {

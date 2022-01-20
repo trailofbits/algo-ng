@@ -18,7 +18,7 @@ resource "local_file" "ssh_tunneling_ssh_config" {
 
   content = templatefile("${path.module}/templates/ssh_config",
     merge(var.config, {
-      "server_address" = var.config.cloud-local.server_address
+      "server_address" = var.config.local.server_address
       "user"           = each.key
     })
   )

@@ -4,7 +4,7 @@ resource "digitalocean_ssh_key" "main" {
 }
 
 resource "digitalocean_floating_ip" "main" {
-  region = var.region
+  region = var.cloud.region
 }
 
 resource "digitalocean_tag" "main" {
@@ -69,12 +69,12 @@ resource "digitalocean_firewall" "main" {
 
 resource "digitalocean_droplet" "main" {
   name      = var.algo_name
-  image     = var.image
-  size      = var.size
-  region    = var.region
+  image     = var.cloud.image
+  size      = var.cloud.size
+  region    = var.cloud.region
   tags      = [digitalocean_tag.main.id]
   ssh_keys  = [digitalocean_ssh_key.main.id]
-  ipv6      = var.ipv6
+  ipv6      = var.cloud.ipv6
   user_data = module.user-data.user_data
 
   lifecycle {

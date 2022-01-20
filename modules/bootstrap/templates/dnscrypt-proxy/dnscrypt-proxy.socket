@@ -8,8 +8,10 @@ Wants=dnscrypt-proxy-resolvconf.service
 [Socket]
 ListenStream=${cidrhost(wireguard.ipv4, 1)}:53
 ListenDatagram=${cidrhost(wireguard.ipv4, 1)}:53
+%{ if local.cloud.ipv6 ~}
 ListenStream=[${cidrhost(wireguard.ipv6, 1)}]:53
 ListenDatagram=[${cidrhost(wireguard.ipv6, 1)}]:53
+%{ endif }
 NoDelay=true
 DeferAcceptSec=1
 

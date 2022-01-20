@@ -9,7 +9,3 @@ output "server_address" {
 output "ssh_user" {
   value = "root"
 }
-
-output "ipv6" {
-  value = var.ipv6
-}

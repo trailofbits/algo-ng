@@ -6,16 +6,16 @@ resource "null_resource" "dnscrypt-template" {
 
   connection {
     type        = "ssh"
-    host        = var.config.cloud-local.server_address
+    host        = var.config.local.server_address
     port        = 22
-    user        = var.config.cloud-local.ssh_user
-    private_key = var.config.cloud-local.ssh_private_key
+    user        = var.config.local.ssh_user
+    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
   }
 
   triggers = merge(var.triggers, {
     dns      = md5(jsonencode(var.config.dns))
-    template = md5(file("${path.module}/templates/dnscrypt-proxy/${each.value}"))
+    template = md5(jsonencode(templatefile("${path.module}/templates/dnscrypt-proxy/${each.value}", var.config)))
   })
 
   provisioner "file" {
@@ -33,16 +33,17 @@ resource "null_resource" "dnscrypt-script" {
 
   connection {
     type        = "ssh"
-    host        = var.config.cloud-local.server_address
+    host        = var.config.local.server_address
     port        = 22
-    user        = var.config.cloud-local.ssh_user
-    private_key = var.config.cloud-local.ssh_private_key
+    user        = var.config.local.ssh_user
+    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
   }
 
   triggers = merge(var.triggers, {
     dns       = md5(jsonencode(var.config.dns))
     templates = md5(jsonencode({ for k, v in null_resource.dnscrypt-template : k => v.id }))
+    script    = md5(file("${path.module}/scripts/dnscrypt-proxy.sh"))
   })
 
   provisioner "remote-exec" {

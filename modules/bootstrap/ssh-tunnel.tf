@@ -25,10 +25,10 @@ resource "null_resource" "ssh-tunnel-templates" {
 
   connection {
     type        = "ssh"
-    host        = var.config.cloud-local.server_address
+    host        = var.config.local.server_address
     port        = 22
-    user        = var.config.cloud-local.ssh_user
-    private_key = var.config.cloud-local.ssh_private_key
+    user        = var.config.local.ssh_user
+    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
   }
 
@@ -60,19 +60,18 @@ resource "null_resource" "ssh-tunnel" {
 
   connection {
     type        = "ssh"
-    host        = var.config.cloud-local.server_address
+    host        = var.config.local.server_address
     port        = 22
-    user        = var.config.cloud-local.ssh_user
-    private_key = var.config.cloud-local.ssh_private_key
+    user        = var.config.local.ssh_user
+    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
   }
 
-  triggers = merge(var.triggers,
-    {
-      vpn_users = md5(join(",", var.config.vpn_users)),
-      script    = md5(file("${path.module}/scripts/ssh-tunnel.sh"))
-    }
-  )
+  triggers = merge(var.triggers, {
+    vpn_users = md5(join(",", var.config.vpn_users))
+    templates = md5(jsonencode({ for k, v in null_resource.ssh-tunnel-templates : k => v.id }))
+    script    = md5(file("${path.module}/scripts/ssh-tunnel.sh"))
+  })
 
   provisioner "file" {
     source      = "${path.module}/scripts/ssh-tunnel.sh"

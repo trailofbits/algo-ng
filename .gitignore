@@ -9,5 +9,4 @@ env
 .DS_Store
 .terraform
 *tfstate*
-*lock*
 configs

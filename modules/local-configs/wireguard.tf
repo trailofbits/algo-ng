@@ -3,7 +3,7 @@ resource "local_file" "wireguard" {
 
   sensitive_content = templatefile(
     "${path.module}/templates/wireguard.conf", {
-      _config    = var.config
+      config     = var.config
       PrivateKey = var.wireguard_config.keys.clients[each.key].private_key
       Address = {
         ipv4 = cidrhost(var.config.wireguard.ipv4, var.wireguard_config.ip_seeds[each.key].result)
@@ -20,7 +20,7 @@ resource "local_file" "wireguard" {
 
       Peer = {
         PublicKey    = var.wireguard_config.keys.server.public_key
-        Endpoint     = "${var.config.cloud-local.server_address}:${var.config.wireguard.port}"
+        Endpoint     = "${var.config.local.server_address}:${var.config.wireguard.port}"
         PresharedKey = var.wireguard_config.keys.peers_psk[each.key].public_key
       }
     }

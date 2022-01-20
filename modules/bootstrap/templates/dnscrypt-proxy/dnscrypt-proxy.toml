@@ -30,7 +30,7 @@
 # Allow either list to be empty. Output nothing if both are empty. #
 server_names = [
   '${join(", ", dns.encryption.servers.ipv4)}'
-  %{ if cloud-local.ipv6 ~},'${join(", ", dns.encryption.servers.ipv6)}'%{ endif ~}
+  %{ if local.cloud.ipv6 ~},'${join(", ", dns.encryption.servers.ipv6)}'%{ endif ~}
   ]
 
 
@@ -257,7 +257,7 @@ log_files_max_backups = 1
 ## Do not enable if you added a validating resolver such as dnsmasq in front
 ## of the proxy.
 
-block_ipv6 = false
+block_ipv6 = %{ if local.cloud.ipv6 ~} false %{else} true %{ endif }
 
 
 

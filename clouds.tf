@@ -1,11 +1,8 @@
 module "digitalocean" {
   count  = var.config.cloud == "digitalocean" ? 1 : 0
-  source = "../../modules/cloud-digitalocean/"
+  source = "./modules/cloud-digitalocean/"
 
-  region = var.config.clouds[var.config.cloud].region
-  image  = var.config.clouds[var.config.cloud].image
-  size   = var.config.clouds[var.config.cloud].size
-
+  cloud           = var.config.clouds[var.config.cloud]
   algo_name       = "algo-${terraform.workspace}"
   ssh_public_key  = tls_private_key.ssh.public_key_openssh
   ssh_private_key = tls_private_key.ssh.private_key_pem
