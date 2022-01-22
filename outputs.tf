@@ -16,22 +16,22 @@
 #   }
 # }
 
-# output "AlgoVPN" {
-#   value = {
-#     Config = {
-#       "Server address"            = local.server_address
-#       "Config directory"          = "configs/${local.server_address}/"
-#     }
+output "AlgoVPN" {
+  value = {
+    Config = {
+      "Server address"    = local.modules[var.config.cloud].0.server_address
+      "Configs directory" = local.algo_config
+    }
 
-#     Components = {
-#       "WireGuard"     = local.config.wireguard.enabled
-#       "SSH tunneling" = local.config.ssh_tunneling
+    #   Components = {
+    #     "WireGuard"     = local.config.wireguard.enabled
+    #     "SSH tunneling" = local.config.ssh_tunneling
 
-#       "DNS" = {
-#         "Encryption"  = local.config.dns.encryption.enabled
-#         "Ad blocking" = local.config.dns.adblocking.enabled
-#         "Servers"     = local.output.dns_resolvers
-#       }
-#     }
-#   }
-# }
+    #     "DNS" = {
+    #       "Encryption"  = local.config.dns.encryption.enabled
+    #       "Ad blocking" = local.config.dns.adblocking.enabled
+    #       "Servers"     = local.output.dns_resolvers
+    #     }
+    #   }
+  }
+}

@@ -29,4 +29,9 @@ resource "local_file" "wireguard" {
   filename             = "${var.algo_config}/wireguard/${each.key}.conf"
   file_permission      = "0600"
   directory_permission = "0700"
+
+  provisioner "local-exec" {
+    command     = "qrencode -r ${each.key}.conf -o ${each.key}.qa.png || true"
+    working_dir = "${var.algo_config}/wireguard/"
+  }
 }

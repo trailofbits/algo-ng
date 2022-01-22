@@ -80,7 +80,7 @@ resource "null_resource" "ssh-tunnel" {
 
   provisioner "remote-exec" {
     inline = [
-      "bash /opt/algo/scripts/ssh-tunnel.sh"
+      "sudo bash /opt/algo/scripts/ssh-tunnel.sh"
     ]
   }
 

@@ -5,5 +5,3 @@ variable "gzip" {
 variable "base64_encode" {
   default = false
 }
-
-variable "ssh_public_key" {}

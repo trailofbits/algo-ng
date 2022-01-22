@@ -15,7 +15,8 @@ resource "null_resource" "common-init" {
 
   provisioner "remote-exec" {
     inline = [
-      "bash -c 'mkdir -p /opt/algo/{scripts,configs}/{wireguard,dnscrypt-proxy,common,ssh-tunnel}'"
+      "sudo bash -c 'mkdir -p /opt/algo/{scripts,configs}/{wireguard,dnscrypt-proxy,common,ssh-tunnel}'",
+      "sudo bash -c 'chown -R $SUDO_USER /opt/algo'"
     ]
   }
 
@@ -81,7 +82,7 @@ resource "null_resource" "common" {
 
   provisioner "remote-exec" {
     inline = [
-      "bash /opt/algo/scripts/common.sh"
+      "sudo bash /opt/algo/scripts/common.sh"
     ]
   }
 

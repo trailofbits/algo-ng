@@ -1,5 +1,5 @@
 config = {
-  cloud = "digitalocean"
+  cloud = "ec2"
 
   # This is the list of users to generate.
   # Every device must have a unique username.
@@ -24,8 +24,6 @@ config = {
     # See: https://www.wireguard.com/quickstart/#nat-and-firewall-traversal-persistence
     persistent_keepalive = 0
   }
-
-  rebootstrap = 4
 
   # Reduce the MTU of the VPN tunnel
   # Some cloud and internet providers use a smaller MTU (Maximum Transmission
@@ -113,23 +111,22 @@ config = {
     }
 
     ec2 = {
-      image  = "ubuntu-disco-19.04"
-      size   = "t2.micro"
-      region = "us-east-1"
-      options = {
-        encrypted  = true
-        kms_key_id = ""
-      }
+      image      = "ubuntu-focal-20.04"
+      size       = "t2.micro"
+      region     = "us-east-1"
+      ipv6       = true
+      encrypted  = true
+      kms_key_id = null
     }
 
     azure = {
-      image  = "19.04"
+      image  = "20.04"
       size   = "Standard_B1S"
       region = "eastus"
     }
 
     gce = {
-      image  = "ubuntu-os-cloud/ubuntu-1904"
+      image  = "ubuntu-os-cloud/ubuntu-2004"
       size   = "f1-micro"
       region = "us-east1"
     }

@@ -48,7 +48,7 @@ resource "null_resource" "dnscrypt-script" {
 
   provisioner "remote-exec" {
     inline = [
-      "bash /opt/algo/scripts/dnscrypt-proxy.sh"
+      "sudo bash /opt/algo/scripts/dnscrypt-proxy.sh"
     ]
   }
 

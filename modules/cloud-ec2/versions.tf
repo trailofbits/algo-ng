@@ -1,11 +1,8 @@
 terraform {
-  required_version = "~> 0.12"
-
   required_providers {
-    aws = "~> 2.22"
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.72"
+    }
   }
-}
-
-provider "aws" {
-  region = var.config.clouds.ec2.region
 }

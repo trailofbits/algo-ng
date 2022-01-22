@@ -67,7 +67,7 @@ resource "null_resource" "wireguard-script" {
 
   provisioner "remote-exec" {
     inline = [
-      "bash /opt/algo/scripts/wireguard.sh"
+      "sudo bash /opt/algo/scripts/wireguard.sh"
     ]
   }
 
@@ -97,7 +97,7 @@ resource "null_resource" "wireguard-config" {
 
   provisioner "remote-exec" {
     inline = [
-      "bash -c 'wg syncconf wg0 <(wg-quick strip wg0)'"
+      "sudo bash -c 'wg syncconf wg0 <(wg-quick strip wg0)'"
     ]
   }
 

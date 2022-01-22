@@ -1,10 +1,10 @@
 resource "digitalocean_ssh_key" "main" {
-  name       = var.algo_name
-  public_key = var.ssh_public_key
+  name       = var.config.algo_name
+  public_key = var.config.ssh_public_key
 }
 
 resource "digitalocean_floating_ip" "main" {
-  region = var.cloud.region
+  region = var.config.cloud.region
 }
 
 resource "digitalocean_tag" "main" {
@@ -21,7 +21,7 @@ resource "digitalocean_floating_ip_assignment" "main" {
 }
 
 resource "digitalocean_firewall" "main" {
-  name        = var.algo_name
+  name        = var.config.algo_name
   droplet_ids = [digitalocean_droplet.main.id]
   tags        = [digitalocean_tag.main.id]
 
@@ -33,7 +33,7 @@ resource "digitalocean_firewall" "main" {
         "protocol" = "tcp"
       },
       {
-        "port" : var.config.wireguard.port,
+        "port" : var.config.tfvars.wireguard.port,
         "protocol" = "udp"
       },
       {
@@ -68,14 +68,14 @@ resource "digitalocean_firewall" "main" {
 }
 
 resource "digitalocean_droplet" "main" {
-  name      = var.algo_name
-  image     = var.cloud.image
-  size      = var.cloud.size
-  region    = var.cloud.region
+  name      = var.config.algo_name
+  image     = var.config.cloud.image
+  size      = var.config.cloud.size
+  region    = var.config.cloud.region
   tags      = [digitalocean_tag.main.id]
   ssh_keys  = [digitalocean_ssh_key.main.id]
-  ipv6      = var.cloud.ipv6
-  user_data = module.user-data.user_data
+  ipv6      = var.config.cloud.ipv6
+  user_data = var.config.user_data
 
   lifecycle {
     create_before_destroy = true
@@ -86,7 +86,7 @@ resource "digitalocean_droplet" "main" {
     host        = self.ipv4_address
     port        = 22
     user        = "root"
-    private_key = var.ssh_private_key
+    private_key = var.config.ssh_private_key
     timeout     = "10m"
   }
 

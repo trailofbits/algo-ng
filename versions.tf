@@ -7,3 +7,7 @@ terraform {
     }
   }
 }
+
+provider "aws" {
+  region = var.config.clouds.ec2.region
+}
