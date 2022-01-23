@@ -117,7 +117,7 @@ resource "aws_instance" "main" {
   key_name                             = aws_key_pair.main.key_name
   vpc_security_group_ids               = [aws_security_group.main.id]
   subnet_id                            = aws_subnet.main.id
-  user_data                            = var.config.user_data
+  user_data                            = var.config.user_data.cloudinit
   ipv6_address_count                   = var.config.cloud.ipv6 ? 1 : 0
   availability_zone                    = random_shuffle.az.result.0
   tags                                 = merge({ Name = var.config.algo_name }, local.tags)

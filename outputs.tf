@@ -18,6 +18,8 @@
 
 output "AlgoVPN" {
   value = {
+    DeployID = random_string.deploy_id.result
+
     Config = {
       "Server address"    = local.modules[var.config.cloud].0.server_address
       "Configs directory" = local.algo_config

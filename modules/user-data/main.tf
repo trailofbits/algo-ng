@@ -9,6 +9,9 @@ data "template_cloudinit_config" "user_data" {
   }
 }
 
-output "user_data" {
-  value = data.template_cloudinit_config.user_data.rendered
+output "output" {
+  value = {
+    cloudinit = data.template_cloudinit_config.user_data.rendered
+    script    = file("${path.module}/files/user-data.sh")
+  }
 }

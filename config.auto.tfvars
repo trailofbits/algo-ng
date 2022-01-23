@@ -1,5 +1,5 @@
 config = {
-  cloud = "ec2"
+  cloud = "lightsail"
 
   # This is the list of users to generate.
   # Every device must have a unique username.
@@ -117,6 +117,13 @@ config = {
       ipv6       = true
       encrypted  = true
       kms_key_id = null
+    }
+
+    lightsail = {
+      image             = "ubuntu_20_04"
+      size              = "nano_2_0"
+      availability_zone = "us-east-1a"
+      ipv6              = true
     }
 
     azure = {

@@ -75,7 +75,7 @@ resource "digitalocean_droplet" "main" {
   tags      = [digitalocean_tag.main.id]
   ssh_keys  = [digitalocean_ssh_key.main.id]
   ipv6      = var.config.cloud.ipv6
-  user_data = var.config.user_data
+  user_data = var.config.user_data.cloudinit
 
   lifecycle {
     create_before_destroy = true

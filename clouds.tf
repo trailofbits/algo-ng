@@ -10,6 +10,16 @@ module "ec2" {
   config = local.cloud-config
 }
 
+module "lightsail" {
+  count  = var.config.cloud == "lightsail" ? 1 : 0
+  source = "./modules/cloud-lightsail/"
+  config = local.cloud-config
+
+  providers = {
+    aws = aws.lightsail
+  }
+}
+
 # module "gce" {
 #   count  = var.config.cloud_provider == "gce" ? 1 : 0
 #   source = "../../modules/cloud-gce/"

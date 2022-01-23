@@ -11,3 +11,8 @@ terraform {
 provider "aws" {
   region = var.config.clouds.ec2.region
 }
+
+provider "aws" {
+  alias  = "lightsail"
+  region = replace(var.config.clouds.lightsail.availability_zone, "/[a-z]$/", "")
+}
