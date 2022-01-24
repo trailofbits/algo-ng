@@ -16,3 +16,7 @@ provider "aws" {
   alias  = "lightsail"
   region = replace(var.config.clouds.lightsail.availability_zone, "/[a-z]$/", "")
 }
+
+provider "azurerm" {
+  features {}
+}

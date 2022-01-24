@@ -10,3 +10,4 @@ env
 .terraform
 *tfstate*
 configs
+local

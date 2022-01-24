@@ -44,7 +44,7 @@ resource "aws_lightsail_instance_public_ports" "main" {
         "protocol" = "udp"
       },
       {
-        "port" : 8
+        "port" : 0
         "protocol" = "icmp"
       }
     ]

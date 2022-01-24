@@ -7,7 +7,7 @@ locals {
     ec2          = module.ec2
     lightsail    = module.lightsail
     # gce          = module.gce
-    # azure        = module.azure
+    azure = module.azure
   }
 
   cloud-config = {

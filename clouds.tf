@@ -20,6 +20,12 @@ module "lightsail" {
   }
 }
 
+module "azure" {
+  count  = var.config.cloud == "azure" ? 1 : 0
+  source = "./modules/cloud-azure/"
+  config = local.cloud-config
+}
+
 # module "gce" {
 #   count  = var.config.cloud_provider == "gce" ? 1 : 0
 #   source = "../../modules/cloud-gce/"

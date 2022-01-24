@@ -1,5 +1,5 @@
 config = {
-  cloud = "lightsail"
+  cloud = "azure"
 
   # This is the list of users to generate.
   # Every device must have a unique username.
@@ -127,9 +127,11 @@ config = {
     }
 
     azure = {
-      image  = "20.04"
-      size   = "Standard_B1S"
-      region = "eastus"
+      offer    = "0001-com-ubuntu-server-focal"
+      image    = "20_04-lts-gen2"
+      size     = "Standard_B1ls"
+      location = "eastus"
+      ipv6     = true
     }
 
     gce = {
