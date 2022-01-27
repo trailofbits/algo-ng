@@ -20,3 +20,7 @@ provider "aws" {
 provider "azurerm" {
   features {}
 }
+
+provider "google" {
+  project = var.config.clouds.gce.project
+}

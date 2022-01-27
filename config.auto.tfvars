@@ -1,5 +1,5 @@
 config = {
-  cloud = "azure"
+  cloud = "gce"
 
   # This is the list of users to generate.
   # Every device must have a unique username.
@@ -134,10 +134,20 @@ config = {
       ipv6     = true
     }
 
+    # gcloud auth login
     gce = {
-      image  = "ubuntu-os-cloud/ubuntu-2004"
+      image        = "ubuntu-os-cloud/ubuntu-2004-lts"
+      size         = "f1-micro"
+      region       = "us-west2"
+      ipv6         = true          # https://cloud.google.com/vpc/docs/vpc#ipv6-regions
+      project      = "algo-140311" # gcloud projects list
+      network_tier = "STANDARD"
+    }
+
+    scaleway = {
+      image  = "ubuntu-os-cloud/ubuntu-2004-lts"
       size   = "f1-micro"
-      region = "us-east1"
+      region = "us-west2"
     }
   }
 }

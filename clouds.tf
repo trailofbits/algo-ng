@@ -26,30 +26,14 @@ module "azure" {
   config = local.cloud-config
 }
 
-# module "gce" {
-#   count  = var.config.cloud_provider == "gce" ? 1 : 0
-#   source = "../../modules/cloud-gce/"
+module "gce" {
+  count  = var.config.cloud == "gce" ? 1 : 0
+  source = "./modules/cloud-gce/"
+  config = local.cloud-config
+}
 
-#   region  = var.config.clouds[var.config.cloud_provider].region
-#   image   = var.config.clouds[var.config.cloud_provider].image
-#   size    = var.config.clouds[var.config.cloud_provider].size
-#   options = var.config.clouds[var.config.cloud_provider].options
-
-#   algo_name       = var.algo_name
-#   ssh_public_key  = module.tls.default.ssh.public_key_openssh
-#   ssh_private_key = module.tls.default.ssh.private_key_pem
-# }
-
-# module "azure" {
-#   count  = var.config.cloud_provider == "azure" ? 1 : 0
-#   source = "../../modules/cloud-azure/"
-
-#   region  = var.config.clouds[var.config.cloud_provider].region
-#   image   = var.config.clouds[var.config.cloud_provider].image
-#   size    = var.config.clouds[var.config.cloud_provider].size
-#   options = var.config.clouds[var.config.cloud_provider].options
-
-#   algo_name       = var.algo_name
-#   ssh_public_key  = module.tls.default.ssh.public_key_openssh
-#   ssh_private_key = module.tls.default.ssh.private_key_pem
-# }
+module "scaleway" {
+  count  = var.config.cloud == "scaleway" ? 1 : 0
+  source = "./modules/cloud-scaleway/"
+  config = local.cloud-config
+}

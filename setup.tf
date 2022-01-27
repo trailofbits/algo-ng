@@ -6,8 +6,9 @@ locals {
     digitalocean = module.digitalocean
     ec2          = module.ec2
     lightsail    = module.lightsail
-    # gce          = module.gce
-    azure = module.azure
+    gce          = module.gce
+    azure        = module.azure
+    scaleway     = module.scaleway
   }
 
   cloud-config = {
