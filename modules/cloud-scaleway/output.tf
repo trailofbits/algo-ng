@@ -1,11 +1,11 @@
-# output "server_id" {
-#   value = digitalocean_droplet.main.id
-# }
+output "server_id" {
+  value = scaleway_instance_server.main.id
+}
 
-# output "server_address" {
-#   value = digitalocean_floating_ip.main.ip_address
-# }
+output "server_address" {
+  value = scaleway_instance_ip.main.address
+}
 
-# output "ssh_user" {
-#   value = "root"
-# }
+output "ssh_user" {
+  value = "root"
+}

@@ -5,6 +5,10 @@ terraform {
     local = {
       source = "hashicorp/local"
     }
+
+    scaleway = {
+      source = "scaleway/scaleway"
+    }
   }
 }
 
@@ -23,4 +27,8 @@ provider "azurerm" {
 
 provider "google" {
   project = var.config.clouds.gce.project
+}
+
+provider "scaleway" {
+  region = var.config.clouds.scaleway.region
 }

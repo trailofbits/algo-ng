@@ -1,5 +1,5 @@
 config = {
-  cloud = "gce"
+  cloud = "scaleway"
 
   # This is the list of users to generate.
   # Every device must have a unique username.
@@ -145,9 +145,10 @@ config = {
     }
 
     scaleway = {
-      image  = "ubuntu-os-cloud/ubuntu-2004-lts"
-      size   = "f1-micro"
-      region = "us-west2"
+      image  = "ubuntu_focal"
+      size   = "DEV1-S"
+      region = "fr-par"
+      ipv6   = true
     }
   }
 }
