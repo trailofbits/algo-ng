@@ -9,14 +9,14 @@ locals {
 resource "scaleway_instance_ip" "main" {}
 
 resource "scaleway_instance_server" "main" {
-  name  = "algo-srv-${var.config.deploy_id}"
-  image = var.config.cloud.image
-  type  = var.config.cloud.size
-  ip_id = scaleway_instance_ip.main.id
-
+  name        = "algo-srv-${var.config.deploy_id}"
+  image       = var.config.cloud.image
+  type        = var.config.cloud.size
+  ip_id       = scaleway_instance_ip.main.id
   enable_ipv6 = var.config.cloud.ipv6
+
   user_data = {
-    cloud-init = base64encode(var.config.user_data.cloudinit)
+    cloud-init = var.config.user_data.cloudinit
   }
 
   tags = concat([for k, v in local.tags : "${k}:${v}"], [
