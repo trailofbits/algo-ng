@@ -9,6 +9,7 @@ locals {
     gce          = module.gce
     azure        = module.azure
     scaleway     = module.scaleway
+    hetzner      = module.hetzner
   }
 
   cloud-config = {

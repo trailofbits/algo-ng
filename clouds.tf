@@ -37,3 +37,9 @@ module "scaleway" {
   source = "./modules/cloud-scaleway/"
   config = local.cloud-config
 }
+
+module "hetzner" {
+  count  = var.config.cloud == "hetzner" ? 1 : 0
+  source = "./modules/cloud-hetzner/"
+  config = local.cloud-config
+}

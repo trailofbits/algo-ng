@@ -1,5 +1,5 @@
 config = {
-  cloud = "scaleway"
+  cloud = "digitalocean"
 
   # This is the list of users to generate.
   # Every device must have a unique username.
@@ -148,6 +148,13 @@ config = {
       image  = "ubuntu_focal"
       size   = "DEV1-S"
       region = "fr-par"
+      ipv6   = true
+    }
+
+    hetzner = {
+      image  = "ubuntu-20.04"
+      size   = "cx11"
+      region = "hel1"
       ipv6   = true
     }
   }
