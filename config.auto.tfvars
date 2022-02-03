@@ -157,5 +157,13 @@ config = {
       region = "hel1"
       ipv6   = true
     }
+
+    local-server = {
+      # Local installation can break your server, use at your own risk
+      ip              = "3.65.207.122"
+      user            = "ubuntu"
+      ssh_private_key = "/Users/jack/.ssh/id_ecdsa" # password protected keys are not supported
+      ipv6            = true
+    }
   }
 }

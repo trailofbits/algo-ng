@@ -10,6 +10,7 @@ locals {
     azure        = module.azure
     scaleway     = module.scaleway
     hetzner      = module.hetzner
+    local-server = module.local-server
   }
 
   cloud-config = {

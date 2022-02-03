@@ -43,3 +43,9 @@ module "hetzner" {
   source = "./modules/cloud-hetzner/"
   config = local.cloud-config
 }
+
+module "local-server" {
+  count  = var.config.cloud == "local-server" ? 1 : 0
+  source = "./modules/local-server/"
+  config = local.cloud-config
+}

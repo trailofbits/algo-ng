@@ -3,7 +3,7 @@ module "bootstrap" {
   config = merge(var.config, {
     local = {
       cloud           = var.config.clouds[var.config.cloud]
-      ssh_private_key = tls_private_key.ssh.private_key_pem
+      ssh_private_key = var.config.cloud == "local-server" ? file(var.config.clouds[var.config.cloud].ssh_private_key) : tls_private_key.ssh.private_key_pem
       server_address  = local.modules[var.config.cloud].0.server_address
       ssh_user        = local.modules[var.config.cloud].0.ssh_user
     }
