@@ -1,6 +1,4 @@
 config = {
-  cloud = "digitalocean"
-
   # This is the list of users to generate.
   # Every device must have a unique username.
   vpn_users = [
@@ -11,9 +9,10 @@ config = {
 
   # Deploy WireGuard
   wireguard = {
-    ipv4 = "10.49.0.0/16"
-    ipv6 = "2001:db8:a160::/48"
-    port = 51820
+    enabled = true
+    ipv4    = "10.49.0.0/16"
+    ipv6    = "2001:db8:a160::/48"
+    port    = 51820
 
     # should be consistent with the ipv4 max hosts
     # `ipcalc 10.49.0.0/16` - 1
@@ -120,7 +119,7 @@ config = {
     }
 
     lightsail = {
-      image             = "ubuntu_20_04"
+      image             = "ubuntu_22_04"
       size              = "nano_2_0"
       availability_zone = "us-east-1a"
       ipv6              = true

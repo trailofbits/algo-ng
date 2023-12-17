@@ -12,7 +12,7 @@ resource "aws_lightsail_key_pair" "main" {
 }
 
 resource "aws_lightsail_instance" "main" {
-  name              = "algo-srv-${var.config.deploy_id}"
+  name              = "algo-vpn-${var.config.deploy_id}"
   availability_zone = var.config.cloud.availability_zone
   blueprint_id      = var.config.cloud.image
   bundle_id         = var.config.cloud.size

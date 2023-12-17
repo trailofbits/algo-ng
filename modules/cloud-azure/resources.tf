@@ -118,7 +118,7 @@ resource "azurerm_network_interface_security_group_association" "algo" {
 }
 
 resource "azurerm_virtual_machine" "algo" {
-  name                             = "algo-srv-${var.config.deploy_id}"
+  name                             = "algo-vpn-${var.config.deploy_id}"
   location                         = azurerm_resource_group.algo.location
   resource_group_name              = azurerm_resource_group.algo.name
   network_interface_ids            = [azurerm_network_interface.algo.id]
@@ -135,14 +135,14 @@ resource "azurerm_virtual_machine" "algo" {
   }
 
   storage_os_disk {
-    name              = "algo-srv-${var.config.deploy_id}"
+    name              = "algo-vpn-${var.config.deploy_id}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
   os_profile {
-    computer_name  = "algo-srv-${var.config.deploy_id}"
+    computer_name  = "algo-vpn-${var.config.deploy_id}"
     admin_username = "ubuntu"
     custom_data    = var.config.user_data.cloudinit
   }

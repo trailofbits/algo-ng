@@ -1,20 +1,9 @@
 
 locals {
-  algo_config = "${path.cwd}/configs/${var.config.cloud}/${terraform.workspace}"
-
-  modules = {
-    digitalocean = module.digitalocean
-    ec2          = module.ec2
-    lightsail    = module.lightsail
-    gce          = module.gce
-    azure        = module.azure
-    scaleway     = module.scaleway
-    hetzner      = module.hetzner
-    local-server = module.local-server
-  }
+  algo_config = "${path.cwd}/configs/${local.cloud_name}/${terraform.workspace}"
 
   cloud-config = {
-    cloud           = var.config.clouds[var.config.cloud]
+    cloud           = var.config.clouds[local.cloud_name]
     algo_name       = "algo-${terraform.workspace}"
     ssh_public_key  = tls_private_key.ssh.public_key_openssh
     ssh_private_key = tls_private_key.ssh.private_key_pem

@@ -1,10 +1,10 @@
-resource "local_file" "ssh_tunneling_private_keys" {
+resource "local_sensitive_file" "ssh_tunneling_private_keys" {
   for_each = {
     for k, v in toset(var.config.vpn_users) : k => v
     if var.config.ssh_tunneling.enabled
   }
 
-  sensitive_content    = var.ssh_keys[each.key].private_key_pem
+  content              = var.ssh_keys[each.key].private_key_pem
   filename             = "${var.algo_config}/ssh_tunneling/${each.key}.pem"
   file_permission      = "0600"
   directory_permission = "0700"

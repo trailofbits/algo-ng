@@ -9,7 +9,7 @@ locals {
 resource "scaleway_instance_ip" "main" {}
 
 resource "scaleway_instance_server" "main" {
-  name        = "algo-srv-${var.config.deploy_id}"
+  name        = "algo-vpn-${var.config.deploy_id}"
   image       = var.config.cloud.image
   type        = var.config.cloud.size
   ip_id       = scaleway_instance_ip.main.id
