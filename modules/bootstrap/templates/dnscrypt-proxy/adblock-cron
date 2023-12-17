@@ -1,0 +1,1 @@
+15 30 * * * root bash /opt/algo/scripts/dnscrypt-adblock.sh

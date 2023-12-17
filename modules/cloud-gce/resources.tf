@@ -1,52 +1,76 @@
-resource "random_id" "name" {
-  byte_length = 3
+locals {
+  tags = {
+    App       = "AlgoVPN"
+    Workspace = terraform.workspace
+    DeployID  = var.config.deploy_id
+  }
+  labels = { for k, v in local.tags : lower(k) => lower(v) }
+  name   = "algo-${var.config.deploy_id}-${random_integer.seq.result}"
+}
 
+resource "random_integer" "seq" {
+  min = 1
+  max = 99
   keepers = {
-    region_name = "${var.region}/${var.algo_name}"
-    user_data   = "${var.user_data}"
+    ipv6         = var.config.cloud.ipv6
+    network_tier = var.config.cloud.network_tier
   }
 }
 
-locals {
-  name = "${var.algo_name}-${random_id.name.hex}"
-}
-
 resource "google_compute_network" "main" {
-  name                    = "${local.name}"
-  description             = "${var.algo_name}"
+  name                    = local.name
   auto_create_subnetworks = false
+  mtu                     = 1500
 }
 
 resource "google_compute_subnetwork" "main" {
-  name          = "${local.name}"
-  ip_cidr_range = "10.2.0.0/16"
-  network       = "${google_compute_network.main.self_link}"
+  name             = local.name
+  region           = var.config.cloud.region
+  ip_cidr_range    = "172.16.254.0/23"
+  network          = google_compute_network.main.id
+  stack_type       = var.config.cloud.ipv6 ? "IPV4_IPV6" : "IPV4_ONLY"
+  ipv6_access_type = var.config.cloud.ipv6 ? "EXTERNAL" : null
 }
 
 resource "google_compute_firewall" "ingress" {
-  name        = "${local.name}"
-  description = "${var.algo_name}"
-  network     = "${google_compute_network.main.name}"
+  name          = "algo-${var.config.deploy_id}"
+  description   = "Allow incoming connections to AlgoVPN instance"
+  network       = google_compute_network.main.name
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = [local.name]
 
   dynamic "allow" {
     for_each = [
-      ":icmp",
-      "22:tcp",
-      "500,4500,${var.wireguard_network["port"]}:udp"
-    ]
+      {
+        "ports" : [22]
+        "protocol" = "tcp"
+      },
+      {
+        "ports" : [var.config.tfvars.wireguard.port]
+        "protocol" = "udp"
+      },
+      {
+        "ports" : []
+        "protocol" = "icmp"
+    }]
 
     content {
-      ports = [
-        for i in split(",", split(":", allow.value)[0]) :
-        i
-        if length(i) > 0
-      ]
-      protocol = split(":", allow.value)[1]
+      ports    = allow.value.ports
+      protocol = allow.value.protocol
     }
   }
 }
 
-data "google_compute_zones" "available" {}
+resource "google_compute_address" "algo" {
+  name         = local.name
+  region       = var.config.cloud.region
+  address_type = "EXTERNAL"
+  network_tier = var.config.cloud.network_tier
+}
+
+data "google_compute_zones" "available" {
+  region = var.config.cloud.region
+}
 
 resource "random_shuffle" "az" {
   input        = data.google_compute_zones.available.names
@@ -54,36 +78,44 @@ resource "random_shuffle" "az" {
 }
 
 resource "google_compute_instance" "algo" {
-  name           = "${var.algo_name}"
-  description    = "${var.algo_name}"
-  machine_type   = "${var.size}"
-  zone           = "${random_shuffle.az.result[0]}"
-  can_ip_forward = true
+  name                    = local.name
+  description             = "AlgoVPN"
+  machine_type            = var.config.cloud.size
+  zone                    = random_shuffle.az.result[0]
+  can_ip_forward          = true
+  metadata_startup_script = var.config.user_data.script
+  labels                  = local.labels
+  tags                    = [local.name]
 
   boot_disk {
     auto_delete = true
 
     initialize_params {
-      image = "${var.image}"
+      image = var.config.cloud.image
     }
   }
 
   network_interface {
-    network    = "${google_compute_network.main.name}"
-    subnetwork = "${google_compute_subnetwork.main.name}"
+    subnetwork = google_compute_subnetwork.main.name
+    stack_type = var.config.cloud.ipv6 ? "IPV4_IPV6" : "IPV4_ONLY"
 
     access_config {
-      nat_ip = "${var.server_address}"
+      nat_ip       = google_compute_address.algo.address
+      network_tier = var.config.cloud.network_tier
+    }
+
+    dynamic "ipv6_access_config" {
+      iterator = ipv6
+      for_each = var.config.cloud.ipv6 ? ["PREMIUM"] : []
+
+      content {
+        network_tier = ipv6.value
+      }
     }
   }
 
   metadata = {
-    sshKeys   = "ubuntu:${var.ssh_public_key}"
-    user-data = "${var.user_data}"
-  }
-
-  labels = {
-    "environment" = "algo"
+    ssh-keys = "ubuntu:${var.config.ssh_public_key}"
   }
 
   lifecycle {
