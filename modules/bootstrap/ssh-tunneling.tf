@@ -1,51 +1,52 @@
-resource "tls_private_key" "ssh" {
-  for_each = {
-    for k, v in toset(var.config.vpn_users) : k => v
-    if var.config.ssh_tunneling.enabled
-  }
-
-  algorithm   = "ECDSA"
-  ecdsa_curve = "P384"
-}
-
 locals {
+  ssh_tunnel_users = var.algo_config.ssh_tunneling.enabled ? local.users : {}
+
   authorized_keys = [
-    for user in var.config.vpn_users : {
+    for user in local.ssh_tunnel_users : {
       user           = user
-      authorized_key = var.config.ssh_tunneling.enabled ? tls_private_key.ssh[user].public_key_openssh : false
+      authorized_key = tls_private_key.ssh[user].public_key_openssh
     }
   ]
+}
+
+resource "tls_private_key" "ssh" {
+  for_each  = local.ssh_tunnel_users
+  algorithm = "ED25519"
 }
 
 resource "null_resource" "ssh-tunnel-templates" {
   for_each = {
     for k, v in toset(fileset("${path.module}/templates/ssh-tunnel/", "*")) : k => v
-    if var.config.ssh_tunneling.enabled
+    if var.algo_config.ssh_tunneling.enabled
   }
 
   connection {
     type        = "ssh"
-    host        = var.config.local.server_address
-    port        = 22
-    user        = var.config.local.ssh_user
-    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
+    port        = 22
+    host        = var.cloud_config.server_ip
+    user        = var.cloud_config.ssh_user
+    private_key = var.ssh_key.private
   }
 
   triggers = merge(var.triggers,
     {
-      vpn_users = md5(join(",", var.config.vpn_users)),
+      users = md5(join(",", var.algo_config.users)),
       template = md5(base64encode(templatefile("${path.module}/templates/ssh-tunnel/${each.value}",
-        merge(var.config,
-        { "authorized_keys" = local.authorized_keys })
+        {
+          authorized_keys = local.authorized_keys,
+          users           = var.algo_config.users
+        }
       )))
     }
   )
 
   provisioner "file" {
     content = templatefile("${path.module}/templates/ssh-tunnel/${each.value}",
-      merge(var.config,
-      { "authorized_keys" = local.authorized_keys })
+      {
+        authorized_keys = local.authorized_keys,
+        users           = var.algo_config.users
+      }
     )
     destination = "/opt/algo/configs/ssh-tunnel/${each.value}"
   }
@@ -56,19 +57,19 @@ resource "null_resource" "ssh-tunnel-templates" {
 }
 
 resource "null_resource" "ssh-tunnel" {
-  count = var.config.ssh_tunneling.enabled ? 1 : 0
+  count = var.algo_config.ssh_tunneling.enabled ? 1 : 0
 
   connection {
     type        = "ssh"
-    host        = var.config.local.server_address
-    port        = 22
-    user        = var.config.local.ssh_user
-    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
+    port        = 22
+    host        = var.cloud_config.server_ip
+    user        = var.cloud_config.ssh_user
+    private_key = var.ssh_key.private
   }
 
   triggers = merge(var.triggers, {
-    vpn_users = md5(join(",", var.config.vpn_users))
+    users     = md5(join(",", var.algo_config.users))
     templates = md5(jsonencode({ for k, v in null_resource.ssh-tunnel-templates : k => v.id }))
     script    = md5(file("${path.module}/scripts/ssh-tunnel.sh"))
   })
@@ -87,8 +88,4 @@ resource "null_resource" "ssh-tunnel" {
   depends_on = [
     null_resource.ssh-tunnel-templates
   ]
-}
-
-output "ssh_keys" {
-  value = tls_private_key.ssh
 }

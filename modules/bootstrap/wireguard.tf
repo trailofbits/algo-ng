@@ -1,61 +1,80 @@
 resource "x25519_private_key" "wg_client" {
-  for_each = toset(var.config.vpn_users)
+  for_each = local.wg_users
 }
 
-resource "x25519_private_key" "wg_server" {}
+resource "x25519_private_key" "wg_server" {
+  count = var.algo_config.wireguard.enabled ? 1 : 0
+}
 
 resource "x25519_private_key" "wg_peers_psk" {
-  for_each = toset(var.config.vpn_users)
+  for_each = local.wg_users
 }
 
 resource "random_integer" "ip_user_seed" {
-  for_each = toset(var.config.vpn_users)
+  for_each = local.wg_users
   min      = 2
-  max      = var.config.wireguard.max_hosts
+  max      = local.wg_max_hosts
   seed     = each.key
 }
 
 locals {
+  wg_max_hosts   = pow(2, 32 - split("/", var.algo_config.wireguard.ipv4)[1]) - 3
+  wg_users       = var.algo_config.wireguard.enabled ? local.users : {}
+  wg_port_actual = 51820
+  wg_ports_avoid = [53]
+
   wg_server_ip = {
-    ipv4 = "${cidrhost(var.config.wireguard.ipv4, 1)}/32"
-    ipv6 = "${cidrhost(var.config.wireguard.ipv6, 1)}/128"
+    ipv4 = "${cidrhost(var.algo_config.wireguard.ipv4, 1)}/32"
+    ipv6 = "${cidrhost(var.algo_config.wireguard.ipv6, 1)}/128"
   }
 
-  wg_peers = [
-    for user in var.config.vpn_users : {
+  wg_peers_ip = {
+    for u in var.algo_config.users : u => {
+      ipv4 = cidrhost(var.algo_config.wireguard.ipv4, random_integer.ip_user_seed[u].result)
+      ipv6 = cidrhost(var.algo_config.wireguard.ipv6, random_integer.ip_user_seed[u].result)
+    }
+  }
+
+  wg_server_peers = try([
+    for user in local.wg_users : {
       User         = user
       PublicKey    = x25519_private_key.wg_client[user].public_key
       PresharedKey = x25519_private_key.wg_peers_psk[user].private_key
       AllowedIPs = {
-        ipv4 = "${cidrhost(var.config.wireguard.ipv4, random_integer.ip_user_seed[user].result)}/32",
-        ipv6 = "${cidrhost(var.config.wireguard.ipv6, random_integer.ip_user_seed[user].result)}/128"
+        ipv4 = "${local.wg_peers_ip[user].ipv4}/32",
+        ipv6 = "${local.wg_peers_ip[user].ipv6}/128"
       }
     }
-  ]
+  ], [])
 
-  wg0_conf = templatefile(
+  wg0_conf = try(templatefile(
     "${path.module}/templates/wireguard/wg0.conf", {
-      Address    = local.wg_server_ip
-      ListenPort = contains(var.wg_ports_avoid, var.config.wireguard.port) ? var.wg_port_actual : var.config.wireguard.port
-      PrivateKey = x25519_private_key.wg_server.private_key
-      Peers      = local.wg_peers
-      ipv6       = var.config.local.cloud.ipv6
+      Address = local.wg_server_ip
+      ListenPort = contains(
+        local.wg_ports_avoid, var.algo_config.wireguard.port
+      ) ? local.wg_port_actual : var.algo_config.wireguard.port
+
+      PrivateKey = try(x25519_private_key.wg_server.0.private_key, null)
+      Peers      = local.wg_server_peers
+      ipv6       = var.cloud_config.ipv6
       Subnets = {
-        ipv4 = var.config.wireguard.ipv4
-        ipv6 = var.config.wireguard.ipv6
+        ipv4 = var.algo_config.wireguard.ipv4
+        ipv6 = var.algo_config.wireguard.ipv6
       }
     }
-  )
+  ), null)
 }
 
 resource "null_resource" "wireguard-script" {
+  count = var.algo_config.wireguard.enabled ? 1 : 0
+
   connection {
     type        = "ssh"
-    host        = var.config.local.server_address
-    port        = 22
-    user        = var.config.local.ssh_user
-    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
+    port        = 22
+    host        = var.cloud_config.server_ip
+    user        = var.cloud_config.ssh_user
+    private_key = var.ssh_key.private
   }
 
   triggers = var.triggers
@@ -77,13 +96,15 @@ resource "null_resource" "wireguard-script" {
 }
 
 resource "null_resource" "wireguard-config" {
+  count = var.algo_config.wireguard.enabled ? 1 : 0
+
   connection {
     type        = "ssh"
-    host        = var.config.local.server_address
-    port        = 22
-    user        = var.config.local.ssh_user
-    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
+    port        = 22
+    host        = var.cloud_config.server_ip
+    user        = var.cloud_config.ssh_user
+    private_key = var.ssh_key.private
   }
 
   triggers = merge(var.triggers,
@@ -104,18 +125,4 @@ resource "null_resource" "wireguard-config" {
   depends_on = [
     null_resource.wireguard-script
   ]
-}
-
-output "wireguard_config" {
-  value = {
-    keys = {
-      clients   = x25519_private_key.wg_client
-      peers_psk = x25519_private_key.wg_peers_psk
-      server    = x25519_private_key.wg_server
-    }
-    ip_seeds = random_integer.ip_user_seed
-    server = {
-      ip = local.wg_server_ip
-    }
-  }
 }

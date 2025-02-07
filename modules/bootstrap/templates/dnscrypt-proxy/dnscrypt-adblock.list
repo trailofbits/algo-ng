@@ -1,1 +1,1 @@
-${join("\n", dns.adblocking.lists)}
+${join("\n", algo_config.dns.adblocking.lists)}

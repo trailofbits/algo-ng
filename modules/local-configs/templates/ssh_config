@@ -5,3 +5,4 @@ Host algo
   IdentityFile ${user}.pem
   User ${user}
   Hostname ${server_address}
+  SessionType none

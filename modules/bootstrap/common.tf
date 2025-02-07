@@ -1,12 +1,15 @@
+locals {
+  users = { for u in var.algo_config.users : u => u }
+}
 
 resource "null_resource" "common-init" {
   connection {
     type        = "ssh"
-    host        = var.config.local.server_address
-    port        = 22
-    user        = var.config.local.ssh_user
-    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
+    port        = 22
+    host        = var.cloud_config.server_ip
+    user        = var.cloud_config.ssh_user
+    private_key = var.ssh_key.private
   }
 
   triggers = merge(var.triggers, {
@@ -15,7 +18,7 @@ resource "null_resource" "common-init" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo bash -c 'mkdir -p /opt/algo/{scripts,configs}/{wireguard,dnscrypt-proxy,common,ssh-tunnel}'",
+      "sudo bash -c 'mkdir -p /opt/algo/{scripts,configs}/{strongswan,wireguard,dnscrypt-proxy,common,ssh-tunnel}'",
       "sudo bash -c 'chown -R $SUDO_USER /opt/algo'"
     ]
   }
@@ -31,11 +34,11 @@ resource "null_resource" "common-templates" {
 
   connection {
     type        = "ssh"
-    host        = var.config.local.server_address
-    port        = 22
-    user        = var.config.local.ssh_user
-    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
+    port        = 22
+    host        = var.cloud_config.server_ip
+    user        = var.cloud_config.ssh_user
+    private_key = var.ssh_key.private
   }
 
   triggers = merge(var.triggers, {
@@ -43,20 +46,19 @@ resource "null_resource" "common-templates" {
   })
 
   provisioner "file" {
-    content = templatefile("${path.module}/templates/common/${each.value}", merge(
-      var.config, {
-        local = {
-          wg_server_ip   = local.wg_server_ip
-          wg_port_actual = var.wg_port_actual
-          wg_ports_avoid = var.wg_ports_avoid
+    content = templatefile("${path.module}/templates/common/${each.value}", {
+      wg_server_ip   = local.wg_server_ip
+      wg_port_actual = local.wg_port_actual
+      wg_ports_avoid = local.wg_ports_avoid
+      algo_config    = var.algo_config
 
-          subnets = {
-            ipv4 = [var.config.wireguard.ipv4]
-            ipv6 = [var.config.wireguard.ipv6]
-          }
-        }
+      subnets = {
+        ipv4 = [var.algo_config.wireguard.ipv4]
+        ipv6 = [var.algo_config.wireguard.ipv6]
       }
-    ))
+
+      init = var.init_config
+    })
     destination = "/opt/algo/configs/common/${each.value}"
   }
 
@@ -68,11 +70,11 @@ resource "null_resource" "common-templates" {
 resource "null_resource" "common" {
   connection {
     type        = "ssh"
-    host        = var.config.local.server_address
-    port        = 22
-    user        = var.config.local.ssh_user
-    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
+    port        = 22
+    host        = var.cloud_config.server_ip
+    user        = var.cloud_config.ssh_user
+    private_key = var.ssh_key.private
   }
 
   triggers = merge(var.triggers, {

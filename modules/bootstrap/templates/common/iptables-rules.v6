@@ -25,15 +25,15 @@ COMMIT
 :PREROUTING ACCEPT [0:0]
 :POSTROUTING ACCEPT [0:0]
 
-%{ if contains(local.wg_ports_avoid , wireguard.port)}
+%{ if contains(wg_ports_avoid , algo_config.wireguard.port)}
 # Handle the special case of allowing access to WireGuard over an already used
 # port like 53
--A PREROUTING -s ${join(",", local.subnets.ipv4)} -p udp --dport ${wireguard.port} -j RETURN
--A PREROUTING ! --in-interface wg0 -p udp --dport ${wireguard.port} -j REDIRECT --to-port ${ local.wg_port_actual }
+-A PREROUTING -s ${join(",", subnets.ipv4)} -p udp --dport ${algo_config.wireguard.port} -j RETURN
+-A PREROUTING ! --in-interface wg0 -p udp --dport ${algo_config.wireguard.port} -j REDIRECT --to-port ${ wg_port_actual }
 %{ endif }
 
 # Allow traffic from the VPN network to the outside world, and replies
--A POSTROUTING -s ${join(",", local.subnets.ipv6)} -m policy --pol none --dir out -j MASQUERADE
+-A POSTROUTING -s ${join(",", subnets.ipv6)} -m policy --pol none --dir out -j MASQUERADE
 
 
 COMMIT
@@ -73,7 +73,7 @@ COMMIT
 -A INPUT -p icmpv6 --icmpv6-type echo-request -m hashlimit --hashlimit-upto 5/s --hashlimit-mode srcip --hashlimit-srcmask 32 --hashlimit-name icmp-echo-drop -j ACCEPT
 
 # Accept VPN traffic
--A INPUT -p udp -m multiport --dports ${wireguard.port},${ local.wg_port_actual } -j ACCEPT
+-A INPUT -p udp -m multiport --dports ${algo_config.wireguard.port},${ wg_port_actual } -j ACCEPT
 
 # Allow new SSH traffic
 -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW -j ACCEPT
@@ -93,25 +93,25 @@ COMMIT
 # particular virtual (tun,tap,...) or physical (ethernet) interface.
 
 # Accept DNS traffic to the local DNS resolver
--A INPUT -d ${local.wg_server_ip.ipv6} -p udp --dport 53 -j ACCEPT
+-A INPUT -d ${init.service_ip.ipv6} -p udp --dport 53 -j ACCEPT
 
 # Drop traffic between VPN clients
--A FORWARD -s ${join(",", local.subnets.ipv6)} -d ${join(",", local.subnets.ipv6)} -j %{if block_traffic_between_clients}DROP%{else}ACCEPT%{endif}
+-A FORWARD -s ${join(",", subnets.ipv6)} -d ${join(",", subnets.ipv6)} -j %{if algo_config.block_traffic_between_clients}DROP%{else}ACCEPT%{endif}
 
 # Drop traffic to VPN clients from SSH tunnels
--A OUTPUT -d ${join(",", local.subnets.ipv6)} -m owner --gid-owner 15000 -j %{if block_traffic_between_clients}DROP%{else}ACCEPT%{endif}
+-A OUTPUT -d ${join(",", subnets.ipv6)} -m owner --gid-owner 15000 -j %{if algo_config.block_traffic_between_clients}DROP%{else}ACCEPT%{endif}
 
 -A FORWARD -j ICMPV6-CHECK
--A FORWARD -p tcp --dport 445 -j %{if block_smb}DROP%{else}ACCEPT%{endif}
--A FORWARD -p udp -m multiport --ports 137,138 -j %{if block_smb}DROP%{else}ACCEPT%{endif}
--A FORWARD -p tcp -m multiport --ports 137,139 -j %{if block_smb}DROP%{else}ACCEPT%{endif}
+-A FORWARD -p tcp --dport 445 -j %{if algo_config.block_smb}DROP%{else}ACCEPT%{endif}
+-A FORWARD -p udp -m multiport --ports 137,138 -j %{if algo_config.block_smb}DROP%{else}ACCEPT%{endif}
+-A FORWARD -p tcp -m multiport --ports 137,139 -j %{if algo_config.block_smb}DROP%{else}ACCEPT%{endif}
 
 -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 # {% if ipsec_enabled %}
 # -A FORWARD -m conntrack --ctstate NEW -s {{ strongswan_network_ipv6 }} -m policy --pol ipsec --dir in -j ACCEPT
 # {% endif %}
 # {% if wireguard_enabled %}
--A FORWARD -m conntrack --ctstate NEW -s ${ wireguard.ipv6 } -m policy --pol none --dir in -j ACCEPT
+-A FORWARD -m conntrack --ctstate NEW -s ${ algo_config.wireguard.ipv6 } -m policy --pol none --dir in -j ACCEPT
 # {% endif %}
 
 # Use the ICMPV6-CHECK chain, described above

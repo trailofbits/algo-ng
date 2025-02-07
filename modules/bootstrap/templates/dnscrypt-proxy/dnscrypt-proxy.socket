@@ -6,11 +6,11 @@ Wants=nss-lookup.target
 Wants=dnscrypt-proxy-resolvconf.service
 
 [Socket]
-ListenStream=${cidrhost(wireguard.ipv4, 1)}:53
-ListenDatagram=${cidrhost(wireguard.ipv4, 1)}:53
-%{ if local.cloud.ipv6 ~}
-ListenStream=[${cidrhost(wireguard.ipv6, 1)}]:53
-ListenDatagram=[${cidrhost(wireguard.ipv6, 1)}]:53
+ListenStream=${service_ip.ipv4}:53
+ListenDatagram=${service_ip.ipv4}:53
+%{ if cloud_config.ipv6 ~}
+ListenStream=[${service_ip.ipv6}:53]
+ListenDatagram=[${service_ip.ipv6}:53]
 %{ endif }
 NoDelay=true
 DeferAcceptSec=1

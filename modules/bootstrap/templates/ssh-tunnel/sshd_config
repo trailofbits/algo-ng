@@ -1,12 +1,3 @@
-PermitRootLogin without-password
-PasswordAuthentication no
-ChallengeResponseAuthentication no
-UsePAM yes
-X11Forwarding yes
-PrintMotd no
-AcceptEnv LANG LC_*
-Subsystem	sftp	/usr/lib/openssh/sftp-server
-UseDNS no
 Match Group algo-ssh-tunnel
     PermitTTY no
     ForceCommand /sbin/nologin
@@ -16,5 +7,5 @@ Match Group algo-ssh-tunnel
     AllowStreamLocalForwarding no
     PermitTunnel no
     X11Forwarding no
-    AuthorizedKeysCommand /usr/bin/grep -oP "^%u::\Kecdsa-sha2-nistp384.*$" /opt/algo/configs/ssh-tunnel/authorized_keys
+    AuthorizedKeysCommand /usr/bin/grep -oP "^%u::\Kssh-ed25519.*$" /opt/algo/configs/ssh-tunnel/authorized_keys
     AuthorizedKeysCommandUser nobody

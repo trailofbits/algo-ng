@@ -1,1 +1,1 @@
-${join(",", vpn_users)}
+${join(",", users)}

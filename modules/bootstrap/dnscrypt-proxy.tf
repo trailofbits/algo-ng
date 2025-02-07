@@ -1,25 +1,35 @@
 resource "null_resource" "dnscrypt-template" {
   for_each = {
     for k, v in toset(fileset("${path.module}/templates/dnscrypt-proxy/", "*")) : k => v
-    if var.config.dns.encryption.enabled
+    if var.algo_config.dns.encryption.enabled
   }
 
   connection {
     type        = "ssh"
-    host        = var.config.local.server_address
-    port        = 22
-    user        = var.config.local.ssh_user
-    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
+    port        = 22
+    host        = var.cloud_config.server_ip
+    user        = var.cloud_config.ssh_user
+    private_key = var.ssh_key.private
   }
 
   triggers = merge(var.triggers, {
-    dns      = md5(jsonencode(var.config.dns))
-    template = md5(jsonencode(templatefile("${path.module}/templates/dnscrypt-proxy/${each.value}", var.config)))
+    dns = md5(jsonencode(var.algo_config.dns))
+    template = md5(jsonencode(templatefile("${path.module}/templates/dnscrypt-proxy/${each.value}",
+      {
+        cloud_config = var.cloud_config
+        algo_config  = var.algo_config
+        service_ip   = var.init_config.service_ip
+      })
+    ))
   })
 
   provisioner "file" {
-    content     = templatefile("${path.module}/templates/dnscrypt-proxy/${each.value}", var.config)
+    content = templatefile("${path.module}/templates/dnscrypt-proxy/${each.value}", {
+      cloud_config = var.cloud_config
+      algo_config  = var.algo_config
+      service_ip   = var.init_config.service_ip
+    })
     destination = "/opt/algo/configs/dnscrypt-proxy/${each.value}"
   }
 
@@ -29,19 +39,19 @@ resource "null_resource" "dnscrypt-template" {
 }
 
 resource "null_resource" "dnscrypt-script" {
-  count = var.config.dns.encryption.enabled ? 1 : 0
+  count = var.algo_config.dns.encryption.enabled ? 1 : 0
 
   connection {
     type        = "ssh"
-    host        = var.config.local.server_address
-    port        = 22
-    user        = var.config.local.ssh_user
-    private_key = var.config.local.ssh_private_key
     timeout     = "30m"
+    port        = 22
+    host        = var.cloud_config.server_ip
+    user        = var.cloud_config.ssh_user
+    private_key = var.ssh_key.private
   }
 
   triggers = merge(var.triggers, {
-    dns       = md5(jsonencode(var.config.dns))
+    dns       = md5(jsonencode(var.algo_config.dns))
     templates = md5(jsonencode({ for k, v in null_resource.dnscrypt-template : k => v.id }))
     script    = md5(file("${path.module}/scripts/dnscrypt-proxy.sh"))
   })

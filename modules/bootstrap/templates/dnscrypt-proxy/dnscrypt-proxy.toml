@@ -29,8 +29,8 @@
 
 # Allow either list to be empty. Output nothing if both are empty. #
 server_names = [
-  '${join(", ", dns.encryption.servers.ipv4)}'
-  %{ if local.cloud.ipv6 ~},'${join(", ", dns.encryption.servers.ipv6)}'%{ endif ~}
+  '${join(", ", algo_config.dns.encryption.servers.ipv4)}'
+  %{ if cloud_config.ipv6 ~},'${join(", ", algo_config.dns.encryption.servers.ipv6)}'%{ endif ~}
   ]
 
 
@@ -257,7 +257,7 @@ log_files_max_backups = 1
 ## Do not enable if you added a validating resolver such as dnsmasq in front
 ## of the proxy.
 
-block_ipv6 = %{ if local.cloud.ipv6 ~} false %{else} true %{ endif }
+block_ipv6 = %{ if cloud_config.ipv6 ~} false %{else} true %{ endif }
 
 
 
@@ -390,7 +390,7 @@ cache_neg_max_ttl = 600
 
   ## Path to the file of blocking rules (absolute, or relative to the same directory as the executable file)
 
-  %{ if dns.adblocking.enabled ~}blacklist_file = 'blacklist.txt'%{ endif ~}
+  %{ if algo_config.dns.adblocking.enabled ~}blacklist_file = 'blacklist.txt'%{ endif ~}
 
 
   ## Optional path to a file logging blocked queries
