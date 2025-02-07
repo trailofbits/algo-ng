@@ -21,6 +21,8 @@ variable "state_passphrase" {
     You must securely record or remember this passphrase, as it is required for future server changes, such as updating users or destroying the server.
   EOT
 
+  default   = null
+  nullable  = true
   sensitive = true
   type      = string
 }
