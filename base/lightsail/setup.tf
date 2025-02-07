@@ -1,1 +1,0 @@
-../../resources/setup.tf

@@ -1,1 +1,0 @@
-../../resources/config.auto.tfvars

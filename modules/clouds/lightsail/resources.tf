@@ -2,27 +2,48 @@ locals {
   tags = {
     App       = "AlgoVPN"
     Workspace = terraform.workspace
-    DeployID  = var.config.deploy_id
+    DeployID  = var.deploy_id
   }
+
+  cloud_config = var.algo_config.clouds["lightsail"]
+
+  wireguard_ports = [{
+    "port" : var.algo_config.wireguard.port,
+    "protocol" = "udp"
+  }]
+
+  ipsec_ports = [{
+    "port" : 500,
+    "protocol" = "udp"
+    },
+    {
+      "port" : 4500,
+      "protocol" = "udp"
+  }]
+
+  vpn_ports = concat(
+    var.algo_config.wireguard.enabled ? local.wireguard_ports : [],
+    var.algo_config.ipsec.enabled ? local.ipsec_ports : [],
+  )
 }
 
 resource "aws_lightsail_key_pair" "main" {
-  name       = "algo-key-${var.config.deploy_id}"
-  public_key = var.config.ssh_public_key
+  name       = "algo-key-${var.deploy_id}"
+  public_key = var.ssh_key.public
 }
 
 resource "aws_lightsail_instance" "main" {
-  name              = "algo-vpn-${var.config.deploy_id}"
-  availability_zone = var.config.cloud.availability_zone
-  blueprint_id      = var.config.cloud.image
-  bundle_id         = var.config.cloud.size
-  user_data         = var.config.user_data.script
+  name              = "algo-vpn-${var.deploy_id}"
+  availability_zone = local.cloud_config.availability_zone
+  blueprint_id      = local.cloud_config.image
+  bundle_id         = local.cloud_config.size
+  user_data         = var.user_data.script
   key_pair_name     = aws_lightsail_key_pair.main.name
   tags              = local.tags
 }
 
 resource "aws_lightsail_static_ip" "main" {
-  name = "algo-ip-${var.config.deploy_id}"
+  name = "algo-ip-${var.deploy_id}"
 }
 
 resource "aws_lightsail_static_ip_attachment" "main" {
@@ -34,20 +55,16 @@ resource "aws_lightsail_instance_public_ports" "main" {
   instance_name = aws_lightsail_instance.main.name
 
   dynamic "port_info" {
-    for_each = [
+    for_each = concat([
       {
         "port" : 22
         "protocol" = "tcp"
       },
       {
-        "port" : var.config.tfvars.wireguard.port,
-        "protocol" = "udp"
-      },
-      {
         "port" : 0
         "protocol" = "icmp"
       }
-    ]
+    ], local.vpn_ports)
 
     content {
       cidrs     = ["0.0.0.0/0"]

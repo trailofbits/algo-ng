@@ -128,18 +128,6 @@ clouds:
     project: "algo-140311" # gcloud projects list
     network_tier: "STANDARD"
 
-  scaleway:
-    image: "ubuntu_focal"
-    size: "DEV1-S"
-    region: "fr-par"
-    ipv6: true
-
-  hetzner:
-    image: "ubuntu-20.04"
-    size: "cx11"
-    region: "hel1"
-    ipv6: true
-
   local-server:
     # Local installation can break your server, use at your own risk
     ip: "3.65.207.122"

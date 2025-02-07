@@ -1,5 +1,3 @@
-variable "config" {}
-
 # variable "ondemand_cellular" {
 #   default     = false
 #   description = <<-EOF

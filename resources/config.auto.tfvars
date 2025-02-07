@@ -14,10 +14,6 @@ config = {
     ipv6    = "2001:db8:a160::/48"
     port    = 51820
 
-    # should be consistent with the ipv4 max hosts
-    # `ipcalc 10.49.0.0/16` - 1
-    max_hosts = 65533
-
     # If you're behind NAT or a firewall and you want to receive incoming connections long after network traffic has gone silent.
     # This option will keep the "connection" open in the eyes of NAT.
     # See: https://www.wireguard.com/quickstart/#nat-and-firewall-traversal-persistence
@@ -34,7 +30,7 @@ config = {
   reduce_mtu = 0
 
   ssh_tunneling = {
-    enabled = true
+    enabled = false
   }
 
   dns = {
