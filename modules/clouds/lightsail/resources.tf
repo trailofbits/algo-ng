@@ -5,7 +5,7 @@ locals {
     DeployID  = var.deploy_id
   }
 
-  cloud_config = var.algo_config.clouds["lightsail"]
+  cloud_config = var.algo_config.clouds.lightsail
 
   wireguard_ports = [{
     "port" : var.algo_config.wireguard.port,
