@@ -93,9 +93,9 @@ unattended_reboot:
 
 clouds:
   digitalocean:
-    image: "ubuntu-20-04-x64"
+    image: "ubuntu-24-04-x64"
     size: "s-1vcpu-1gb"
-    region: "fra1"
+    region: "sfo2"
     ipv6: true
 
   ec2:

@@ -60,3 +60,41 @@ output "congrats" {
   }
   sensitive = false
 }
+
+variable "state_passphrase" {
+  description = <<-EOT
+    Passphrase used to encrypt sensitive data. Must be at least 16 characters long.
+    You must securely record or remember this passphrase, as it is required for future server changes, such as updating users or destroying the server.
+  EOT
+
+  default   = null
+  nullable  = true
+  sensitive = true
+  type      = string
+}
+
+terraform {
+  encryption {
+    key_provider "pbkdf2" "default" {
+      passphrase    = var.state_passphrase
+      key_length    = 32
+      salt_length   = 32
+      hash_function = "sha512"
+      iterations    = 600000
+    }
+
+    method "aes_gcm" "default" {
+      keys = key_provider.pbkdf2.default
+    }
+
+    state {
+      method   = method.aes_gcm.default
+      enforced = true
+    }
+
+    plan {
+      method   = method.aes_gcm.default
+      enforced = true
+    }
+  }
+}

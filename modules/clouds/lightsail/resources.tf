@@ -28,7 +28,7 @@ locals {
 }
 
 resource "aws_lightsail_key_pair" "main" {
-  name       = "algo-key-${var.deploy_id}"
+  name       = "algo-vpn-${var.deploy_id}"
   public_key = var.ssh_key.public
 }
 
