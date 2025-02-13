@@ -112,12 +112,14 @@ clouds:
     availability_zone: "us-west-2a"
     ipv6: true
 
-  # azure:
-  #   offer: "0001-com-ubuntu-server-focal"
-  #   image: "20_04-lts-gen2"
-  #   size: "Standard_B1ls"
-  #   location: "eastus"
-  #   ipv6: true
+  # az login
+  azure:
+    offer: "0001-com-ubuntu-server-jammy"
+    image: "22_04-lts-gen2"
+    size: "Standard_B1ls"
+    location: "westus"
+    ipv6: true
+    subscription_id: "daae9f1a-4a8f-4297-a4bd-9ddeb08bc471"
 
   # gcloud auth login && gcloud auth application-default login
   gce:

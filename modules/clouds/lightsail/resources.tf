@@ -43,7 +43,7 @@ resource "aws_lightsail_instance" "main" {
 }
 
 resource "aws_lightsail_static_ip" "main" {
-  name = "algo-ip-${var.deploy_id}"
+  name = "algo-vpn-${var.deploy_id}"
 }
 
 resource "aws_lightsail_static_ip_attachment" "main" {
