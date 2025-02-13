@@ -119,14 +119,13 @@ clouds:
   #   location: "eastus"
   #   ipv6: true
 
-  # # gcloud auth login
-  # gce:
-  #   image: "ubuntu-os-cloud/ubuntu-2004-lts"
-  #   size: "f1-micro"
-  #   region: "us-west2"
-  #   ipv6: true                # https://cloud.google.com/vpc/docs/vpc#ipv6-regions
-  #   project: "algo-140311"    # gcloud projects list
-  #   network_tier: "STANDARD"
+  # gcloud auth login && gcloud auth application-default login
+  gce:
+    image: "ubuntu-2404-lts-amd64"
+    size: "e2-micro"
+    region: "us-west1"
+    ipv6: true                # https://cloud.google.com/vpc/docs/vpc#ipv6-regions
+    project: "algo-140311"    # gcloud projects list
 
   # local-server:
   #   # Local installation can break your server, use at your own risk

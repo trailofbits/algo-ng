@@ -19,3 +19,5 @@ ln -sf /opt/algo/configs/dnscrypt-proxy/adblock-cron /etc/cron.d/adblock-cron
 
 systemctl enable dnscrypt-proxy dnscrypt-proxy.socket
 systemctl restart dnscrypt-proxy dnscrypt-proxy.socket
+
+systemctl disable --now dnscrypt-proxy-resolvconf.service
