@@ -73,28 +73,28 @@ variable "state_passphrase" {
   type      = string
 }
 
-# terraform {
-#   encryption {
-#     key_provider "pbkdf2" "default" {
-#       passphrase    = var.state_passphrase
-#       key_length    = 32
-#       salt_length   = 32
-#       hash_function = "sha512"
-#       iterations    = 600000
-#     }
+terraform {
+  encryption {
+    key_provider "pbkdf2" "default" {
+      passphrase    = var.state_passphrase
+      key_length    = 32
+      salt_length   = 32
+      hash_function = "sha512"
+      iterations    = 600000
+    }
 
-#     method "aes_gcm" "default" {
-#       keys = key_provider.pbkdf2.default
-#     }
+    method "aes_gcm" "default" {
+      keys = key_provider.pbkdf2.default
+    }
 
-#     state {
-#       method   = method.aes_gcm.default
-#       enforced = true
-#     }
+    state {
+      method   = method.aes_gcm.default
+      enforced = true
+    }
 
-#     plan {
-#       method   = method.aes_gcm.default
-#       enforced = true
-#     }
-#   }
-# }
+    plan {
+      method   = method.aes_gcm.default
+      enforced = true
+    }
+  }
+}

@@ -114,12 +114,12 @@ clouds:
 
   # az login
   azure:
-    offer: "0001-com-ubuntu-server-jammy"
-    image: "22_04-lts-gen2"
+    offer: "ubuntu-24_04-lts"
+    image: "server"
     size: "Standard_B1ls"
     location: "westus"
     ipv6: true
-    subscription_id: "daae9f1a-4a8f-4297-a4bd-9ddeb08bc471"
+    subscription_id: "00000000-0000-0000-0000-0000000000" # az account list
 
   # gcloud auth login && gcloud auth application-default login
   gce:
