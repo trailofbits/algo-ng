@@ -1,0 +1,11 @@
+Match Group algo-ssh-tunnel
+    PermitTTY no
+    ForceCommand /sbin/nologin
+    ChrootDirectory /%h
+    AllowTcpForwarding local
+    AllowAgentForwarding no
+    AllowStreamLocalForwarding no
+    PermitTunnel no
+    X11Forwarding no
+    AuthorizedKeysCommand /usr/bin/grep -oP "^%u::\Kssh-ed25519.*$" /opt/algo/configs/ssh-tunnel/authorized_keys
+    AuthorizedKeysCommandUser nobody

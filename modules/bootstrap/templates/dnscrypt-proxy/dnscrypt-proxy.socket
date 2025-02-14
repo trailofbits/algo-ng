@@ -1,0 +1,19 @@
+[Unit]
+Description=dnscrypt-proxy listening socket
+Documentation=https://github.com/DNSCrypt/dnscrypt-proxy/wiki
+Before=nss-lookup.target
+Wants=nss-lookup.target
+Wants=dnscrypt-proxy-resolvconf.service
+
+[Socket]
+ListenStream=${service_ip.ipv4}:53
+ListenDatagram=${service_ip.ipv4}:53
+%{ if cloud_config.ipv6 ~}
+ListenStream=[${service_ip.ipv6}:53]
+ListenDatagram=[${service_ip.ipv6}:53]
+%{ endif }
+NoDelay=true
+DeferAcceptSec=1
+
+[Install]
+WantedBy=sockets.target
