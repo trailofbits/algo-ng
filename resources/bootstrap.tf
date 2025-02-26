@@ -61,18 +61,6 @@ output "congrats" {
   sensitive = false
 }
 
-variable "state_passphrase" {
-  description = <<-EOT
-    Passphrase used to encrypt sensitive data. Must be at least 16 characters long.
-    You must securely record or remember this passphrase, as it is required for future server changes, such as updating users or destroying the server.
-  EOT
-
-  default   = null
-  nullable  = true
-  sensitive = true
-  type      = string
-}
-
 terraform {
   encryption {
     key_provider "pbkdf2" "default" {
@@ -97,4 +85,46 @@ terraform {
       enforced = true
     }
   }
+}
+
+variable "state_passphrase" {
+  description = <<-EOT
+    Passphrase used to encrypt sensitive data. Must be at least 16 characters long.
+    You must securely record or remember this passphrase, as it is required for future server changes, such as updating users or destroying the server.
+  EOT
+
+  default   = null
+  nullable  = true
+  sensitive = true
+  type      = string
+}
+
+variable "ondemand_cellular" {
+  description = "Enable 'Connect On Demand' when connected to cellular networks"
+  type        = bool
+  default     = false
+}
+
+variable "ondemand_wifi" {
+  description = "Enable 'Connect On Demand' when connected to Wi-Fi"
+  type        = bool
+  default     = false
+}
+
+variable "ondemand_wifi_exclude" {
+  description = "Trusted Wi-Fi networks where 'Connect On Demand' should be disabled (comma-separated)"
+  type        = list(string)
+  default     = []
+}
+
+variable "dns_adblocking" {
+  description = "Enable DNS ad blocking"
+  type        = bool
+  default     = false
+}
+
+variable "ssh_tunneling" {
+  description = "Enable SSH tunneling"
+  type        = bool
+  default     = false
 }

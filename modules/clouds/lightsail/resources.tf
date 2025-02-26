@@ -28,7 +28,7 @@ locals {
 }
 
 resource "aws_lightsail_key_pair" "main" {
-  name       = "algo-vpn-${var.deploy_id}"
+  name       = "algo-vpn-key-${var.deploy_id}"
   public_key = var.ssh_key.public
 }
 
@@ -43,7 +43,7 @@ resource "aws_lightsail_instance" "main" {
 }
 
 resource "aws_lightsail_static_ip" "main" {
-  name = "algo-vpn-${var.deploy_id}"
+  name = "algo-vpn-ip-${var.deploy_id}"
 }
 
 resource "aws_lightsail_static_ip_attachment" "main" {

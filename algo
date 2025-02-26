@@ -19,28 +19,37 @@ def get_user_input(prompt, choices=None, default=None, boolean=False, cli_value=
         if secret:
             response = getpass.getpass(prompt + "\n> ")
         else:
-            response = input(f"{prompt}\n> ")
+            response = input(f"{prompt}\n> ").strip()
 
-        if response.strip():
-            if min_length and len(response.strip()) < min_length:
+        if response:
+            if min_length and len(response) < min_length:
                 print(f"Input must be at least {min_length} characters long.")
                 continue
             if choices:
                 try:
-                    index = int(response.strip()) - 1
+                    index = int(response) - 1
                     if 0 <= index < len(choices):
+                        print(f"Selected: {choices[index]}")
                         return choices[index]
                 except ValueError:
                     pass
             if boolean:
-                return response.strip().lower() in ['y', 'yes']
-            return response.strip()
+                selected_value = response.lower() in ['y', 'yes']
+                print(f"Selected: {'Yes' if selected_value else 'No'}")
+                return selected_value
+            print(f"Selected: {response}")
+            return response
 
         elif default is not None:
+            if not secret:
+                if boolean:
+                    print(f"Selected: {'Yes' if default.lower() in ['y', 'yes'] else 'No'}")
+                else:
+                    print(f"Selected: {default}")
             return default if not boolean else default.lower() in ['y', 'yes']
 
 def select_workspace(cli_workspace=None):
-    """Lists available Tofu workspaces, prompts user for selection, and switches if needed."""
+    """Lists available Tofu workspaces, prompts user for selection, and switches or creates a new one if needed."""
     result = subprocess.run(["tofu", "workspace", "list"], capture_output=True, text=True)
     raw_workspaces = result.stdout.splitlines()
 
@@ -63,22 +72,27 @@ def select_workspace(cli_workspace=None):
         selected_workspace = cli_workspace
     else:
         print("\nAvailable Workspaces:")
-        selected_workspace = get_user_input("Select a workspace:", choices=workspaces)
+        selected_workspace = get_user_input("Select a workspace or enter a new name to create one:",
+                                            choices=workspaces, default=f"{current_workspace} (current)")
 
     selected_workspace = selected_workspace.replace(" (current)", "").strip()
 
-    if selected_workspace != current_workspace:
-        subprocess.run(["tofu", "workspace", "select", selected_workspace], check=True)
+    if selected_workspace not in [w.replace(" (current)", "").strip() for w in workspaces]:
+        print(f"Workspace '{selected_workspace}' does not exist. Creating a new workspace...")
+        subprocess.run(["tofu", "workspace", "new", selected_workspace], check=True)
+    else:
+        if selected_workspace != current_workspace:
+            subprocess.run(["tofu", "workspace", "select", selected_workspace], check=True)
 
     return selected_workspace
 
 def main():
-    """Manage VPN setup with Terraform (Tofu)."""
+    """Manage VPN setup with OpenTofu."""
     providers = ["DigitalOcean", "Lightsail", "EC2", "GCE", "Azure"]
 
-    parser = argparse.ArgumentParser(description="Manage VPN setup with Terraform (Tofu).")
+    parser = argparse.ArgumentParser(description="Manage VPN setup with OpenTofu.")
     parser.add_argument("--provider", type=str, choices=providers, help="Provider name")
-    parser.add_argument("--workspace", type=str, help="Specify the Tofu workspace")
+    parser.add_argument("--workspace", type=str, help="Specify the workspace")
     parser.add_argument("--destroy", action="store_true", help="Destroy the infrastructure and exit")
     parser.add_argument("--update-users", action="store_true", help="Update VPN users without modifying infrastructure")
     parser.add_argument("--ondemand-cellular", type=str, help="Enable 'Connect On Demand' on cellular? [y/N]")
@@ -93,7 +107,7 @@ def main():
     workspace_name = select_workspace(args.workspace)
 
     # Always ask the user for provider input
-    algo_provider = get_user_input("What provider would you like to use?", choices=providers, cli_value=args.provider)
+    algo_provider = get_user_input("Which provider would you like to use?", choices=providers, cli_value=args.provider)
     algo_provider_lower = algo_provider.lower()
     chdir_option = f"-chdir=base/{algo_provider_lower}/"
 
@@ -109,28 +123,32 @@ def main():
             else:
                 print("Passphrases do not match. Please try again.")
 
-    # If --destroy is provided, run tofu destroy and exit
     if args.destroy:
         destroy_command = ["tofu", chdir_option, "destroy"]
+        print(f"Running: {' '.join(destroy_command)}")
         subprocess.run(destroy_command, check=True, env={**os.environ, "TF_VAR_state_passphrase": state_passphrase})
         return
 
-    # If --update-users is provided, run tofu apply with existing environment and exit
     if args.update_users:
         apply_command = ["tofu", chdir_option, "apply"]
+        print(f"Running: {' '.join(apply_command)}")
         subprocess.run(apply_command, check=True, env={**os.environ, "TF_VAR_state_passphrase": state_passphrase})
         return
 
     # Proceed with normal configuration
-    algo_ondemand_cellular = get_user_input("Enable 'Connect On Demand' on cellular? [y/N]", boolean=True, cli_value=args.ondemand_cellular)
-    algo_ondemand_wifi = get_user_input("Enable 'Connect On Demand' on Wi-Fi? [y/N]", boolean=True, cli_value=args.ondemand_wifi)
+    algo_ondemand_cellular = get_user_input("Enable 'Connect On Demand' on cellular? [y/N]",
+                                            boolean=True, default="N", cli_value=args.ondemand_cellular)
+    algo_ondemand_wifi = get_user_input("Enable 'Connect On Demand' on Wi-Fi? [y/N]",
+                                        boolean=True, default="N", cli_value=args.ondemand_wifi)
 
     algo_ondemand_wifi_exclude = None
     if algo_ondemand_wifi:
         algo_ondemand_wifi_exclude = get_user_input("Enter trusted Wi-Fi networks to exclude (comma-separated):", cli_value=args.ondemand_wifi_exclude)
 
-    algo_dns_adblocking = get_user_input("Enable DNS Ad Blocking? [y/N]", boolean=True, cli_value=args.dns_adblocking)
-    algo_ssh_tunneling = get_user_input("Enable SSH Tunneling? [y/N]", boolean=True, cli_value=args.ssh_tunneling)
+    algo_dns_adblocking = get_user_input("Enable DNS Ad Blocking? [y/N]",
+                                         boolean=True, default="N", cli_value=args.dns_adblocking)
+    algo_ssh_tunneling = get_user_input("Enable SSH Tunneling? [y/N]",
+                                        boolean=True, default="N", cli_value=args.ssh_tunneling)
 
     env_vars = {
         "TF_VAR_ondemand_cellular": str(algo_ondemand_cellular).lower(),
@@ -139,15 +157,26 @@ def main():
         "TF_VAR_ssh_tunneling": str(algo_ssh_tunneling).lower(),
     }
 
+    print("\n=== Configuration Summary ===")
+    print(f"Workspace: {workspace_name}")
+    print(f"Provider: {algo_provider}")
+    print(f"Enable 'Connect On Demand' on cellular: {'Yes' if algo_ondemand_cellular else 'No'}")
+    print(f"Enable 'Connect On Demand' on Wi-Fi: {'Yes' if algo_ondemand_wifi else 'No'}")
     if algo_ondemand_wifi_exclude:
+        print(f"Trusted Wi-Fi networks to exclude: {algo_ondemand_wifi_exclude}")
         env_vars["TF_VAR_ondemand_wifi_exclude"] = algo_ondemand_wifi_exclude
+    print(f"Enable DNS Ad Blocking: {'Yes' if algo_dns_adblocking else 'No'}")
+    print(f"Enable SSH Tunneling: {'Yes' if algo_ssh_tunneling else 'No'}")
+    print("============================\n")
 
-    # Execute Terraform init and apply
-    terraform_command_init = ["tofu", chdir_option, "init"]
-    subprocess.run(terraform_command_init, check=True, env={**os.environ, **env_vars, "TF_VAR_state_passphrase": state_passphrase})
+    # init and apply
+    command_init = ["tofu", chdir_option, "init"]
+    print(f"Running: {' '.join(command_init)}")
+    subprocess.run(command_init, check=True, env={**os.environ, **env_vars, "TF_VAR_state_passphrase": state_passphrase})
 
-    terraform_command_apply = ["tofu", chdir_option, "apply"]
-    subprocess.run(terraform_command_apply, check=True, env={**os.environ, **env_vars, "TF_VAR_state_passphrase": state_passphrase})
+    command_apply = ["tofu", chdir_option, "apply"]
+    print(f"Running: {' '.join(command_apply)}")
+    subprocess.run(command_apply, check=True, env={**os.environ, **env_vars, "TF_VAR_state_passphrase": state_passphrase})
 
 if __name__ == "__main__":
     main()
