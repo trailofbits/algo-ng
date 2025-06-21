@@ -10,9 +10,9 @@
 :OUTPUT ACCEPT [0:0]
 :POSTROUTING ACCEPT [0:0]
 
-# {% if reduce_mtu|int > 0 and ipsec_enabled %}
-# -A FORWARD -s {{ strongswan_network_ipv6 }} -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss {{ 1340 - reduce_mtu|int }}
-# {% endif %}
+%{ if mtu.reduce > 0 && ipsec_enabled }
+-A FORWARD -s ${algo_config.ipsec.ipv6} -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss ${mtu.base - mtu.reduce}
+%{ endif }
 
 COMMIT
 
@@ -107,12 +107,12 @@ COMMIT
 -A FORWARD -p tcp -m multiport --ports 137,139 -j %{if algo_config.block_smb}DROP%{else}ACCEPT%{endif}
 
 -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-# {% if ipsec_enabled %}
-# -A FORWARD -m conntrack --ctstate NEW -s {{ strongswan_network_ipv6 }} -m policy --pol ipsec --dir in -j ACCEPT
-# {% endif %}
-# {% if wireguard_enabled %}
--A FORWARD -m conntrack --ctstate NEW -s ${ algo_config.wireguard.ipv6 } -m policy --pol none --dir in -j ACCEPT
-# {% endif %}
+%{ if ipsec_enabled }
+-A FORWARD -m conntrack --ctstate NEW -s ${algo_config.ipsec.ipv6} -m policy --pol ipsec --dir in -j ACCEPT
+%{ endif }
+%{ if wg_enabled }
+-A FORWARD -m conntrack --ctstate NEW -s ${algo_config.wireguard.ipv6} -m policy --pol none --dir in -j ACCEPT
+%{ endif }
 
 # Use the ICMPV6-CHECK chain, described above
 -A ICMPV6-CHECK -p icmpv6 -m hl ! --hl-eq 255 --icmpv6-type router-solicitation -j ICMPV6-CHECK-LOG

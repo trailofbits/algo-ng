@@ -4,6 +4,12 @@ import argparse
 import os
 import subprocess
 import getpass
+import json
+
+def debug(msg):
+    """Print debug messages only if ALGO_DEBUG=1 is set in the environment."""
+    if os.getenv("ALGO_DEBUG") == "1":
+        print(f"[DEBUG] {msg}")
 
 def get_user_input(prompt, choices=None, default=None, boolean=False, cli_value=None, secret=False, min_length=None):
     """Prompt the user for input and return their response."""
@@ -48,21 +54,26 @@ def get_user_input(prompt, choices=None, default=None, boolean=False, cli_value=
                     print(f"Selected: {default}")
             return default if not boolean else default.lower() in ['y', 'yes']
 
-def select_workspace(cli_workspace=None):
+def select_workspace(cli_workspace=None, chdir_option=""):
     """Lists available Tofu workspaces, prompts user for selection, and switches or creates a new one if needed."""
-    result = subprocess.run(["tofu", "workspace", "list"], capture_output=True, text=True)
-    raw_workspaces = result.stdout.splitlines()
+    result = subprocess.run(["tofu", chdir_option, "workspace", "list"], capture_output=True, text=True)
+    raw_workspaces = [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
     workspaces = []
     current_workspace = None
 
     for line in raw_workspaces:
+        debug(f"Processing line: {line}")
         line = line.strip()
         if line.startswith("* "):
+            debug(f"Found current workspace: {line}")
             current_workspace = line.lstrip("* ").strip()
             workspaces.append(f"{current_workspace} (current)")
         elif line:
+            debug(f"Found workspace: {line}")
             workspaces.append(line)
+
+    debug(f"Found workspaces: {workspaces}")
 
     if not workspaces:
         print("No workspaces found.")
@@ -79,12 +90,31 @@ def select_workspace(cli_workspace=None):
 
     if selected_workspace not in [w.replace(" (current)", "").strip() for w in workspaces]:
         print(f"Workspace '{selected_workspace}' does not exist. Creating a new workspace...")
-        subprocess.run(["tofu", "workspace", "new", selected_workspace], check=True)
+        subprocess.run(["tofu", chdir_option, "workspace", "new", selected_workspace], check=True)
     else:
         if selected_workspace != current_workspace:
-            subprocess.run(["tofu", "workspace", "select", selected_workspace], check=True)
+            subprocess.run(["tofu", chdir_option, "workspace", "select", selected_workspace], check=True)
 
     return selected_workspace
+
+def dump_env_to_tfvars_json(workspace_name, env_vars):
+    """Dump environment variables to a .tfvars.json file."""
+    dir_path = f"configs/{workspace_name}"
+
+    # Remove the 'TF_VAR_' prefix from the keys
+    stripped_env_vars = {key.replace("TF_VAR_", ""): value for key, value in env_vars.items()}
+
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+    tfvars_file = os.path.join(dir_path, "algo.tfvars.json")
+
+    with open(tfvars_file, 'w') as f:
+        json.dump(stripped_env_vars, f, indent=4)
+
+    print(f"Variables have been saved to {tfvars_file}")
+
+    return tfvars_file
 
 def main():
     """Manage VPN setup with OpenTofu."""
@@ -100,19 +130,23 @@ def main():
     parser.add_argument("--ondemand-wifi-exclude", type=str, help="Exclude trusted Wi-Fi networks (comma-separated)")
     parser.add_argument("--dns-adblocking", type=str, help="Enable DNS Ad Blocking? [y/N]")
     parser.add_argument("--ssh-tunneling", type=str, help="Enable SSH Tunneling? [y/N]")
+    parser.add_argument("--state-pass", type=str, help="State passphrase for encryption (optional, will prompt if not set)")
+    parser.add_argument("--skip-init", action="store_true", help="Skip the tofu init and only run apply", default=False)
+    parser.add_argument("--auto-approve", action="store_true", help="Automatically approve changes without prompting for confirmation")
 
     args = parser.parse_args()
-
-    # Select workspace (either from CLI or user input)
-    workspace_name = select_workspace(args.workspace)
 
     # Always ask the user for provider input
     algo_provider = get_user_input("Which provider would you like to use?", choices=providers, cli_value=args.provider)
     algo_provider_lower = algo_provider.lower()
     chdir_option = f"-chdir=base/{algo_provider_lower}/"
+    apply_options = f"-auto-approve" if args.auto_approve else ""
+
+    # Select workspace (either from CLI or user input)
+    workspace_name = select_workspace(args.workspace, chdir_option)
 
     # Check if state passphrase is set
-    state_passphrase = os.getenv("TF_VAR_state_passphrase")
+    state_passphrase = os.getenv("TF_VAR_state_passphrase") or args.state_pass
     if not state_passphrase:
         while True:
             state_passphrase_1 = get_user_input("Enter your Tofu state encryption passphrase (minimum 16 characters):", secret=True, min_length=16)
@@ -144,6 +178,8 @@ def main():
     algo_ondemand_wifi_exclude = None
     if algo_ondemand_wifi:
         algo_ondemand_wifi_exclude = get_user_input("Enter trusted Wi-Fi networks to exclude (comma-separated):", cli_value=args.ondemand_wifi_exclude)
+        if algo_ondemand_wifi_exclude:
+            algo_ondemand_wifi_exclude = [item.strip() for item in algo_ondemand_wifi_exclude.split(',')]
 
     algo_dns_adblocking = get_user_input("Enable DNS Ad Blocking? [y/N]",
                                          boolean=True, default="N", cli_value=args.dns_adblocking)
@@ -157,24 +193,34 @@ def main():
         "TF_VAR_ssh_tunneling": str(algo_ssh_tunneling).lower(),
     }
 
+    # Add the list of excluded Wi-Fi networks if present
+    if algo_ondemand_wifi_exclude:
+        env_vars["TF_VAR_ondemand_wifi_exclude"] = algo_ondemand_wifi_exclude
+
     print("\n=== Configuration Summary ===")
     print(f"Workspace: {workspace_name}")
     print(f"Provider: {algo_provider}")
     print(f"Enable 'Connect On Demand' on cellular: {'Yes' if algo_ondemand_cellular else 'No'}")
     print(f"Enable 'Connect On Demand' on Wi-Fi: {'Yes' if algo_ondemand_wifi else 'No'}")
     if algo_ondemand_wifi_exclude:
-        print(f"Trusted Wi-Fi networks to exclude: {algo_ondemand_wifi_exclude}")
-        env_vars["TF_VAR_ondemand_wifi_exclude"] = algo_ondemand_wifi_exclude
+        print(f"Trusted Wi-Fi networks to exclude: {', '.join(algo_ondemand_wifi_exclude)}")
     print(f"Enable DNS Ad Blocking: {'Yes' if algo_dns_adblocking else 'No'}")
     print(f"Enable SSH Tunneling: {'Yes' if algo_ssh_tunneling else 'No'}")
     print("============================\n")
 
+    # Dump environment variables to algo.tfvars.json
+    tfvars_file = dump_env_to_tfvars_json(workspace_name, env_vars)
+
     # init and apply
-    command_init = ["tofu", chdir_option, "init"]
-    print(f"Running: {' '.join(command_init)}")
-    subprocess.run(command_init, check=True, env={**os.environ, **env_vars, "TF_VAR_state_passphrase": state_passphrase})
+    if not args.skip_init:
+        command_init = ["tofu", chdir_option, "init", "-var-file", f"../../{tfvars_file}", "-upgrade"]
+        print(f"Running: {' '.join(command_init)}")
+        subprocess.run(command_init, check=True, env={**os.environ, **env_vars, "TF_VAR_state_passphrase": state_passphrase})
 
     command_apply = ["tofu", chdir_option, "apply"]
+    if args.auto_approve:
+        command_apply.append("-auto-approve")
+    command_apply.extend(["-var-file", f"../../{tfvars_file}"])
     print(f"Running: {' '.join(command_apply)}")
     subprocess.run(command_apply, check=True, env={**os.environ, **env_vars, "TF_VAR_state_passphrase": state_passphrase})
 

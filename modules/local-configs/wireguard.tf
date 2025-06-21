@@ -29,3 +29,9 @@ resource "local_sensitive_file" "wireguard" {
   file_permission      = "0600"
   directory_permission = "0700"
 }
+
+resource "qrcode_generate" "wireguard" {
+  for_each       = local_sensitive_file.wireguard
+  file           = "${var.local_path}/wireguard/${each.key}.png"
+  sensitive_text = local_sensitive_file.wireguard[each.key].content
+}

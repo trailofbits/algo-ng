@@ -9,9 +9,8 @@ users:
 # unmanaged: false
 
 # Deploy IPsec (StrongSwan)
-# !!! THIS IS NOT YET SUPPORTED
 ipsec:
-  enabled: false
+  enabled: true
   log_level: 2
   ipv4: "10.48.0.0/16"
   ipv6: "2001:db8:4160::/48"
@@ -36,9 +35,11 @@ wireguard:
 # Unit) than the normal value of 1500 and if you don't reduce the MTU of your
 # VPN tunnel some network connections will hang. Algo will attempt to set this
 # automatically based on your server, but if connections hang you might need to
-# adjust this yourself.
+# adjust this yourself. The base is not used if reduce is set to 0.
 # See: https://github.com/trailofbits/algo/blob/master/docs/troubleshooting.md#various-websites-appear-to-be-offline-through-the-vpn
-reduce_mtu: 0
+mtu:
+  base: 1420
+  reduce: 0
 
 ssh_tunneling:
   enabled: true
@@ -129,9 +130,13 @@ clouds:
     ipv6: true                # https://cloud.google.com/vpc/docs/vpc#ipv6-regions
     project: "algo-140311"    # gcloud projects list
 
-  # local-server:
-  #   # Local installation can break your server, use at your own risk
-  #   ip: "3.65.207.122"
-  #   user: "ubuntu"
-  #   ssh_private_key: "/Users/jack/.ssh/id_ecdsa" # password protected keys are not supported
-  #   ipv6: true
+  remote-server:
+    # This installation can break your server, use at your own risk
+    # Only Ubuntu 24.04 LTS is supported
+    # You won't be able to rollback or destroy the changes made by this installation
+    # The server must be reachable via SSH
+    # The server must have a user with sudo privileges
+    ip: "3.65.207.122"
+    user: "ubuntu"
+    ssh_private_key: "/Users/user/.ssh/id_ecdsa" # password protected keys are not supported
+    ipv6: true

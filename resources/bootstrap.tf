@@ -1,7 +1,7 @@
 locals {
-  name       = "algo-${terraform.workspace}"
+  name       = "algo-${tofu.workspace}"
   config     = yamldecode(file("${path.cwd}/config.yaml"))
-  local_path = "${path.cwd}/configs/${terraform.workspace}"
+  local_path = "${path.cwd}/configs/${tofu.workspace}"
 
   module_init      = module.init.resources
   module_cloud     = module.cloud.resources
@@ -27,6 +27,7 @@ module "bootstrap" {
   ssh_key      = local.module_init.ssh_key
   cloud_config = local.module_cloud
   init_config  = local.module_init
+  dns          = local.dns
 
   triggers = {
     server_id = local.module_cloud.server_id
@@ -38,6 +39,7 @@ module "local-configs" {
   algo_config  = local.config
   resources    = local.module_bootstrap
   cloud_config = local.module_cloud
+  init_config  = local.module_init
   local_path   = local.local_path
   dns          = local.dns
 
@@ -45,7 +47,8 @@ module "local-configs" {
 
 output "congrats" {
   value = {
-    message = <<-EOF
+    config-directory = local.local_path
+    message          = <<-EOF
       #                          Congratulations!                            #
       #                     Your Algo server is running.                     #
       #    Config files and certificates are in the ./configs/ directory.    #

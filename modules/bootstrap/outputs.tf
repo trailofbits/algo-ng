@@ -15,5 +15,15 @@ output "resources" {
     }
 
     ssh_tunneling = tls_private_key.ssh
+
+    ipsec_config = {
+      users = {
+        keys  = tls_private_key.users
+        certs = tls_locally_signed_cert.users
+      }
+
+      ca_cert_pem     = try(tls_self_signed_cert.ca.0.cert_pem, null)
+      server_cert_pem = try(tls_locally_signed_cert.server.0.cert_pem, null)
+    }
   }
 }

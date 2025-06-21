@@ -52,10 +52,21 @@ resource "null_resource" "common-templates" {
       wg_ports_avoid = local.wg_ports_avoid
       algo_config    = var.algo_config
 
+      ipsec_enabled = var.algo_config.ipsec.enabled
+      wg_enabled    = var.algo_config.wireguard.enabled
+
       subnets = {
-        ipv4 = [var.algo_config.wireguard.ipv4]
-        ipv6 = [var.algo_config.wireguard.ipv6]
+        ipv4 = flatten([
+          var.algo_config.wireguard.enabled ? [var.algo_config.wireguard.ipv4] : [],
+          var.algo_config.ipsec.enabled ? [var.algo_config.ipsec.ipv4] : [],
+        ])
+        ipv6 = flatten([
+          var.algo_config.wireguard.enabled ? [var.algo_config.wireguard.ipv6] : [],
+          var.algo_config.ipsec.enabled ? [var.algo_config.ipsec.ipv6] : [],
+        ])
       }
+
+      mtu = var.algo_config.mtu
 
       init = var.init_config
     })

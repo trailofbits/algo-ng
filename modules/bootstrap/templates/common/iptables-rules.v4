@@ -10,9 +10,9 @@
 :OUTPUT ACCEPT [0:0]
 :POSTROUTING ACCEPT [0:0]
 
-# {% if reduce_mtu|int > 0 and ipsec_enabled %}
-# -A FORWARD -s {{ strongswan_network }} -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss {{ 1360 - reduce_mtu|int }}
-# {% endif %}
+%{ if mtu.reduce > 0 && ipsec_enabled }
+-A FORWARD -s ${algo_config.ipsec.ipv4} -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss ${mtu.base - mtu.reduce}
+%{ endif }
 
 COMMIT
 
@@ -32,6 +32,7 @@ COMMIT
 -A PREROUTING -s ${join(",", subnets.ipv4)} -p udp --dport ${algo_config.wireguard.port} -j RETURN
 -A PREROUTING ! --in-interface wg0 -p udp --dport ${algo_config.wireguard.port} -j REDIRECT --to-port ${ wg_port_actual }
 %{ endif }
+
 # Allow traffic from the VPN network to the outside world, and replies
 -A POSTROUTING -s ${join(",", subnets.ipv4)} -m policy --pol none --dir out -j MASQUERADE
 
@@ -65,15 +66,19 @@ COMMIT
 -A INPUT -p icmp --icmp-type echo-request -m hashlimit --hashlimit-upto 5/s --hashlimit-mode srcip --hashlimit-srcmask 32 --hashlimit-name icmp-echo-drop -j ACCEPT
 
 # Accept VPN traffic
+%{ if wg_enabled }
 -A INPUT -p udp -m multiport --dports ${algo_config.wireguard.port},${ wg_port_actual } -j ACCEPT
+%{ endif }
+
+%{ if ipsec_enabled }
+# Allow any traffic from the IPsec VPN
+-A INPUT -p ipencap -m policy --dir in --pol ipsec --proto esp -j ACCEPT
+-A INPUT -p udp -m multiport --dports 500,4500 -j ACCEPT
+%{ endif }
+
 
 # Allow new SSH traffic
 -A INPUT -p tcp --dport 22 -m conntrack --ctstate NEW -j ACCEPT
-
-# {% if ipsec_enabled %}
-# # Allow any traffic from the IPsec VPN
-# -A INPUT -p ipencap -m policy --dir in --pol ipsec --proto esp -j ACCEPT
-# {% endif %}
 
 # Accept DNS traffic to the local DNS resolver
 -A INPUT -d ${init.service_ip.ipv4} -p udp --dport 53 -j ACCEPT
@@ -99,14 +104,14 @@ COMMIT
 -A FORWARD -p udp -m multiport --ports 137,138 -j %{if algo_config.block_smb}DROP%{else}ACCEPT%{endif}
 -A FORWARD -p tcp -m multiport --ports 137,139 -j %{if algo_config.block_smb}DROP%{else}ACCEPT%{endif}
 
-# {% if ipsec_enabled %}
-# # Forward any IPSEC traffic from the VPN network
-# -A FORWARD -m conntrack --ctstate NEW -s {{ strongswan_network }} -m policy --pol ipsec --dir in -j ACCEPT
-# {% endif %}
+%{ if ipsec_enabled }
+# Forward any IPSEC traffic from the VPN network
+-A FORWARD -m conntrack --ctstate NEW -s ${ algo_config.ipsec.ipv4 } -m policy --pol ipsec --dir in -j ACCEPT
+%{ endif }
 
-# {% if wireguard_enabled %}
+%{ if wg_enabled }
 # Forward any traffic from the WireGuard VPN network
 -A FORWARD -m conntrack --ctstate NEW -s ${ algo_config.wireguard.ipv4 } -m policy --pol none --dir in -j ACCEPT
-# {% endif %}
+%{ endif }
 
 COMMIT
