@@ -2,7 +2,39 @@
 
 This Python script is a command-line wrapper around OpenTofu designed to simplify managing VPN infrastructure deployments.
 
----
+```bash
+./algo --help
+usage: algo [-h] [--provider {DigitalOcean,Lightsail,EC2,GCE,Azure}] [--workspace WORKSPACE] [--destroy] [--update-users] [--ondemand-cellular ONDEMAND_CELLULAR] [--ondemand-wifi ONDEMAND_WIFI]
+            [--ondemand-wifi-exclude ONDEMAND_WIFI_EXCLUDE] [--dns-adblocking DNS_ADBLOCKING] [--ssh-tunneling SSH_TUNNELING] [--state-pass STATE_PASS] [--skip-init] [--auto-approve]
+            [--config-file CONFIG_FILE]
+
+Manage VPN setup with OpenTofu.
+
+options:
+  -h, --help            show this help message and exit
+  --provider {DigitalOcean,Lightsail,EC2,GCE,Azure}
+                        Provider name
+  --workspace WORKSPACE
+                        Specify the workspace
+  --destroy             Destroy the infrastructure and exit
+  --update-users        Update VPN users without modifying infrastructure
+  --ondemand-cellular ONDEMAND_CELLULAR
+                        Enable 'Connect On Demand' on cellular? [y/N]
+  --ondemand-wifi ONDEMAND_WIFI
+                        Enable 'Connect On Demand' on Wi-Fi? [y/N]
+  --ondemand-wifi-exclude ONDEMAND_WIFI_EXCLUDE
+                        Exclude trusted Wi-Fi networks (comma-separated)
+  --dns-adblocking DNS_ADBLOCKING
+                        Enable DNS Ad Blocking? [y/N]
+  --ssh-tunneling SSH_TUNNELING
+                        Enable SSH Tunneling? [y/N]
+  --state-pass STATE_PASS
+                        State passphrase for encryption (optional, will prompt if not set)
+  --skip-init           Skip the tofu init and only run apply
+  --auto-approve        Automatically approve changes without prompting for confirmation
+  --config-file CONFIG_FILE
+                        Path to Algo configuration file
+```
 
 ## What it does
 
@@ -27,8 +59,6 @@ This Python script is a command-line wrapper around OpenTofu designed to simplif
 - **Debug mode:**
   Enable detailed debug output by setting `ALGO_DEBUG=1` in your environment.
 
----
-
 ## Prerequisites
 
 Before running the wrapper, make sure you have the following in place:
@@ -39,8 +69,6 @@ Before running the wrapper, make sure you have the following in place:
 - Proper **cloud provider credentials** configured (e.g., AWS keys, DigitalOcean tokens, etc.)
   → Follow our guide: [`docs/clouds-credentials.md`](../docs/clouds-credentials.md)
 
----
-
 ## Environment Variables
 
 - `ALGO_DEBUG=1`
@@ -48,8 +76,6 @@ Before running the wrapper, make sure you have the following in place:
 
 - `TF_VAR_state_passphrase`
   Optionally provide your Terraform/OpenTofu state encryption passphrase through this environment variable to avoid interactive prompts.
-
----
 
 ## Example Commands
 
