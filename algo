@@ -1,227 +1,236 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 
-SENSITIVE_PROMPT="[pasted values will not be displayed]"
-TRUE="^(y|Y|true)$"
-REGIONS_PATH="./regions"
+import argparse
+import os
+import subprocess
+import getpass
+import json
 
-describeRegions(){
-  index=1
-  while IFS="," read code name default; do
-    printf "\n%2s. %-${ALGN:-5}s %s" $index "$code" "$name"
-    ((index++))
-  done < ${REGIONS_PATH}/${1}
-}
+def debug(msg):
+    """Print debug messages only if ALGO_DEBUG=1 is set in the environment."""
+    if os.getenv("ALGO_DEBUG") == "1":
+        print(f"[DEBUG] {msg}")
 
-getRegionCodeByIndex(){
-  sed "${2}q;d" ${REGIONS_PATH}/${1} | cut -f1 -d,
-}
+def get_user_input(prompt, choices=None, default=None, boolean=False, cli_value=None, secret=False, min_length=None):
+    """Prompt the user for input and return their response."""
+    if cli_value is not None:
+        return cli_value if not boolean else cli_value.lower() in ['y', 'yes']
 
-getDefaultRegion(){
-  index=1
-  while IFS="," read code name default; do
-    if [[ "$default" == "default" ]]; then
-      default=${index}
-      echo "$default"
-      break
-    fi
-    ((index++))
-  done < ${REGIONS_PATH}/${1}
+    if choices:
+        prompt += "\n" + "\n".join(
+            f"  {i+1}. {choice}" for i, choice in enumerate(choices)
+        ) + "\n"
 
-}
+    while True:
+        if secret:
+            response = getpass.getpass(prompt + "\n> ")
+        else:
+            response = input(f"{prompt}\n> ").strip()
 
-askForRegion(){
-  local default="$(getDefaultRegion ${ALGO_PROVIDER})"
-  echo -e "\nWhat region should the server be located in?" \
-    "\n$(describeRegions $1)" \
-    "\nEnter the number of your desired region:"
-  read -p "[${default}]: " -r region
-  region=${region:-$default}
-  TF_VAR_region="$(getRegionCodeByIndex "$1" $region)"
-}
+        if response:
+            if min_length and len(response) < min_length:
+                print(f"Input must be at least {min_length} characters long.")
+                continue
+            if choices:
+                try:
+                    index = int(response) - 1
+                    if 0 <= index < len(choices):
+                        print(f"Selected: {choices[index]}")
+                        return choices[index]
+                except ValueError:
+                    pass
+            if boolean:
+                selected_value = response.lower() in ['y', 'yes']
+                print(f"Selected: {'Yes' if selected_value else 'No'}")
+                return selected_value
+            if not secret:
+                print(f"Selected: {response}")
+            return response
 
-azure () {
-  if [[ -z $ALGO_REGION && "$ALGO_COMMAND" == "apply"  ]]; then
-    askForRegion ${ALGO_PROVIDER}
-  else
-    TF_VAR_region="$ALGO_REGION"
-  fi
+        elif default is not None:
+            if not secret:
+                if boolean:
+                    print(f"Selected: {'Yes' if default.lower() in ['y', 'yes'] else 'No'}")
+                else:
+                    print(f"Selected: {default}")
+            return default if not boolean else default.lower() in ['y', 'yes']
 
-  export  ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID \
-          ARM_CLIENT_ID=$ARM_CLIENT_ID \
-          ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET \
-          ARM_TENANT_ID=$ARM_TENANT_ID \
-          ALGO_SERVER_NAME=${ALGO_SERVER_NAME}
-}
+def select_workspace(cli_workspace=None, chdir_option=""):
+    """Lists available Tofu workspaces, prompts user for selection, and switches or creates a new one if needed."""
+    command = ["tofu", chdir_option, "workspace", "list"]
+    debug(f"Running command: {' '.join(command)}")
+    result = subprocess.run(command, capture_output=True, text=True)
+    raw_workspaces = [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
-digitalocean () {
-  if [[ -z $DIGITALOCEAN_TOKEN ]]; then
-    echo -e "\nEnter your API token. The token must have read and write permissions" \
-            "(https://cloud.digitalocean.com/settings/api/tokens):" \
-            "\n$SENSITIVE_PROMPT"
-    read -p ": " -rs DIGITALOCEAN_TOKEN
-  fi
+    workspaces = []
+    current_workspace = None
 
-  if [[ -z $ALGO_REGION && "$ALGO_COMMAND" == "apply" ]]; then
-    askForRegion ${ALGO_PROVIDER}
-  else
-    TF_VAR_region="$ALGO_REGION"
-  fi
+    for line in raw_workspaces:
+        debug(f"Processing line: {line}")
+        line = line.strip()
+        if line.startswith("* "):
+            debug(f"Found current workspace: {line}")
+            current_workspace = line.lstrip("* ").strip()
+            workspaces.append(f"{current_workspace} (current)")
+        elif line:
+            debug(f"Found workspace: {line}")
+            workspaces.append(line)
 
-  export  DIGITALOCEAN_TOKEN=$DIGITALOCEAN_TOKEN \
-          ALGO_SERVER_NAME=${ALGO_SERVER_NAME}
-}
+    debug(f"Found workspaces: {workspaces}")
 
-aws () {
-  if [[ -z $AWS_ACCESS_KEY_ID && -z $AWS_PROFILE ]]; then
-    echo -e "\nEnter your aws_access_key (http://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html)" \
-            "\nNote: Make sure to use an IAM user with an acceptable policy attached (see https://github.com/trailofbits/algo/blob/master/docs/deploy-from-terraform.md)." \
-            "\n$SENSITIVE_PROMPT" \
-            "\n[AKIA...]: "
-    read -p ": " -rs AWS_ACCESS_KEY_ID
-  fi
+    if not workspaces:
+        print("No workspaces found.")
+        return None
 
-  if [[ -z $AWS_SECRET_ACCESS_KEY && -z $AWS_PROFILE ]]; then
-    echo -e "\n\nEnter your aws_secret_key (http://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html)" \
-            "\n$SENSITIVE_PROMPT" \
-            "\n[ABCD...]: "
-    read -p ": " -rs AWS_SECRET_ACCESS_KEY
-  fi
+    if cli_workspace:
+        selected_workspace = cli_workspace
+    else:
+        print("\nAvailable Workspaces:")
+        selected_workspace = get_user_input("Select a workspace or enter a new name to create one:",
+                                            choices=workspaces, default=f"{current_workspace} (current)")
 
-  if [[ -z $ALGO_REGION && "$ALGO_COMMAND" == "apply"  ]]; then
-    ALGN=15 askForRegion ${ALGO_PROVIDER}
-  else
-    TF_VAR_region="$ALGO_REGION"
-  fi
+    selected_workspace = selected_workspace.replace(" (current)", "").strip()
 
-  export  AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-          AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-          ALGO_SERVER_NAME=${ALGO_SERVER_NAME}
-}
+    if selected_workspace not in [w.replace(" (current)", "").strip() for w in workspaces]:
+        print(f"Workspace '{selected_workspace}' does not exist. Creating a new workspace...")
+        subprocess.run(["tofu", chdir_option, "workspace", "new", selected_workspace], check=True)
+    else:
+        if selected_workspace != current_workspace:
+            subprocess.run(["tofu", chdir_option, "workspace", "select", selected_workspace], check=True)
 
-gce () {
-  if [[ -z $GOOGLE_CREDENTIALS ]]; then
-    echo -e "\nEnter the local path to your credentials JSON file" \
-            "(https://support.google.com/cloud/answer/6158849?hl=en&ref_topic=6262490#serviceaccounts)"
-    read -p "[]: " -r GOOGLE_CREDENTIALS
-  fi
+    return selected_workspace
 
-  if [[ -z $ALGO_REGION && "$ALGO_COMMAND" == "apply"  ]]; then
-    ALGN=25 askForRegion ${ALGO_PROVIDER}
-  else
-    TF_VAR_region="$ALGO_REGION"
-  fi
+def dump_env_to_tfvars_json(workspace_name, env_vars):
+    """Dump environment variables to a .tfvars.json file."""
+    dir_path = f"configs/{workspace_name}"
 
-  export  GOOGLE_CREDENTIALS=$GOOGLE_CREDENTIALS \
-          TF_VAR_google_credentials=$GOOGLE_CREDENTIALS \
-          ALGO_SERVER_NAME=${ALGO_SERVER_NAME}
-}
+    # Remove the 'TF_VAR_' prefix from the keys
+    stripped_env_vars = {key.replace("TF_VAR_", ""): value for key, value in env_vars.items()}
 
-algo_provisioning () {
-  if [[ -z $ALGO_PROVIDER && "$ALGO_COMMAND" == "apply"  ]]; then
-    echo -e "\nWhat provider would you like to use?\n" \
-            "\n 1. DigitalOcean" \
-            "\n 2. Amazon EC2" \
-            "\n 3. Microsoft Azure" \
-            "\n 4. Google Compute Engine" \
-            "\n\nEnter the number of your desired provider"
-    read -p ": " -r ALGO_PROVIDER
-  fi
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
 
-  local default=algo
-  if [[ -z $ALGO_SERVER_NAME && "$ALGO_COMMAND" == "apply" ]]; then
-    echo -e '\nName the vpn server:'
-    read -p "[${default}]: " -r ALGO_SERVER_NAME
-  fi
+    tfvars_file = os.path.join(dir_path, "algo.tfvars.json")
 
-  export ALGO_SERVER_NAME=${ALGO_SERVER_NAME:-${default}}
+    with open(tfvars_file, 'w') as f:
+        json.dump(stripped_env_vars, f, indent=4)
 
-  case "$ALGO_PROVIDER" in
-    1|digitalocean) ALGO_PROVIDER=digitalocean; digitalocean; ;;
-    2|ec2) ALGO_PROVIDER=ec2; aws; ;;
-    3|azure) ALGO_PROVIDER=azure; azure; ;;
-    4|gce) ALGO_PROVIDER=gce; gce; ;;
-    *) exit 1 ;;
-  esac
+    print(f"Variables have been saved to {tfvars_file}")
 
-  export  TF_CLI_ARGS_apply+=" -auto-approve -parallelism=1" \
-          TF_VAR_algo_name="${ALGO_SERVER_NAME}" \
-          TF_VAR_algo_provider="${ALGO_PROVIDER}" \
-          TF_VAR_region="$TF_VAR_region"
+    return tfvars_file
 
+def main():
+    """Manage VPN setup with OpenTofu."""
+    providers = ["DigitalOcean", "Lightsail", "EC2", "GCE", "Azure"]
 
-  if [[ "$ALGO_COMMAND" == "apply" ]]; then
-    ${TERRAFORM_BIN} workspace select ${ALGO_PROVIDER}-${TF_VAR_region}-${ALGO_SERVER_NAME} \
-      || ${TERRAFORM_BIN} workspace new ${ALGO_PROVIDER}-${TF_VAR_region}-${ALGO_SERVER_NAME}
-    ${TERRAFORM_BIN} init cloud/$ALGO_PROVIDER/
-  fi
+    parser = argparse.ArgumentParser(description="Manage VPN setup with OpenTofu.")
+    parser.add_argument("--provider", type=str, choices=providers, help="Provider name")
+    parser.add_argument("--workspace", type=str, help="Specify the workspace")
+    parser.add_argument("--destroy", action="store_true", help="Destroy the infrastructure and exit")
+    parser.add_argument("--update-users", action="store_true", help="Update VPN users without modifying infrastructure")
+    parser.add_argument("--ondemand-cellular", type=str, help="Enable 'Connect On Demand' on cellular? [y/N]")
+    parser.add_argument("--ondemand-wifi", type=str, help="Enable 'Connect On Demand' on Wi-Fi? [y/N]")
+    parser.add_argument("--ondemand-wifi-exclude", type=str, help="Exclude trusted Wi-Fi networks (comma-separated)")
+    parser.add_argument("--dns-adblocking", type=str, help="Enable DNS Ad Blocking? [y/N]")
+    parser.add_argument("--ssh-tunneling", type=str, help="Enable SSH Tunneling? [y/N]")
+    parser.add_argument("--state-pass", type=str, help="State passphrase for encryption (optional, will prompt if not set)")
+    parser.add_argument("--skip-init", action="store_true", help="Skip the tofu init and only run apply", default=False)
+    parser.add_argument("--auto-approve", action="store_true", help="Automatically approve changes without prompting for confirmation")
+    parser.add_argument("--config-file", type=str, help="Path to Algo configuration file")
 
-  ${TERRAFORM_BIN} ${ALGO_COMMAND:-apply} cloud/$ALGO_PROVIDER/
-}
+    args = parser.parse_args()
 
-help () {
-  echo "Usage: $0 <command>
+    # Always ask the user for provider input
+    algo_provider = get_user_input("Which provider would you like to use?", choices=providers, cli_value=args.provider)
+    algo_provider_lower = algo_provider.lower()
+    chdir_option = f"-chdir={algo_provider_lower}/"
+    apply_options = f"-auto-approve" if args.auto_approve else ""
 
-  The available commands for execution are listed below.
+    # Check if state passphrase is set
+    state_passphrase = os.getenv("TF_VAR_state_passphrase") or args.state_pass
+    if not state_passphrase:
+        while True:
+            state_passphrase_1 = get_user_input("Enter your Tofu state encryption passphrase (minimum 16 characters):", secret=True, min_length=16)
+            state_passphrase_2 = get_user_input("Re-enter the passphrase to confirm:", secret=True)
+            if state_passphrase_1 == state_passphrase_2:
+                state_passphrase = state_passphrase_1
+                break
+            else:
+                print("Passphrases do not match. Please try again.")
 
-  Common commands:
-      apply              Builds or changes infrastructure
-      destroy            Destroy Terraform-managed infrastructure
-      update-users       Update AlgoVPN users
-  "
-  exit 0
-}
+    # Select workspace (either from CLI or user input)
+    workspace_name = select_workspace(args.workspace, chdir_option)
 
-locate_terraform () {
-  export TERRAFORM_BIN=$(which ./terraform || which terraform)
-  if [[ "$TERRAFORM_BIN" == "" ]]; then
-    echo "
-    Terraform binary is not found.
-    Please, read the readme and follow the instructions"
-    exit 1
-  fi
-}
+    if args.destroy:
+        destroy_command = ["tofu", chdir_option, "destroy"]
+        print(f"Running: {' '.join(destroy_command)}")
+        subprocess.run(destroy_command, check=True, env={**os.environ, "TF_VAR_state_passphrase": state_passphrase})
+        return
 
-apply () {
-  locate_terraform
+    if args.update_users:
+        apply_command = ["tofu", chdir_option, "apply"]
+        print(f"Running: {' '.join(apply_command)}")
+        subprocess.run(apply_command, check=True, env={**os.environ, "TF_VAR_state_passphrase": state_passphrase})
+        return
 
-  export ALGO_COMMAND="apply"
-  algo_provisioning
-}
+    # Proceed with normal configuration
+    algo_ondemand_cellular = get_user_input("Enable 'Connect On Demand' on cellular? [y/N]",
+                                            boolean=True, default="N", cli_value=args.ondemand_cellular)
+    algo_ondemand_wifi = get_user_input("Enable 'Connect On Demand' on Wi-Fi? [y/N]",
+                                        boolean=True, default="N", cli_value=args.ondemand_wifi)
 
-destroyResources () {
-  locate_terraform
+    algo_ondemand_wifi_exclude = None
+    if algo_ondemand_wifi:
+        algo_ondemand_wifi_exclude = get_user_input("Enter trusted Wi-Fi networks to exclude (comma-separated):", cli_value=args.ondemand_wifi_exclude)
+        if algo_ondemand_wifi_exclude:
+            algo_ondemand_wifi_exclude = [item.strip() for item in algo_ondemand_wifi_exclude.split(',')]
 
-  CURRENT_WORKSPACE="$(${TERRAFORM_BIN} workspace list | grep "^*" | awk '{print $2}')"
+    algo_dns_adblocking = get_user_input("Enable DNS Ad Blocking? [y/N]",
+                                         boolean=True, default="N", cli_value=args.dns_adblocking)
+    algo_ssh_tunneling = get_user_input("Enable SSH Tunneling? [y/N]",
+                                        boolean=True, default="N", cli_value=args.ssh_tunneling)
 
-  if [[ -z $WORKSPACE ]]; then
-    echo -e "\nWhat workspace you want to destroy?\n" \
-      "\n$(${TERRAFORM_BIN} workspace list)\n" \
-      "\nEnter the full name of the workspace: "
-    read -p "[${CURRENT_WORKSPACE}]: " -r workspace
+    env_vars = {
+        "TF_VAR_ondemand_cellular": str(algo_ondemand_cellular).lower(),
+        "TF_VAR_ondemand_wifi": str(algo_ondemand_wifi).lower(),
+        "TF_VAR_dns_adblocking": str(algo_dns_adblocking).lower(),
+        "TF_VAR_ssh_tunneling": str(algo_ssh_tunneling).lower(),
+    }
 
-    export WORKSPACE=${workspace:-$CURRENT_WORKSPACE}
-  fi
+    # Set the Algo configuration file if provided
+    if args.config_file:
+        env_vars["TF_VAR_config_file"] = args.config_file
 
-  ${TERRAFORM_BIN} workspace select "${WORKSPACE}" || exit 1
+    # Add the list of excluded Wi-Fi networks if present
+    if algo_ondemand_wifi_exclude:
+        env_vars["TF_VAR_ondemand_wifi_exclude"] = algo_ondemand_wifi_exclude
 
-  export ALGO_COMMAND="destroy"
-  export ALGO_PROVIDER=$(echo $CURRENT_WORKSPACE | cut -f1 -d-)
+    print("\n=== Configuration Summary ===")
+    print(f"Workspace: {workspace_name}")
+    print(f"Provider: {algo_provider}")
+    print(f"Enable 'Connect On Demand' on cellular: {'Yes' if algo_ondemand_cellular else 'No'}")
+    print(f"Enable 'Connect On Demand' on Wi-Fi: {'Yes' if algo_ondemand_wifi else 'No'}")
+    if algo_ondemand_wifi_exclude:
+        print(f"Trusted Wi-Fi networks to exclude: {', '.join(algo_ondemand_wifi_exclude)}")
+    print(f"Enable DNS Ad Blocking: {'Yes' if algo_dns_adblocking else 'No'}")
+    print(f"Enable SSH Tunneling: {'Yes' if algo_ssh_tunneling else 'No'}")
+    print("============================\n")
 
-  algo_provisioning
+    # Dump environment variables to algo.tfvars.json
+    tfvars_file = dump_env_to_tfvars_json(workspace_name, env_vars)
 
-  ${TERRAFORM_BIN} workspace select default
-  ${TERRAFORM_BIN} workspace delete ${WORKSPACE}
-}
+    # init and apply
+    if not args.skip_init:
+        command_init = ["tofu", chdir_option, "init", "-var-file", f"../{tfvars_file}", "-upgrade"]
+        print(f"Running: {' '.join(command_init)}")
+        subprocess.run(command_init, check=True, env={**os.environ, **env_vars, "TF_VAR_state_passphrase": state_passphrase})
 
-destroy () {
-  locate_terraform
-  destroyResources
-}
+    command_apply = ["tofu", chdir_option, "apply"]
+    if args.auto_approve:
+        command_apply.append("-auto-approve")
+    command_apply.extend(["-var-file", f"../{tfvars_file}"])
+    print(f"Running: {' '.join(command_apply)}")
+    subprocess.run(command_apply, check=True, env={**os.environ, **env_vars, "TF_VAR_state_passphrase": state_passphrase})
 
-case "$1" in
-  apply)         apply         ;;
-  destroy)       destroy       ;;
-  update-users)  update-users  ;;
-  get-terraform) get_terraform ;;
-  *)             help "$@"     ;;
-esac
+if __name__ == "__main__":
+    main()

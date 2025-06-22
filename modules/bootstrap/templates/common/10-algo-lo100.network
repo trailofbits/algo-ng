@@ -1,0 +1,7 @@
+[Match]
+Name=lo
+
+[Network]
+Description=lo:100
+Address=${ init.service_ip.ipv4 }/32
+Address=${ init.service_ip.ipv6 }/128

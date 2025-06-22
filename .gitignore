@@ -7,5 +7,7 @@ inventory_users
 *.kate-swp
 env
 .DS_Store
-.terraform/*
+.terraform
 *tfstate*
+configs
+local

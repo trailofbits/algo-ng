@@ -1,0 +1,3 @@
+%{for k in authorized_keys~}
+${k.user}:!:::::/sbin/nologin
+%{endfor~}
