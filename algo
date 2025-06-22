@@ -43,7 +43,8 @@ def get_user_input(prompt, choices=None, default=None, boolean=False, cli_value=
                 selected_value = response.lower() in ['y', 'yes']
                 print(f"Selected: {'Yes' if selected_value else 'No'}")
                 return selected_value
-            print(f"Selected: {response}")
+            if not secret:
+                print(f"Selected: {response}")
             return response
 
         elif default is not None:
@@ -56,7 +57,9 @@ def get_user_input(prompt, choices=None, default=None, boolean=False, cli_value=
 
 def select_workspace(cli_workspace=None, chdir_option=""):
     """Lists available Tofu workspaces, prompts user for selection, and switches or creates a new one if needed."""
-    result = subprocess.run(["tofu", chdir_option, "workspace", "list"], capture_output=True, text=True)
+    command = ["tofu", chdir_option, "workspace", "list"]
+    debug(f"Running command: {' '.join(command)}")
+    result = subprocess.run(command, capture_output=True, text=True)
     raw_workspaces = [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
     workspaces = []
@@ -133,17 +136,15 @@ def main():
     parser.add_argument("--state-pass", type=str, help="State passphrase for encryption (optional, will prompt if not set)")
     parser.add_argument("--skip-init", action="store_true", help="Skip the tofu init and only run apply", default=False)
     parser.add_argument("--auto-approve", action="store_true", help="Automatically approve changes without prompting for confirmation")
+    parser.add_argument("--config-file", type=str, help="Path to Algo configuration file")
 
     args = parser.parse_args()
 
     # Always ask the user for provider input
     algo_provider = get_user_input("Which provider would you like to use?", choices=providers, cli_value=args.provider)
     algo_provider_lower = algo_provider.lower()
-    chdir_option = f"-chdir=base/{algo_provider_lower}/"
+    chdir_option = f"-chdir={algo_provider_lower}/"
     apply_options = f"-auto-approve" if args.auto_approve else ""
-
-    # Select workspace (either from CLI or user input)
-    workspace_name = select_workspace(args.workspace, chdir_option)
 
     # Check if state passphrase is set
     state_passphrase = os.getenv("TF_VAR_state_passphrase") or args.state_pass
@@ -156,6 +157,9 @@ def main():
                 break
             else:
                 print("Passphrases do not match. Please try again.")
+
+    # Select workspace (either from CLI or user input)
+    workspace_name = select_workspace(args.workspace, chdir_option)
 
     if args.destroy:
         destroy_command = ["tofu", chdir_option, "destroy"]
@@ -193,6 +197,10 @@ def main():
         "TF_VAR_ssh_tunneling": str(algo_ssh_tunneling).lower(),
     }
 
+    # Set the Algo configuration file if provided
+    if args.config_file:
+        env_vars["TF_VAR_config_file"] = args.config_file
+
     # Add the list of excluded Wi-Fi networks if present
     if algo_ondemand_wifi_exclude:
         env_vars["TF_VAR_ondemand_wifi_exclude"] = algo_ondemand_wifi_exclude
@@ -213,14 +221,14 @@ def main():
 
     # init and apply
     if not args.skip_init:
-        command_init = ["tofu", chdir_option, "init", "-var-file", f"../../{tfvars_file}", "-upgrade"]
+        command_init = ["tofu", chdir_option, "init", "-var-file", f"../{tfvars_file}", "-upgrade"]
         print(f"Running: {' '.join(command_init)}")
         subprocess.run(command_init, check=True, env={**os.environ, **env_vars, "TF_VAR_state_passphrase": state_passphrase})
 
     command_apply = ["tofu", chdir_option, "apply"]
     if args.auto_approve:
         command_apply.append("-auto-approve")
-    command_apply.extend(["-var-file", f"../../{tfvars_file}"])
+    command_apply.extend(["-var-file", f"../{tfvars_file}"])
     print(f"Running: {' '.join(command_apply)}")
     subprocess.run(command_apply, check=True, env={**os.environ, **env_vars, "TF_VAR_state_passphrase": state_passphrase})
 

@@ -1,22 +1,25 @@
-#! /usr/bin/env bash
+#!/usr/bin/env bash
 
 set -euo pipefail
 
 max_retry=60
-counter=0
-sleep=3
+counter=1
+sleep_duration=3
 
 export DEBIAN_FRONTEND="noninteractive"
 
-count () {
-  sleep $sleep
-  [[ counter -eq $max_retry ]] && echo "Failed!" && exit 1
+count() {
+  sleep $sleep_duration
+  if [[ $counter -eq $max_retry ]]; then
+    echo "Failed after $counter attempts!"
+    exit 1
+  fi
   echo "Trying again. Try #$counter"
   ((counter++))
 }
 
-try () {
-  until $@; do
+try() {
+  until "$@"; do
     count
   done
 }

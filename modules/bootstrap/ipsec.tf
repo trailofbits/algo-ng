@@ -169,7 +169,7 @@ resource "null_resource" "strongswan-script" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo bash /opt/algo/scripts/strongswan.sh"
+      "for i in {1..5}; do sudo bash /opt/algo/scripts/strongswan.sh && break || sleep 10; done"
     ]
   }
 

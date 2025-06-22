@@ -2,7 +2,7 @@
 
 . /opt/algo/scripts/libs.sh
 
-try "apt-get install strongswan -yq -yq" >/dev/null
+try apt-get install strongswan -yq >/dev/null
 
 cat /opt/algo/configs/strongswan/ipsec.conf > /etc/ipsec.conf
 cat /opt/algo/configs/strongswan/ca-cert.pem > /etc/ipsec.d/cacerts/ca.crt

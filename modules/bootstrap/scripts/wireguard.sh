@@ -2,7 +2,7 @@
 
 . /opt/algo/scripts/libs.sh
 
-try "apt-get install wireguard -yq -yq" >/dev/null
+try apt-get install wireguard -yq >/dev/null
 
 ln -sf /opt/algo/configs/wireguard/wg0.conf /etc/wireguard/wg0.conf
 

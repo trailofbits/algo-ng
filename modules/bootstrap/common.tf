@@ -95,7 +95,7 @@ resource "null_resource" "common" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo bash /opt/algo/scripts/common.sh"
+      "for i in {1..5}; do sudo bash /opt/algo/scripts/common.sh && break || sleep 10; done"
     ]
   }
 

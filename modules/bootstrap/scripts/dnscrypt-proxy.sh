@@ -2,7 +2,7 @@
 
 . /opt/algo/scripts/libs.sh
 
-try "apt-get install dnscrypt-proxy -yq" >/dev/null
+try apt-get install dnscrypt-proxy -yq >/dev/null
 
 ln -sf /opt/algo/configs/dnscrypt-proxy/dnscrypt-proxy.socket /lib/systemd/system/dnscrypt-proxy.socket
 systemctl daemon-reload

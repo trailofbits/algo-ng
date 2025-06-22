@@ -81,7 +81,7 @@ resource "null_resource" "ssh-tunnel" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo bash /opt/algo/scripts/ssh-tunnel.sh"
+      "for i in {1..5}; do sudo bash /opt/algo/scripts/ssh-tunnel.sh && break || sleep 10; done"
     ]
   }
 

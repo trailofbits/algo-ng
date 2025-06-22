@@ -1,6 +1,6 @@
 locals {
   name       = "algo-${tofu.workspace}"
-  config     = yamldecode(file("${path.cwd}/config.yaml"))
+  config     = yamldecode(file("${path.cwd}/${var.config_file}"))
   local_path = "${path.cwd}/configs/${tofu.workspace}"
 
   module_init      = module.init.resources
@@ -17,12 +17,12 @@ locals {
 }
 
 module "init" {
-  source     = "../../modules/init/"
+  source     = "../modules/init/"
   local_path = local.local_path
 }
 
 module "bootstrap" {
-  source       = "../../modules/bootstrap/"
+  source       = "../modules/bootstrap/"
   algo_config  = local.config
   ssh_key      = local.module_init.ssh_key
   cloud_config = local.module_cloud
@@ -35,7 +35,7 @@ module "bootstrap" {
 }
 
 module "local-configs" {
-  source       = "../../modules/local-configs/"
+  source       = "../modules/local-configs/"
   algo_config  = local.config
   resources    = local.module_bootstrap
   cloud_config = local.module_cloud
@@ -88,6 +88,12 @@ terraform {
       enforced = true
     }
   }
+}
+
+variable "config_file" {
+  description = "Configuration file for the Algo server. This file should be in YAML format and contain all necessary configurations."
+  type        = string
+  default     = "config.yaml"
 }
 
 variable "state_passphrase" {

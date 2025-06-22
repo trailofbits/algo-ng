@@ -77,7 +77,7 @@ resource "null_resource" "wireguard-script" {
     private_key = var.ssh_key.private
   }
 
-  triggers = var.triggers
+  # triggers = var.triggers
 
   provisioner "file" {
     content     = local.wg0_conf
@@ -86,7 +86,7 @@ resource "null_resource" "wireguard-script" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo bash /opt/algo/scripts/wireguard.sh"
+      "for i in {1..5}; do sudo bash /opt/algo/scripts/wireguard.sh && break || sleep 10; done"
     ]
   }
 

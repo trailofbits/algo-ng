@@ -58,9 +58,10 @@ resource "null_resource" "dnscrypt-script" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo bash /opt/algo/scripts/dnscrypt-proxy.sh"
+      "for i in {1..5}; do sudo bash /opt/algo/scripts/dnscrypt-proxy.sh && break || sleep 10; done"
     ]
   }
+
 
   depends_on = [
     null_resource.dnscrypt-template,
